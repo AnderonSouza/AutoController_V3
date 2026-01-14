@@ -326,7 +326,17 @@ const App: React.FC = () => {
         userId: authData?.user?.id,
       })
 
-      if (authError) return `Erro: ${authError.message}`
+      if (authError) {
+        const errorMessages: Record<string, string> = {
+          "Invalid login credentials": "E-mail ou senha incorretos",
+          "Email not confirmed": "E-mail não confirmado. Verifique sua caixa de entrada.",
+          "User not found": "Usuário não encontrado",
+          "Invalid email or password": "E-mail ou senha inválidos",
+          "Too many requests": "Muitas tentativas. Aguarde alguns minutos.",
+        }
+        const translatedMessage = errorMessages[authError.message] || authError.message
+        return translatedMessage
+      }
       if (!authData.user) return "Erro interno."
 
       console.log("[v0] Fetching user profile...")
