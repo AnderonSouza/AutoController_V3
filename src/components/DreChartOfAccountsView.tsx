@@ -516,10 +516,12 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
     const filteredAccounts = useMemo(() => !searchTerm.trim() ? editableAccounts : editableAccounts.filter(acc => acc.name.toLowerCase().includes(searchTerm.toLowerCase())), [editableAccounts, searchTerm]);
 
     // FILTER ACCOUNTING ACCOUNTS FOR MODAL (RESULT ONLY)
+    // Filtra apenas contas analíticas (tipo = "A") que começam com 3 (contas de resultado)
     const resultAccountingAccounts = useMemo(() => {
         return propAccountingAccounts.filter(acc => {
-            const firstDigit = acc.id.charAt(0);
-            return firstDigit !== '1' && firstDigit !== '2';
+            const isAnalytical = acc.accountType?.toUpperCase() === 'A';
+            const startsWithThree = acc.reducedCode?.startsWith('3');
+            return isAnalytical && startsWithThree;
         });
     }, [propAccountingAccounts]);
 
