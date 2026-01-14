@@ -46,9 +46,9 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
         }
     }, [value, selectedOption]);
 
-    // Filter options
+    // Filter options - with safety check for undefined names
     const filteredOptions = options.filter(option => 
-        option.name.toLowerCase().includes(inputValue.toLowerCase())
+        option.name && option.name.toLowerCase().includes(inputValue.toLowerCase())
     );
 
     useEffect(() => {
