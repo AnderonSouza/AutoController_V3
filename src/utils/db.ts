@@ -382,6 +382,18 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         economicGroupId: item.organizacao_id,
       }
     }
+    if (dbTable === "mapeamento_contas") {
+      return {
+        id: item.id,
+        accountingAccountId: item.conta_contabil_id,
+        dreAccountId: item.conta_dre_id || item.dre_account_id,
+        idconta: item.idconta,
+        conta: item.conta,
+        contaGerencial: item.conta_gerencial,
+        economicGroupId: item.organizacao_id,
+        createdAt: item.criado_em,
+      }
+    }
     return item
   })
 }
@@ -463,6 +475,19 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
       })
       obj.organizacao_id = tenantId
       return obj
+    }
+
+    if (dbTable === "mapeamento_contas") {
+      return {
+        id: item.id,
+        conta_contabil_id: item.accountingAccountId || item.conta_contabil_id,
+        conta_dre_id: item.dreAccountId || item.conta_dre_id,
+        dre_account_id: item.dreAccountId || item.dre_account_id,
+        idconta: item.idconta,
+        conta: item.conta,
+        conta_gerencial: item.contaGerencial || item.conta_gerencial,
+        organizacao_id: tenantId,
+      }
     }
 
     const obj = { ...item, organizacao_id: tenantId }
