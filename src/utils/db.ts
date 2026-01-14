@@ -389,7 +389,7 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         dreAccountId: item.conta_dre_id || item.dre_account_id,
         idconta: item.idconta,
         conta: item.conta,
-        contaGerencial: item.conta_gerencial,
+        contasintetica: item.conta_gerencial,
         economicGroupId: item.organizacao_id,
         createdAt: item.criado_em,
       }
@@ -485,7 +485,7 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
         dre_account_id: item.dreAccountId || item.dre_account_id,
         idconta: item.idconta,
         conta: item.conta,
-        conta_gerencial: item.contaGerencial || item.conta_gerencial,
+        conta_gerencial: item.contasintetica || item.conta_gerencial,
         organizacao_id: tenantId,
       }
     }
