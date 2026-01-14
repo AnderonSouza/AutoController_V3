@@ -821,20 +821,21 @@ const App: React.FC = () => {
           />
         )
       case "REPORT_STRUCTURE":
-        if (currentReportId) {
+        const currentTemplate = reportTemplates.find(t => t.id === currentReportId)
+        if (currentReportId && currentTemplate) {
           return (
             <ReportStructureView
-              reportId={currentReportId}
-              reportLines={reportLines.filter((l) => l.reportId === currentReportId)}
+              reportTemplate={currentTemplate}
+              lines={reportLines.filter((l) => l.reportId === currentReportId)}
               dreAccounts={dreAccounts}
+              balanceSheetAccounts={balanceSheetAccounts}
               onNavigateBack={() => handleNavigate("REPORT_TEMPLATES")}
-              onSaveLines={async (d) => {
+              onSaveStructure={async (d) => {
                 await saveCadastroTenant("report_lines", d, effectiveTenantId || user.tenantId)
               }}
               onDeleteLine={async (id) => {
                 await deleteById("report_lines", id)
               }}
-              tenantId={effectiveTenantId || user.tenantId}
             />
           )
         }
