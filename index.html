@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>Análise de Resultados Gerenciais</title>
+    
+    <script>
+      // Polyfill para bibliotecas que buscam process.env
+      if (typeof window !== 'undefined' && !window.process) {
+          window.process = { env: { NODE_ENV: 'development' } };
+      }
+
+      // --- THEME PERSISTENCE LOADER (ULTRA FAST) ---
+      (function() {
+        try {
+          const storedTheme = localStorage.getItem('active_theme_config');
+          if (storedTheme) {
+            const theme = JSON.parse(storedTheme);
+            const root = document.documentElement;
+            
+            const hexToRgba = (hex, alpha) => {
+                if(!hex) return `rgba(0,0,0,${alpha})`;
+                let c;
+                if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                    c= hex.substring(1).split('');
+                    if(c.length== 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+                    c= '0x'+c.join('');
+                    return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+                }
+                return hex;
+            };
+
+            const getContrastText = (hexcolor) => {
+                if (!hexcolor || !/^#([A-Fa-f0-9]{3}){1,2}$/.test(hexcolor)) return '#ffffff';
+                const r = parseInt(hexcolor.substring(1, 3), 16);
+                const g = parseInt(hexcolor.substring(3, 5), 16);
+                const b = parseInt(hexcolor.substring(5, 7), 16);
+                const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                return (yiq >= 128) ? '#1e293b' : '#ffffff';
+            };
+
+            // Aplicação Imediata de Variáveis CSS
+            if(theme.primarycolor) {
+                root.style.setProperty('--color-primary', theme.primarycolor);
+                root.style.setProperty('--color-primary-hover', theme.primarycolor + 'E6');
+                root.style.setProperty('--color-primary-50', hexToRgba(theme.primarycolor, 0.05));
+                root.style.setProperty('--color-on-primary', getContrastText(theme.primarycolor));
+            }
+            if(theme.secondarycolor) root.style.setProperty('--color-secondary', theme.secondarycolor);
+            
+            // App Layout
+            if(theme.backgroundColor) {
+                root.style.setProperty('--color-bg-app', theme.backgroundColor);
+                document.body.style.backgroundColor = theme.backgroundColor;
+            }
+            if(theme.sidebarColor) root.style.setProperty('--color-bg-sidebar', theme.sidebarColor);
+            if(theme.sidebarTextColor) root.style.setProperty('--color-sidebar-text', theme.sidebarTextColor);
+            if(theme.sidebarSectionTitleColor) root.style.setProperty('--color-sidebar-section-title', theme.sidebarSectionTitleColor);
+            
+            if(theme.headerColor) root.style.setProperty('--color-header-bg', theme.headerColor);
+            if(theme.headerTextColor) root.style.setProperty('--color-header-text', theme.headerTextColor);
+            
+            // Typography
+            if(theme.textColor) {
+                root.style.setProperty('--color-text-main', theme.textColor);
+                document.body.style.color = theme.textColor;
+            }
+            if(theme.font) {
+                root.style.setProperty('--font-family', theme.font);
+                document.body.style.fontFamily = theme.font;
+            }
+            
+            // Table Theme
+            if(theme.tableHeaderColor) root.style.setProperty('--color-table-header-bg', theme.tableHeaderColor);
+            if(theme.tableHeaderTextColor) root.style.setProperty('--color-table-header-text', theme.tableHeaderTextColor);
+            if(theme.tableTotalColor) root.style.setProperty('--color-table-total-bg', theme.tableTotalColor);
+            if(theme.tableSubtotalColor) root.style.setProperty('--color-table-subtotal-bg', theme.tableSubtotalColor);
+            if(theme.tableRowColor) root.style.setProperty('--color-table-row-bg', theme.tableRowColor);
+            
+            // Scrollbar Persistence
+            if(theme.scrollbarWidth) {
+                let sw = '5px';
+                if(theme.scrollbarWidth === 'thin') sw = '3px';
+                else if(theme.scrollbarWidth === 'none') sw = '0px';
+                root.style.setProperty('--scrollbar-width', sw);
+            }
+          }
+        } catch (e) {
+          console.warn("Theme persistence error:", e);
+        }
+      })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: 'var(--color-primary)',
+              'primary-hover': 'var(--color-primary-hover)',
+              'primary-50': 'var(--color-primary-50)',
+              'on-primary': 'var(--color-on-primary)',
+              secondary: 'var(--color-secondary)',
+              'bg-app': 'var(--color-bg-app)',
+              sidebar: 'var(--color-bg-sidebar)',
+              header: 'var(--color-header-bg)',
+            },
+            borderRadius: {
+              custom: 'var(--border-radius)',
+            },
+            fontFamily: {
+              sans: ['var(--font-family)', 'Inter', 'ui-sans-serif', 'system-ui'],
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --color-primary: #6d28d9;
+        --color-primary-hover: #5b21b6;
+        --color-primary-50: #f5f3ff;
+        --color-on-primary: #ffffff;
+        --color-secondary: #e2e8f0;
+        --color-bg-app: #f1f5f9;
+        --color-bg-sidebar: #0f172a;
+        --color-sidebar-text: #cbd5e1;
+        --color-sidebar-section-title: #64748b;
+        --color-header-bg: #f1f5f9;
+        --color-header-text: #1e293b;
+        --color-text-main: #1e293b;
+        --border-radius: 0.75rem;
+        --font-family: 'Source Sans Pro', sans-serif;
+        /* Scrollbar subtler by default */
+        --scrollbar-width: 5px;
+      }
+      body {
+        font-family: var(--font-family);
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      /* Custom Scrollbar Styles using CSS Variables */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: var(--scrollbar-width, 5px);
+        height: var(--scrollbar-width, 5px);
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.02);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb-color, #cbd5e1);
+        border-radius: var(--scrollbar-thumb-radius, 10px);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary);
+      }
+    </style>
+    
+  </head>
+  <body>
+    <div id="root">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #475569; font-family: sans-serif;">
+            <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #6d28d9; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+            <p style="font-size: 0.9rem; font-weight: 500;">Carregando sua experiência personalizada...</p>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        </div>
+    </div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>

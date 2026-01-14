@@ -1,0 +1,6 @@
+{
+  "name": "AutoController",
+  "description": "Uma aplicação web completa para apuração e análise de resultados gerenciais, permitindo a importação de dados contábeis, gerenciamento de cadastros (empresas, marcas, usuários) e visualização de demonstrativos financeiros como DRE e Fluxo de Caixa.",
+  "version": "2.0.8",
+  "requestFramePermissions": []
+}
