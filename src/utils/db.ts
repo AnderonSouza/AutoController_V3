@@ -120,6 +120,24 @@ const FIELD_MAP_COST_CENTERS: Record<string, string> = {
   departmentId: "departamento_id",
 }
 
+const FIELD_MAP_REPORT_LINES: Record<string, string> = {
+  id: "id",
+  reportId: "relatorio_id",
+  parentId: "pai_id",
+  name: "nome",
+  code: "codigo",
+  order: "ordem",
+  type: "tipo",
+  sign: "sinal",
+  formula: "formula",
+  sourceAccounts: "contas_origem",
+  style: "estilo",
+  createdAt: "criado_em",
+  updatedAt: "atualizado_em",
+  dreAccountId: "conta_dre_id",
+  economicGroupId: "organizacao_id",
+}
+
 const FIELD_MAP_THEMES: Record<string, string> = {
   cor_primaria: "primarycolor",
   cor_secundaria: "secondarycolor",
@@ -413,6 +431,17 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
         if (item[appKey] !== undefined) {
           obj[dbKey] = item[appKey]
           if (appKey !== dbKey) delete obj[appKey]
+        }
+      })
+      obj.organizacao_id = tenantId
+      return obj
+    }
+
+    if (dbTable === "linhas_relatorio") {
+      const obj: any = {}
+      Object.entries(FIELD_MAP_REPORT_LINES).forEach(([appKey, dbKey]) => {
+        if (item[appKey] !== undefined) {
+          obj[dbKey] = item[appKey]
         }
       })
       obj.organizacao_id = tenantId
