@@ -330,7 +330,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
       >
         <div className="flex items-center gap-3 flex-1">
           {config?.logoUrl ? (
-            <img src={config.logoUrl} alt="Logo" className="h-10 w-10 object-contain" />
+            <img src={config.logoUrl} alt="Logo" className="h-13 w-13 object-contain" />
           ) : companyName ? (
             <div
               className="h-10 w-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-base font-bold shadow-sm"
