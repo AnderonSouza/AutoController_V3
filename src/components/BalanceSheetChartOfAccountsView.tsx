@@ -425,11 +425,13 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
     const getLinkedCount = (accountName: string) => currentMappings.filter(m => m.contasintetica?.trim() === accountName?.trim()).length;
     const filteredAccounts = useMemo(() => !searchTerm.trim() ? editableAccounts : editableAccounts.filter(acc => acc.name.toLowerCase().includes(searchTerm.toLowerCase())), [editableAccounts, searchTerm]);
 
-    // FILTER ACCOUNTING ACCOUNTS FOR MODAL (BALANCE SHEET ONLY: Starts with 1 or 2)
+    // FILTER ACCOUNTING ACCOUNTS FOR MODAL (BALANCE SHEET ONLY)
+    // Filtra apenas contas analíticas (tipo = "A") que começam com 1 ou 2 (contas patrimoniais)
     const balanceSheetAccountingAccounts = useMemo(() => {
         return accountingAccounts.filter(acc => {
-            const firstDigit = acc.id.charAt(0);
-            return firstDigit === '1' || firstDigit === '2';
+            const isAnalytical = acc.accountType?.toUpperCase() === 'A';
+            const startsWithOneOrTwo = acc.reducedCode?.startsWith('1') || acc.reducedCode?.startsWith('2');
+            return isAnalytical && startsWithOneOrTwo;
         });
     }, [accountingAccounts]);
 
