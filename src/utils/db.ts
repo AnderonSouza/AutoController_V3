@@ -365,6 +365,23 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
       })
       return result
     }
+    if (dbTable === "plano_contas_balanco") {
+      return {
+        id: item.id,
+        name: item.nome,
+        economicGroupId: item.organizacao_id,
+      }
+    }
+    if (dbTable === "plano_contas_dre") {
+      return {
+        id: item.id,
+        name: item.nome,
+        type: item.tipo,
+        order: item.ordem,
+        reducedCode: item.codigo_reduzido,
+        economicGroupId: item.organizacao_id,
+      }
+    }
     return item
   })
 }
