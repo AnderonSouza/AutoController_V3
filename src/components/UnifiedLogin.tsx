@@ -69,7 +69,7 @@ interface ConsoleConfig {
 interface UnifiedLoginProps {
   isConsole?: boolean
   tenantInfo?: { name: string; logo?: string } | null
-  onLogin: (email: string, password: string) => Promise<void>
+  onLogin: (email: string, password: string) => Promise<string | void | undefined>
 }
 
 const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = false, tenantInfo, onLogin }) => {
@@ -273,10 +273,18 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
 
     try {
       console.log("[v0] Login attempt with email:", email)
-      await onLogin(email, password)
+      const result = await onLogin(email, password)
+      
+      if (result && typeof result === "string") {
+        console.log("[v0] Login error returned:", result)
+        setError(result)
+        setLoading(false)
+        return
+      }
+      
       console.log("[v0] Login successful, App.tsx will handle navigation")
     } catch (err: any) {
-      console.log("[v0] Login error:", err.message)
+      console.log("[v0] Login exception:", err.message)
       setError(err.message || "Erro ao fazer login")
       setLoading(false)
     }
