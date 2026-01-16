@@ -173,11 +173,39 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           monthlyData: a.monthlyData || {},
         })))
         
-        setBalanceSheetAccounts(getVal(7))
+        const rawBalanceSheetAccounts = getVal<any>(7)
+        setBalanceSheetAccounts(rawBalanceSheetAccounts)
         setCostCenters(getVal(8))
-        setMappings(getVal(9))
+        
+        // Process mappings with lookups to related tables
+        const rawMappings = getVal<any>(9)
+        const rawDreAccounts = getVal<any>(11)
+        
+        // Create lookup maps for efficient name resolution
+        const dreAccountMap = new Map(rawDreAccounts.map((d: any) => [d.id, d.nome || d.name]))
+        const accountingAccountMap = new Map(rawAccounts.map((a: any) => [a.id, { nome: a.nome || a.name, codigo: a.codigo_contabil || a.reducedCode }]))
+        const balanceAccountMap = new Map(rawBalanceSheetAccounts.map((b: any) => [b.id, b.nome || b.name]))
+        
+        // Enrich mappings with looked-up names
+        const enrichedMappings = rawMappings.map((m: any) => {
+          const contaContabil = accountingAccountMap.get(m.accountingAccountId || m.conta_contabil_id)
+          const dreName = dreAccountMap.get(m.dreAccountId || m.conta_dre_id)
+          const balanceName = balanceAccountMap.get(m.balanceAccountId || m.conta_balanco_id)
+          
+          return {
+            ...m,
+            idconta: m.accountingAccountId || m.conta_contabil_id,
+            conta: contaContabil?.nome || '',
+            codigoContabil: contaContabil?.codigo || '',
+            contasintetica: dreName || balanceName || '',
+            dreAccountName: dreName || '',
+            balanceAccountName: balanceName || '',
+          }
+        })
+        
+        setMappings(enrichedMappings)
         setReportLines(getVal(10))
-        setDreAccounts(getVal(11))
+        setDreAccounts(rawDreAccounts)
         
         // Mapeia os dados do banco para os tipos TypeScript
         const rawAssumptions = getVal<any>(12)
