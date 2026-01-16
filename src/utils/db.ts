@@ -418,6 +418,25 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         economicGroupId: item.organizacao_id,
       }
     }
+    if (dbTable === "linhas_relatorio") {
+      return {
+        id: item.id,
+        reportId: item.relatorio_id,
+        parentId: item.pai_id,
+        name: item.nome,
+        code: item.codigo,
+        order: item.ordem,
+        type: item.tipo,
+        sign: item.sinal,
+        formula: item.formula,
+        sourceAccounts: item.contas_origem,
+        style: item.estilo,
+        createdAt: item.criado_em,
+        updatedAt: item.atualizado_em,
+        dreAccountId: item.conta_dre_id,
+        economicGroupId: item.organizacao_id,
+      }
+    }
     return item
   })
 }
