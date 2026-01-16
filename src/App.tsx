@@ -428,17 +428,43 @@ const App: React.FC = () => {
     setCurrentView("DRE")
   }
 
+  // Build analysis menu items dynamically from report templates
+  const analysisChildren = useMemo(() => {
+    const children: SidebarItem[] = []
+    
+    if (reportTemplates && reportTemplates.length > 0) {
+      // Sort by orderIndex and filter active templates
+      const sortedTemplates = [...reportTemplates]
+        .filter(t => t.isActive)
+        .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+      
+      sortedTemplates.forEach(template => {
+        const templateName = template.name || ''
+        const templateType = template.type
+        
+        if (templateType === "DRE") {
+          children.push({ id: "DRE", icon: BarChart3, label: templateName })
+        } else if (templateType === "CASH_FLOW") {
+          children.push({ id: "CASH_FLOW", icon: TrendingUp, label: templateName })
+        } else if (templateType === "BALANCE_SHEET") {
+          children.push({ id: "BALANCE_SHEET", icon: FileSpreadsheet, label: templateName })
+        }
+      })
+    }
+    
+    // Always add Razão Contábil as it has its own dedicated functionality
+    children.push({ id: "RAZAO_CONTABIL", icon: BookOpen, label: "Razão Contábil" })
+    
+    return children
+  }, [reportTemplates])
+
   const tenantSidebarItems: SidebarItem[] = useMemo(
     () => [
       {
         id: "analises",
         icon: BarChart3,
         label: "Análises",
-        children: [
-          { id: "DRE", icon: BarChart3, label: "DRE" },
-          { id: "RAZAO_CONTABIL", icon: BookOpen, label: "Razão Contábil" },
-          { id: "CASH_FLOW", icon: TrendingUp, label: "Fluxo de Caixa" },
-        ],
+        children: analysisChildren,
       },
       {
         id: "orcamento",
@@ -494,7 +520,7 @@ const App: React.FC = () => {
         ? [{ id: "SuperAdmin", icon: Shield, label: "Gestão" }]
         : []),
     ],
-    [user?.role]
+    [user?.role, analysisChildren]
   )
 
   const getPageTitle = (view: View): string => {

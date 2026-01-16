@@ -86,16 +86,56 @@ export default function Sidebar({
     }
   }, [activeView])
 
+  // Build analysis menu items dynamically from report templates
+  const analysisChildren: MenuItem[] = []
+  
+  // Add items from report templates (DRE, Fluxo de Caixa, etc.)
+  if (reportTemplates && reportTemplates.length > 0) {
+    // Sort by orderIndex if available
+    const sortedTemplates = [...reportTemplates].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+    
+    sortedTemplates.forEach(template => {
+      if (!template.isActive) return // Skip inactive templates
+      
+      const templateName = template.name || ''
+      const templateType = template.type
+      
+      // Map template type to View ID and icon
+      if (templateType === "DRE") {
+        analysisChildren.push({
+          id: "DRE" as View,
+          label: templateName,
+          icon: <BarChart3 size={18} strokeWidth={1.5} />,
+        })
+      } else if (templateType === "CASH_FLOW") {
+        analysisChildren.push({
+          id: "CASH_FLOW" as View,
+          label: templateName,
+          icon: <TrendingUp size={18} strokeWidth={1.5} />,
+        })
+      } else if (templateType === "BALANCE_SHEET") {
+        analysisChildren.push({
+          id: "BALANCE_SHEET" as View,
+          label: templateName,
+          icon: <FileSpreadsheet size={18} strokeWidth={1.5} />,
+        })
+      }
+    })
+  }
+  
+  // Always add Razão Contábil as it has its own dedicated functionality
+  analysisChildren.push({
+    id: "RAZAO_CONTABIL" as View,
+    label: "Razão Contábil",
+    icon: <BookOpen size={18} strokeWidth={1.5} />,
+  })
+
   const menuSections: MenuSection[] = [
     {
       id: "analises",
       label: "Análises",
       icon: <BarChart3 size={24} strokeWidth={1.5} />,
-      children: [
-        { id: "DRE", label: "DRE", icon: <BarChart3 size={18} strokeWidth={1.5} /> },
-        { id: "RAZAO_CONTABIL", label: "Razão Contábil", icon: <BookOpen size={18} strokeWidth={1.5} /> },
-        { id: "CASH_FLOW", label: "Fluxo de Caixa", icon: <TrendingUp size={18} strokeWidth={1.5} /> },
-      ],
+      children: analysisChildren,
     },
     {
       id: "orcamento",
