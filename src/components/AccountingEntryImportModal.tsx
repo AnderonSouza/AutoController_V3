@@ -552,70 +552,83 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                     )}
 
                     {step === 2 && (
-                        <div className="space-y-4">
-                            <div className="bg-blue-50 px-3 py-2 rounded-lg">
+                        <div className="space-y-5">
+                            <div className="bg-blue-50 px-4 py-3 rounded-lg">
                                 <p className="text-sm text-blue-800">
                                     <strong>{file?.name}</strong> - {totalRows.toLocaleString()} linhas detectadas
                                 </p>
                             </div>
                             
-                            <div className="grid grid-cols-4 gap-3">
-                                {REQUIRED_FIELDS.map((field) => (
-                                    <div key={field.key} className="bg-gray-50 p-2 rounded-lg">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            {field.label} {field.required && <span className="text-red-500">*</span>}
-                                        </label>
-                                        <StyledSelect
-                                            value={mapping[field.key] || ''}
-                                            onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
-                                            className="text-sm"
-                                        >
-                                            <option value="">-- Selecione --</option>
-                                            {excelHeaders.map(h => (
-                                                <option key={h} value={h}>{h}</option>
-                                            ))}
-                                        </StyledSelect>
-                                    </div>
-                                ))}
-                                {OPTIONAL_FIELDS.map((field) => (
-                                    <div key={field.key} className="bg-gray-50 p-2 rounded-lg opacity-75">
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            {field.label}
-                                        </label>
-                                        <StyledSelect
-                                            value={mapping[field.key] || ''}
-                                            onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
-                                            className="text-sm"
-                                        >
-                                            <option value="">-- Selecione --</option>
-                                            {excelHeaders.map(h => (
-                                                <option key={h} value={h}>{h}</option>
-                                            ))}
-                                        </StyledSelect>
-                                    </div>
-                                ))}
+                            <div>
+                                <h4 className="text-sm font-semibold text-gray-700 mb-3">Campos Obrigatórios</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {REQUIRED_FIELDS.map((field) => (
+                                        <div key={field.key} className="bg-gray-50 p-3 rounded-lg">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                                {field.label} <span className="text-red-500">*</span>
+                                            </label>
+                                            <StyledSelect
+                                                value={mapping[field.key] || ''}
+                                                onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+                                            >
+                                                <option value="">-- Selecione a Coluna --</option>
+                                                {excelHeaders.map(h => (
+                                                    <option key={h} value={h}>{h}</option>
+                                                ))}
+                                            </StyledSelect>
+                                            {field.description && (
+                                                <p className="text-xs text-gray-500 mt-1.5">{field.description}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-sm font-semibold text-gray-500 mb-3">Campos Opcionais</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {OPTIONAL_FIELDS.map((field) => (
+                                        <div key={field.key} className="bg-gray-50 p-3 rounded-lg opacity-80">
+                                            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+                                                {field.label}
+                                            </label>
+                                            <StyledSelect
+                                                value={mapping[field.key] || ''}
+                                                onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+                                            >
+                                                <option value="">-- Selecione a Coluna --</option>
+                                                {excelHeaders.map(h => (
+                                                    <option key={h} value={h}>{h}</option>
+                                                ))}
+                                            </StyledSelect>
+                                            {field.description && (
+                                                <p className="text-xs text-gray-500 mt-1.5">{field.description}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
                             {isProcessing && (
-                                <div className="mt-2">
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div className="bg-blue-600 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                                <div className="mt-4">
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                                     </div>
-                                    <p className="text-xs text-gray-600 mt-1 text-center">{statusMessage}</p>
+                                    <p className="text-sm text-gray-600 mt-2 text-center">{statusMessage}</p>
                                 </div>
                             )}
 
-                            <div className="flex justify-between pt-3 border-t">
+                            <div className="flex justify-between pt-4 border-t">
                                 <button
                                     onClick={() => setStep(1)}
-                                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
                                 >
                                     Voltar
                                 </button>
                                 <button
                                     onClick={handleStartImport}
                                     disabled={isProcessing}
-                                    className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {isProcessing ? 'Processando...' : 'Iniciar Importação →'}
                                 </button>
