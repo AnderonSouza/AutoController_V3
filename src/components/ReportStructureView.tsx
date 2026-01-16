@@ -410,6 +410,24 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     };
 
     const handleSave = async () => {
+        // Validar duplicatas antes de salvar
+        const analyticalLines = lines.filter(l => l.type === 'data_bucket' && l.dreAccountId);
+        const accountIdCounts = new Map<string, number>();
+        analyticalLines.forEach(l => {
+            const count = accountIdCounts.get(l.dreAccountId!) || 0;
+            accountIdCounts.set(l.dreAccountId!, count + 1);
+        });
+        
+        const duplicates = Array.from(accountIdCounts.entries()).filter(([_, count]) => count > 1);
+        if (duplicates.length > 0) {
+            const duplicateNames = duplicates.map(([accountId, _]) => {
+                const acc = sourceAccountsList.find(a => a.id === accountId);
+                return acc?.name || accountId;
+            });
+            alert(`Erro: As seguintes contas estão vinculadas a mais de uma linha:\n\n${duplicateNames.join('\n')}\n\nCada conta analítica só pode ser vinculada a uma única linha.`);
+            return;
+        }
+
         setIsSaving(true);
         try {
             await onSaveStructure(lines);
@@ -585,6 +603,12 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                     value={line.dreAccountId || ''} 
                                                     options={getAccountOptionsForLine(line.id)} 
                                                     onChange={(val) => {
+                                                        // Validação extra: verificar se já está em uso
+                                                        const currentAccountId = line.dreAccountId;
+                                                        if (val && val !== currentAccountId && usedAccountIds.has(val)) {
+                                                            alert('Esta conta já está vinculada a outra linha. Selecione uma conta diferente.');
+                                                            return;
+                                                        }
                                                         handleUpdateLine(line.id, 'dreAccountId', val);
                                                         const acc = sourceAccountsList.find(a => a.id === val);
                                                         if (acc) {
