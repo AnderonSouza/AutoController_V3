@@ -192,17 +192,24 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
             });
 
             // Mapa de centro de resultado por sigla/código
+            // Normaliza removendo zeros à esquerda para compatibilidade entre Excel e banco
             const costCenterByCodeMap = new Map<string, string>();
             costCenters.forEach((cc: any) => { 
-                const sigla = String(cc.codigo || cc.sigla || '').trim();
-                if (sigla) {
-                    costCenterByCodeMap.set(sigla, cc.id);
+                const rawCode = String(cc.codigo || cc.sigla || '').trim();
+                if (rawCode) {
+                    // Armazena tanto com zeros à esquerda quanto sem
+                    costCenterByCodeMap.set(rawCode, cc.id);
+                    // Remove zeros à esquerda para mapeamento alternativo
+                    const normalizedCode = rawCode.replace(/^0+/, '') || '0';
+                    if (normalizedCode !== rawCode) {
+                        costCenterByCodeMap.set(normalizedCode, cc.id);
+                    }
                 }
             });
 
             console.log('[Import] Cost center mappings:', {
                 total: costCenterByCodeMap.size,
-                sampleCodes: Array.from(costCenterByCodeMap.keys()).slice(0, 5)
+                sampleCodes: Array.from(costCenterByCodeMap.keys()).slice(0, 10)
             });
 
             for (let i = 1; i <= total; i += BATCH_SIZE) {
@@ -293,12 +300,15 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                         // Normalizar CNPJ do Excel (remover pontuação)
                         const excelCnpj = String(getValue('cnpj') || '').replace(/\D/g, '');
                         const excelErpCode = String(getValue('erpCode') || '').trim();
-                        const siglaCr = String(getValue('siglacr') || '').trim();
+                        const siglaCrRaw = String(getValue('siglacr') || '').trim();
+                        // Normalizar código do centro de resultado (remover zeros à esquerda)
+                        const siglaCrNormalized = siglaCrRaw.replace(/^0+/, '') || '0';
                         
                         // Buscar IDs nos mapas - primeiro por CNPJ, depois por código ERP
                         const resolvedCompanyId = companyByCnpjMap.get(excelCnpj) || companyByErpMap.get(excelErpCode) || '';
                         const resolvedAccountId = accountByCodeMap.get(idContaRaw);
-                        const resolvedCostCenterId = costCenterByCodeMap.get(siglaCr);
+                        // Buscar centro de resultado - tenta código original primeiro, depois normalizado
+                        const resolvedCostCenterId = costCenterByCodeMap.get(siglaCrRaw) || costCenterByCodeMap.get(siglaCrNormalized);
 
                         // Log de debug para primeiras linhas
                         if (globalIdx <= 5) {
@@ -306,7 +316,8 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                                 excelCnpj,
                                 excelErpCode,
                                 idContaRaw,
-                                siglaCr,
+                                siglaCrRaw,
+                                siglaCrNormalized,
                                 resolvedCompanyId: resolvedCompanyId || 'NOT FOUND',
                                 resolvedAccountId: resolvedAccountId || 'NOT FOUND',
                                 resolvedCostCenterId: resolvedCostCenterId || 'NOT FOUND'
@@ -328,7 +339,7 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                             idconta: idContaRaw, 
                             descricaoconta: String(getValue('descricaoconta') || ''),
                             historico: String(getValue('historico') || ''),
-                            siglacr: siglaCr,
+                            siglacr: siglaCrRaw,
                             descricaocr: String(getValue('descricaocr') || ''),
                             natureza: String(getValue('natureza') || 'D').trim().toUpperCase().charAt(0) as 'D' | 'C',
                             valor: valor
