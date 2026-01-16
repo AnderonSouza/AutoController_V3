@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Benchmark, Brand, FinancialAccount } from '../types';
 import StyledSelect from './StyledSelect';
 import { generateUUID } from '../utils/helpers';
+import { ChevronLeft, Trash2, Plus } from 'lucide-react';
 
 interface BenchmarkManagementViewProps {
   benchmarks: Benchmark[];
   onSaveBenchmarks: (benchmarks: Benchmark[]) => Promise<void>;
   onNavigateBack: () => void;
   brands: Brand[];
-  financialAccounts: FinancialAccount[]; // Structure to select totalizers
+  financialAccounts: FinancialAccount[];
 }
 
 const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({ 
@@ -29,7 +30,6 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
         }
     }, [benchmarks]);
 
-    // Flatten accounts to get only totals/subtotals for the dropdown
     const totalizerAccounts = React.useMemo(() => {
         const list: { id: string; name: string }[] = [];
         if (!financialAccounts || !Array.isArray(financialAccounts)) {
@@ -80,33 +80,35 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
         setIsSaving(false);
     };
 
-    const inputClasses = "w-full bg-white border border-slate-300 rounded-lg shadow-sm py-2 px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition";
+    const inputClasses = "w-full bg-white border border-[var(--color-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-50)] focus:border-[var(--color-primary)] transition";
 
     return (
-        <main className="flex-grow p-6 lg:p-8 overflow-y-auto">
-            <div className="max-w-6xl mx-auto">
-                <button onClick={onNavigateBack} className="mb-6 text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    Voltar para Parâmetros de Apuração
-                </button>
-                <div className="bg-white p-6 rounded-custom shadow-lg border border-slate-200">
-                    <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-800">Definição de Benchmarks</h1>
-                            <p className="text-sm text-slate-500 mt-1">Configure as boas práticas e metas para os indicadores de desempenho.</p>
-                        </div>
-                        <button onClick={handleAddBenchmark} className="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:bg-primary-hover shadow-sm">
-                           + Adicionar Benchmark
+        <div className="page-container">
+            <button onClick={onNavigateBack} className="back-button">
+                <ChevronLeft className="w-4 h-4" />
+                Voltar para Parâmetros de Apuração
+            </button>
+
+            <div className="content-card">
+                <div className="card-header">
+                    <div className="header-text">
+                        <h1 className="card-title">Definição de Benchmarks</h1>
+                        <p className="card-subtitle">Configure as boas práticas e metas para os indicadores de desempenho.</p>
+                    </div>
+                    <div className="header-actions">
+                        <button onClick={handleAddBenchmark} className="btn btn-primary">
+                            <Plus className="w-4 h-4" />
+                            Adicionar Benchmark
                         </button>
                     </div>
-                    
-                    <div className="space-y-4 mt-6">
+                </div>
+                
+                <div className="card-body">
+                    <div className="space-y-4">
                         {editableBenchmarks.map((bench) => (
-                            <div key={bench.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                            <div key={bench.id} className="list-item !p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
                                 <div className="lg:col-span-3">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Descrição (Indicador)</label>
+                                    <label className="filter-label">Descrição (Indicador)</label>
                                     <input 
                                         type="text" 
                                         value={bench.description} 
@@ -116,7 +118,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     />
                                 </div>
                                 <div className="lg:col-span-3">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Conta Totalizadora (DRE)</label>
+                                    <label className="filter-label">Conta Totalizadora (DRE)</label>
                                     <StyledSelect 
                                         value={bench.dreAccountId} 
                                         onChange={(e) => handleFieldChange(bench.id, 'dreAccountId', e.target.value)}
@@ -129,7 +131,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     </StyledSelect>
                                 </div>
                                 <div className="lg:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Marca</label>
+                                    <label className="filter-label">Marca</label>
                                     <StyledSelect 
                                         value={bench.brandId} 
                                         onChange={(e) => handleFieldChange(bench.id, 'brandId', e.target.value)}
@@ -142,7 +144,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     </StyledSelect>
                                 </div>
                                 <div className="lg:col-span-2">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Tipo de Dado</label>
+                                    <label className="filter-label">Tipo de Dado</label>
                                     <StyledSelect 
                                         value={bench.type} 
                                         onChange={(e) => handleFieldChange(bench.id, 'type', e.target.value)}
@@ -154,7 +156,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     </StyledSelect>
                                 </div>
                                 <div className="lg:col-span-1">
-                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Meta</label>
+                                    <label className="filter-label">Meta</label>
                                     <input 
                                         type="number" 
                                         value={bench.value} 
@@ -163,31 +165,32 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     />
                                 </div>
                                 <div className="lg:col-span-1 flex justify-end pb-1">
-                                    <button onClick={() => handleRemoveBenchmark(bench.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                                    <button 
+                                        onClick={() => handleRemoveBenchmark(bench.id)} 
+                                        className="icon-btn icon-btn-ghost text-slate-400 hover:text-[var(--color-error)] hover:bg-[var(--color-error-50)]"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
                         ))}
                         {editableBenchmarks.length === 0 && (
-                            <p className="text-center text-slate-500 py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                                Nenhum benchmark definido. Clique em "+ Adicionar Benchmark" para começar.
-                            </p>
+                            <div className="empty-state">
+                                <p className="empty-state-description">
+                                    Nenhum benchmark definido. Clique em "+ Adicionar Benchmark" para começar.
+                                </p>
+                            </div>
                         )}
                     </div>
                     
-                    <div className="mt-8 border-t pt-6 flex justify-end">
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="px-6 py-2 bg-primary text-on-primary font-semibold rounded-lg hover:bg-primary-hover disabled:bg-slate-300 transition-colors duration-200 flex items-center shadow-sm"
-                        >
+                    <div className="mt-8 border-t border-[var(--color-border-light)] pt-6 flex justify-end">
+                        <button onClick={handleSave} disabled={isSaving} className="btn btn-primary">
                             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                         </button>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     );
 };
 
