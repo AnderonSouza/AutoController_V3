@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import StyledSelect from './StyledSelect';
 import { excelSerialDateToJSDate } from '../utils/helpers';
-import { bulkSaveLancamentos, getCadastro } from '../utils/db';
+import { bulkSaveLancamentos, getCadastroTenant } from '../utils/db';
 import { TrialBalanceEntry, Company, CostCenter, FinancialAccount } from '../types';
 import { CALENDAR_MONTHS } from '../constants';
 
@@ -137,31 +137,72 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
         let localStats = { success: 0, zeroValues: 0, invalidData: 0 };
 
         try {
+            // Carregar dados filtrados pelo tenant
             const [companies, accounts, costCenters] = await Promise.all([
-                getCadastro('companies') as Promise<Company[]>,
-                getCadastro('chart_of_accounts') as Promise<FinancialAccount[]>,
-                getCadastro('cost_centers') as Promise<CostCenter[]>
+                getCadastroTenant('companies', tenantId) as Promise<Company[]>,
+                getCadastroTenant('chart_of_accounts', tenantId) as Promise<FinancialAccount[]>,
+                getCadastroTenant('cost_centers', tenantId) as Promise<CostCenter[]>
             ]);
 
-            const companyMap = new Map<string, string>();
-            const erpCompanyMap = new Map<string, string>();
+            console.log('[Import] Loaded reference data:', {
+                companies: companies.length,
+                accounts: accounts.length,
+                costCenters: costCenters.length
+            });
+
+            // Mapa de empresa por CNPJ normalizado (somente números)
+            const companyByCnpjMap = new Map<string, string>();
+            // Mapa de empresa por código ERP
+            const companyByErpMap = new Map<string, string>();
+            
             companies.forEach((c: any) => {
-                const cnpj = c.cnpj || '';
-                const erpCode = c.codigo_erp || c.erpCode || '';
-                if (cnpj) companyMap.set(cnpj.replace(/\D/g, ''), c.id);
-                if (erpCode) erpCompanyMap.set(String(erpCode).trim(), c.id);
+                // CNPJ pode vir com formatação (##.###.###/####-##) - normalizar para somente números
+                const rawCnpj = c.cnpj || '';
+                const normalizedCnpj = rawCnpj.replace(/\D/g, '');
+                const erpCode = String(c.codigo_erp || c.erpCode || '').trim();
+                
+                if (normalizedCnpj) {
+                    companyByCnpjMap.set(normalizedCnpj, c.id);
+                }
+                if (erpCode) {
+                    companyByErpMap.set(erpCode, c.id);
+                }
             });
 
-            const accountMap = new Map<string, string>();
+            console.log('[Import] Company mappings:', {
+                byCnpj: companyByCnpjMap.size,
+                byErp: companyByErpMap.size,
+                sampleCnpjs: Array.from(companyByCnpjMap.keys()).slice(0, 3),
+                sampleErps: Array.from(companyByErpMap.keys()).slice(0, 3)
+            });
+
+            // Mapa de conta contábil por código (não UUID)
+            const accountByCodeMap = new Map<string, string>();
             accounts.forEach((a: any) => {
-                const cleanCode = String(a.codigo_contabil || a.reducedCode || a.id).trim();
-                accountMap.set(cleanCode, a.id);
+                // O código contábil pode estar em vários campos dependendo da estrutura
+                const codigo = String(a.codigo || a.codigo_contabil || a.reducedCode || '').trim();
+                if (codigo) {
+                    accountByCodeMap.set(codigo, a.id);
+                }
             });
 
-            const crMap = new Map<string, string>();
+            console.log('[Import] Account mappings:', {
+                total: accountByCodeMap.size,
+                sampleCodes: Array.from(accountByCodeMap.keys()).slice(0, 5)
+            });
+
+            // Mapa de centro de resultado por sigla/código
+            const costCenterByCodeMap = new Map<string, string>();
             costCenters.forEach((cc: any) => { 
                 const sigla = String(cc.codigo || cc.sigla || '').trim();
-                if (sigla) crMap.set(sigla, cc.id); 
+                if (sigla) {
+                    costCenterByCodeMap.set(sigla, cc.id);
+                }
+            });
+
+            console.log('[Import] Cost center mappings:', {
+                total: costCenterByCodeMap.size,
+                sampleCodes: Array.from(costCenterByCodeMap.keys()).slice(0, 5)
             });
 
             for (let i = 1; i <= total; i += BATCH_SIZE) {
@@ -249,22 +290,45 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                             return;
                         }
 
+                        // Normalizar CNPJ do Excel (remover pontuação)
+                        const excelCnpj = String(getValue('cnpj') || '').replace(/\D/g, '');
+                        const excelErpCode = String(getValue('erpCode') || '').trim();
+                        const siglaCr = String(getValue('siglacr') || '').trim();
+                        
+                        // Buscar IDs nos mapas - primeiro por CNPJ, depois por código ERP
+                        const resolvedCompanyId = companyByCnpjMap.get(excelCnpj) || companyByErpMap.get(excelErpCode) || '';
+                        const resolvedAccountId = accountByCodeMap.get(idContaRaw);
+                        const resolvedCostCenterId = costCenterByCodeMap.get(siglaCr);
+
+                        // Log de debug para primeiras linhas
+                        if (globalIdx <= 5) {
+                            console.log(`[Import] Row ${globalIdx} mapping:`, {
+                                excelCnpj,
+                                excelErpCode,
+                                idContaRaw,
+                                siglaCr,
+                                resolvedCompanyId: resolvedCompanyId || 'NOT FOUND',
+                                resolvedAccountId: resolvedAccountId || 'NOT FOUND',
+                                resolvedCostCenterId: resolvedCostCenterId || 'NOT FOUND'
+                            });
+                        }
+
                         chunkTransformed.push({
                             empresa: String(getValue('empresa') || 'Indefinido'),
                             store: String(getValue('empresa') || 'Indefinido'), 
-                            companyCnpj: String(getValue('cnpj') || '').replace(/\D/g, ''),
-                            companyErpCode: String(getValue('erpCode') || '').trim(),
-                            companyId: companyMap.get(String(getValue('cnpj') || '').replace(/\D/g, '')) || erpCompanyMap.get(String(getValue('erpCode') || '').trim()) || '', 
+                            companyCnpj: excelCnpj,
+                            companyErpCode: excelErpCode,
+                            companyId: resolvedCompanyId, 
                             economicGroupId: tenantId,
-                            contaContabilId: accountMap.get(idContaRaw), 
-                            centroResultadoId: crMap.get(String(getValue('siglacr') || '').trim()), 
+                            contaContabilId: resolvedAccountId, 
+                            centroResultadoId: resolvedCostCenterId, 
                             year: finalYear,
                             month: finalMonth,
                             data: finalDate,
                             idconta: idContaRaw, 
                             descricaoconta: String(getValue('descricaoconta') || ''),
                             historico: String(getValue('historico') || ''),
-                            siglacr: String(getValue('siglacr') || ''),
+                            siglacr: siglaCr,
                             descricaocr: String(getValue('descricaocr') || ''),
                             natureza: String(getValue('natureza') || 'D').trim().toUpperCase().charAt(0) as 'D' | 'C',
                             valor: valor
