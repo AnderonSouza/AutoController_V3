@@ -182,6 +182,31 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
         return dreAccounts;
     }, [reportTemplate.type, dreAccounts, balanceSheetAccounts]);
 
+    // Calcular IDs de contas já usadas no relatório (para evitar duplicação)
+    const usedAccountIds = useMemo(() => {
+        const usedIds = new Set<string>();
+        lines.forEach(line => {
+            if (line.type === 'account' && line.dreAccountId) {
+                usedIds.add(line.dreAccountId);
+            }
+        });
+        return usedIds;
+    }, [lines]);
+
+    // Função para obter lista de contas com marcação de "já usada"
+    const getAccountOptionsForLine = (currentLineId: string) => {
+        const currentLine = lines.find(l => l.id === currentLineId);
+        const currentAccountId = currentLine?.dreAccountId;
+        
+        return sourceAccountsList.map(a => ({
+            id: a.id,
+            name: a.name,
+            // Conta está desabilitada se já estiver em uso E não for a conta da linha atual
+            disabled: usedAccountIds.has(a.id) && a.id !== currentAccountId,
+            suffix: usedAccountIds.has(a.id) && a.id !== currentAccountId ? 'Em uso' : undefined
+        }));
+    };
+
     // --- FLATTEN TREE LOGIC ---
     // Cria uma lista plana visual, mas mantém a referência de profundidade e parentesco
     const flatList = useMemo(() => {
@@ -558,7 +583,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                             {isAnalytical && (
                                                 <SearchableSelect 
                                                     value={line.dreAccountId || ''} 
-                                                    options={sourceAccountsList.map(a => ({ id: a.id, name: a.name }))} 
+                                                    options={getAccountOptionsForLine(line.id)} 
                                                     onChange={(val) => {
                                                         handleUpdateLine(line.id, 'dreAccountId', val);
                                                         const acc = sourceAccountsList.find(a => a.id === val);
