@@ -270,6 +270,12 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
     query = query.eq(tenantColumn, tenantId)
   }
 
+  // Remove Supabase default 1000 row limit for large tables
+  const largeTables = ['plano_contas', 'lancamentos_contabeis', 'mapeamento_contas', 'saldos_mensais']
+  if (largeTables.includes(dbTable)) {
+    query = query.range(0, 50000)
+  }
+
   console.log("[v0-db] Querying table:", dbTable, "with filter", tenantColumn, "=", tenantId)
   const { data, error, status, statusText } = await query
   console.log("[v0-db] Query result for", dbTable, ":", { 
