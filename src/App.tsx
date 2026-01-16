@@ -516,11 +516,11 @@ const App: React.FC = () => {
           { id: "USER_MANAGEMENT", icon: Users, label: "Usuários", roles: ["ADMIN", "SUPER_ADMIN"] },
         ],
       },
-      ...(user?.role === "SUPER_ADMIN"
+      ...(user?.role === "SUPER_ADMIN" && isOnAdminConsole
         ? [{ id: "SuperAdmin", icon: Shield, label: "Gestão" }]
         : []),
     ],
-    [user?.role, analysisChildren]
+    [user?.role, analysisChildren, isOnAdminConsole]
   )
 
   const getPageTitle = (view: View): string => {
