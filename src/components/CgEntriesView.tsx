@@ -333,35 +333,44 @@ const CgEntriesView: React.FC<CgEntriesViewProps> = ({
     const handleDelete = (transactionId: string) => { if (confirm('Excluir este lançamento?')) onSaveEntries(entries.filter(t => t.transactionId !== transactionId)); };
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-          <div className="max-w-7xl mx-auto w-full flex flex-col h-full">
-              <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex-grow flex flex-col overflow-hidden">
-                  <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-                      <div><h1 className="text-xl font-bold text-slate-800">Gerenciar Ajustes de Caixa</h1><p className="text-sm text-slate-500 mt-1">Lançamentos manuais que afetam o Caixa Gerencial.</p></div>
-                       <div className="flex items-center gap-4">
-                        <button onClick={() => setIsFilterVisible(!isFilterVisible)} className="flex items-center text-sm font-semibold text-primary hover:text-primary-hover">
-                           {isFilterVisible ? 'Ocultar filtros' : 'Mostrar filtros'} <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ml-1 transition-transform ${isFilterVisible ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                        </button>
-                        <button onClick={handleAddNew} className="px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-hover transition-all flex items-center shadow-md transform active:scale-95"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg> Novo Ajuste de Caixa</button>
-                      </div>
-                  </div>
-                  {isFilterVisible && (
-                        <div className="p-4 bg-slate-50 border-b border-slate-200 shrink-0">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
-                                <MultiSelectDropdown label="Anos" options={yearOptions} selectedValues={filters.years.map(String)} onChange={(v) => handleFilterChange('years', v.map(Number))} />
-                                <MultiSelectDropdown label="Meses" options={monthOptions} selectedValues={filters.months} onChange={(v) => handleFilterChange('months', v)} />
-                                <MultiSelectDropdown label="Marcas" options={brandOptions} selectedValues={filters.brandIds} onChange={(v) => handleFilterChange('brandIds', v)} />
-                                <MultiSelectDropdown label="Empresas" options={companyOptions} selectedValues={filters.companyIds} onChange={(v) => handleFilterChange('companyIds', v)} />
-                                <MultiSelectDropdown label="Departamentos" options={departmentOptions} selectedValues={filters.departments} onChange={(v) => handleFilterChange('departments', v)} />
-                                <div className="flex gap-2">
-                                    <button onClick={handleApplyFilters} className="h-10 px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-hover transition-colors shadow-sm">Aplicar</button>
-                                    <button onClick={handleClearFilters} className="h-10 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition-colors shadow-sm">Limpar</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                  <div className="overflow-auto flex-grow bg-white">
-                      {groupedEntries.length === 0 ? <p className="text-center p-12 text-slate-500 font-medium">Nenhum lançamento encontrado.</p> :
+        <div className="page-container">
+          <div className="content-card">
+            <div className="card-header">
+              <div className="header-text">
+                <h1 className="card-title">Gerenciar Ajustes de Caixa</h1>
+                <p className="card-subtitle">Lançamentos manuais que afetam o Caixa Gerencial.</p>
+              </div>
+              <div className="header-actions">
+                <button onClick={() => setIsFilterVisible(!isFilterVisible)} className={`btn ${isFilterVisible ? 'btn-primary-outline' : 'btn-secondary'}`}>
+                  {isFilterVisible ? 'Ocultar filtros' : 'Mostrar filtros'}
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${isFilterVisible ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                </button>
+                <button onClick={handleAddNew} className="btn btn-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
+                  Novo Ajuste de Caixa
+                </button>
+              </div>
+            </div>
+            {isFilterVisible && (
+              <div className="filter-bar">
+                <MultiSelectDropdown label="Anos" options={yearOptions} selectedValues={filters.years.map(String)} onChange={(v) => handleFilterChange('years', v.map(Number))} />
+                <MultiSelectDropdown label="Meses" options={monthOptions} selectedValues={filters.months} onChange={(v) => handleFilterChange('months', v)} />
+                <MultiSelectDropdown label="Marcas" options={brandOptions} selectedValues={filters.brandIds} onChange={(v) => handleFilterChange('brandIds', v)} />
+                <MultiSelectDropdown label="Empresas" options={companyOptions} selectedValues={filters.companyIds} onChange={(v) => handleFilterChange('companyIds', v)} />
+                <MultiSelectDropdown label="Departamentos" options={departmentOptions} selectedValues={filters.departments} onChange={(v) => handleFilterChange('departments', v)} />
+                <div className="flex gap-2 items-end">
+                  <button onClick={handleApplyFilters} className="btn btn-primary">Aplicar</button>
+                  <button onClick={handleClearFilters} className="btn btn-secondary">Limpar</button>
+                </div>
+              </div>
+            )}
+            <div className="card-body">
+              {groupedEntries.length === 0 ? (
+                <div className="table-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  <span>Nenhum lançamento encontrado.</span>
+                </div>
+              ) :
                         <div className="divide-y divide-slate-100">
                           {groupedEntries.map(transactionLines => {
                             const firstLine = transactionLines[0];
@@ -395,12 +404,11 @@ const CgEntriesView: React.FC<CgEntriesViewProps> = ({
                             )
                           })}
                         </div>
-                      }
-                  </div>
-              </div>
+              }
+            </div>
           </div>
           {editingTransaction && <CgEntryEditModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={handleSave} companies={companies} dreAccounts={dreAccounts} balanceSheetAccounts={balanceSheetAccounts} dreDepartmentOptions={dreDepartmentOptions} />}
-        </main>
+        </div>
     );
 };
 
