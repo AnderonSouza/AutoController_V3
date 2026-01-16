@@ -292,6 +292,28 @@ const App: React.FC = () => {
   }, [selectedPeriod.years, effectiveTenantId])
 
   useEffect(() => {
+    if (!reportTemplates.length || !reportLines.length || !selectedPeriod.years.length) return
+    
+    const dreTemplate = reportTemplates.find(t => t.type === 'DRE' || t.description?.toUpperCase().includes('DRE'))
+    if (!dreTemplate) return
+    
+    const dreLines = reportLines.filter(l => l.reportId === dreTemplate.id)
+    if (dreLines.length === 0) return
+    
+    const result = calculateDynamicReport(
+      dreTemplate,
+      dreLines,
+      realizedEntries,
+      adjustments,
+      [],
+      [],
+      selectedPeriod,
+      currentStore
+    )
+    setFinancialData(result)
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, calculateDynamicReport])
+
+  useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
       userExists: !!user,
       userTenantId: user?.tenantId ?? null,
