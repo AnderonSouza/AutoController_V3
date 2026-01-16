@@ -230,12 +230,23 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                 const codigo = String(a.codigo || a.codigo_contabil || a.reducedCode || '').trim();
                 if (codigo) {
                     accountByCodeMap.set(codigo, a.id);
+                    // Add variant with leading zero removed
+                    const noLeadingZeros = codigo.replace(/^0+/, '') || '0';
+                    if (noLeadingZeros !== codigo) {
+                        accountByCodeMap.set(noLeadingZeros, a.id);
+                    }
+                    // Add variant with extra zeros to handle Excel formats (up to 15 digits)
+                    // Some Excel exports add trailing zeros to codes
+                    for (let padLen = codigo.length + 1; padLen <= 15; padLen++) {
+                        const padded = codigo.padEnd(padLen, '0');
+                        accountByCodeMap.set(padded, a.id);
+                    }
                 }
             });
 
             console.log('[Import] Account mappings:', {
                 total: accountByCodeMap.size,
-                sampleCodes: Array.from(accountByCodeMap.keys()).slice(0, 10)
+                sampleCodes: Array.from(accountByCodeMap.keys()).slice(0, 15)
             });
 
             const costCenterByCodeMap = new Map<string, string>();
