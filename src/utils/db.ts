@@ -250,12 +250,29 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
   const dbTable = resolveTableName(table)
   const tenantColumn = TENANT_COLUMN_MAP[dbTable] || "organizacao_id"
   
-  let query = supabase.from(dbTable).select("*")
-
-  if (dbTable === "organizacoes") {
-    query = query.eq("id", tenantId)
+  let query;
+  
+  // Special query for mapeamento_contas with JOINs to get related data
+  if (dbTable === "mapeamento_contas") {
+    query = supabase.from(dbTable).select(`
+      id,
+      conta_contabil_id,
+      conta_dre_id,
+      conta_balanco_id,
+      criado_em,
+      organizacao_id,
+      plano_contas:conta_contabil_id(id, codigo_contabil, nome),
+      plano_contas_dre:conta_dre_id(id, nome),
+      plano_contas_balanco:conta_balanco_id(id, nome)
+    `).eq(tenantColumn, tenantId)
   } else {
-    query = query.eq(tenantColumn, tenantId)
+    query = supabase.from(dbTable).select("*")
+    
+    if (dbTable === "organizacoes") {
+      query = query.eq("id", tenantId)
+    } else {
+      query = query.eq(tenantColumn, tenantId)
+    }
   }
 
   console.log("[v0-db] Querying table:", dbTable, "with filter", tenantColumn, "=", tenantId)
@@ -383,13 +400,23 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
       }
     }
     if (dbTable === "mapeamento_contas") {
+      // Extract data from JOINed tables
+      const contaContabil = item.plano_contas;
+      const contaDre = item.plano_contas_dre;
+      const contaBalanco = item.plano_contas_balanco;
+      
       return {
         id: item.id,
         accountingAccountId: item.conta_contabil_id,
-        dreAccountId: item.conta_dre_id || item.dre_account_id,
-        idconta: item.idconta,
-        conta: item.conta,
-        contasintetica: item.conta_gerencial,
+        dreAccountId: item.conta_dre_id,
+        balanceAccountId: item.conta_balanco_id,
+        // For backwards compatibility with existing code that uses these fields
+        idconta: item.conta_contabil_id,
+        conta: contaContabil?.nome || '',
+        codigoContabil: contaContabil?.codigo_contabil || '',
+        contasintetica: contaDre?.nome || contaBalanco?.nome || '',
+        dreAccountName: contaDre?.nome || '',
+        balanceAccountName: contaBalanco?.nome || '',
         economicGroupId: item.organizacao_id,
         createdAt: item.criado_em,
       }
