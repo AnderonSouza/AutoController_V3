@@ -120,6 +120,18 @@ const FIELD_MAP_COST_CENTERS: Record<string, string> = {
   departmentId: "departamento_id",
 }
 
+const FIELD_MAP_REPORT_TEMPLATES: Record<string, string> = {
+  id: "id",
+  name: "nome",
+  description: "descricao",
+  type: "tipo",
+  isActive: "ativo",
+  orderIndex: "ordem",
+  createdAt: "criado_em",
+  updatedAt: "atualizado_em",
+  economicGroupId: "organizacao_id",
+}
+
 const FIELD_MAP_REPORT_LINES: Record<string, string> = {
   id: "id",
   reportId: "relatorio_id",
@@ -393,6 +405,19 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         createdAt: item.criado_em,
       }
     }
+    if (dbTable === "modelos_relatorios") {
+      return {
+        id: item.id,
+        name: item.nome,
+        description: item.descricao,
+        type: item.tipo,
+        isActive: item.ativo,
+        orderIndex: item.ordem,
+        createdAt: item.criado_em,
+        updatedAt: item.atualizado_em,
+        economicGroupId: item.organizacao_id,
+      }
+    }
     return item
   })
 }
@@ -459,6 +484,17 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
         if (item[appKey] !== undefined) {
           obj[dbKey] = item[appKey]
           if (appKey !== dbKey) delete obj[appKey]
+        }
+      })
+      obj.organizacao_id = tenantId
+      return obj
+    }
+
+    if (dbTable === "modelos_relatorios") {
+      const obj: any = {}
+      Object.entries(FIELD_MAP_REPORT_TEMPLATES).forEach(([appKey, dbKey]) => {
+        if (item[appKey] !== undefined) {
+          obj[dbKey] = item[appKey]
         }
       })
       obj.organizacao_id = tenantId
