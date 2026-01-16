@@ -244,9 +244,16 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                 }
             });
 
+            // Check if specific problematic codes exist
+            const testCodes = ['341101000001', '351001000007'];
+            const foundTestCodes = testCodes.filter(c => accountByCodeMap.has(c));
+            
             console.log('[Import] Account mappings:', {
                 total: accountByCodeMap.size,
-                sampleCodes: Array.from(accountByCodeMap.keys()).slice(0, 15)
+                rawAccountsLoaded: accounts.length,
+                sampleCodes: Array.from(accountByCodeMap.keys()).slice(0, 15),
+                testCodesFound: foundTestCodes,
+                testCodesMissing: testCodes.filter(c => !accountByCodeMap.has(c))
             });
 
             const costCenterByCodeMap = new Map<string, string>();
@@ -545,74 +552,70 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                     )}
 
                     {step === 2 && (
-                        <div className="space-y-6">
-                            <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="space-y-4">
+                            <div className="bg-blue-50 px-3 py-2 rounded-lg">
                                 <p className="text-sm text-blue-800">
                                     <strong>{file?.name}</strong> - {totalRows.toLocaleString()} linhas detectadas
                                 </p>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-4 gap-3">
                                 {REQUIRED_FIELDS.map((field) => (
-                                    <div key={field.key} className="bg-gray-50 p-3 rounded-lg">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <div key={field.key} className="bg-gray-50 p-2 rounded-lg">
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
                                             {field.label} {field.required && <span className="text-red-500">*</span>}
                                         </label>
                                         <StyledSelect
                                             value={mapping[field.key] || ''}
                                             onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+                                            className="text-sm"
                                         >
-                                            <option value="">-- Selecione a Coluna --</option>
+                                            <option value="">-- Selecione --</option>
                                             {excelHeaders.map(h => (
                                                 <option key={h} value={h}>{h}</option>
                                             ))}
                                         </StyledSelect>
-                                        {field.description && (
-                                            <p className="text-xs text-gray-500 mt-1">{field.description}</p>
-                                        )}
                                     </div>
                                 ))}
                                 {OPTIONAL_FIELDS.map((field) => (
-                                    <div key={field.key} className="bg-gray-50 p-3 rounded-lg opacity-75">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <div key={field.key} className="bg-gray-50 p-2 rounded-lg opacity-75">
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">
                                             {field.label}
                                         </label>
                                         <StyledSelect
                                             value={mapping[field.key] || ''}
                                             onChange={(e) => setMapping({ ...mapping, [field.key]: e.target.value })}
+                                            className="text-sm"
                                         >
-                                            <option value="">-- Selecione a Coluna --</option>
+                                            <option value="">-- Selecione --</option>
                                             {excelHeaders.map(h => (
                                                 <option key={h} value={h}>{h}</option>
                                             ))}
                                         </StyledSelect>
-                                        {field.description && (
-                                            <p className="text-xs text-gray-500 mt-1">{field.description}</p>
-                                        )}
                                     </div>
                                 ))}
                             </div>
 
                             {isProcessing && (
-                                <div className="mt-4">
-                                    <div className="w-full bg-gray-200 rounded-full h-3">
-                                        <div className="bg-blue-600 h-3 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
+                                <div className="mt-2">
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div className="bg-blue-600 h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
                                     </div>
-                                    <p className="text-sm text-gray-600 mt-2 text-center">{statusMessage}</p>
+                                    <p className="text-xs text-gray-600 mt-1 text-center">{statusMessage}</p>
                                 </div>
                             )}
 
-                            <div className="flex justify-between pt-4 border-t">
+                            <div className="flex justify-between pt-3 border-t">
                                 <button
                                     onClick={() => setStep(1)}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
                                 >
                                     Voltar
                                 </button>
                                 <button
                                     onClick={handleStartImport}
                                     disabled={isProcessing}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                                    className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {isProcessing ? 'Processando...' : 'Iniciar Importação →'}
                                 </button>
@@ -621,76 +624,74 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                     )}
 
                     {step === 3 && (
-                        <div className="text-center py-6">
-                            {stats.success > 0 ? (
-                                <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
-                            ) : (
-                                <XCircle size={64} className="mx-auto text-red-500 mb-4" />
-                            )}
-                            
-                            <h3 className="text-2xl font-bold text-gray-800 mb-6">
-                                {stats.success > 0 ? 'Carga Finalizada!' : 'Nenhum registro importado'}
-                            </h3>
+                        <div className="text-center py-2">
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                                {stats.success > 0 ? (
+                                    <CheckCircle size={32} className="text-green-500" />
+                                ) : (
+                                    <XCircle size={32} className="text-red-500" />
+                                )}
+                                <h3 className="text-xl font-bold text-gray-800">
+                                    {stats.success > 0 ? 'Carga Finalizada!' : 'Nenhum registro importado'}
+                                </h3>
+                            </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-gray-100 p-4 rounded-lg">
-                                    <p className="text-xs text-gray-500 uppercase">Total no Arquivo</p>
-                                    <p className="text-2xl font-bold text-gray-800">{stats.totalFileRows.toLocaleString()}</p>
+                            <div className="grid grid-cols-4 gap-2 mb-4">
+                                <div className="bg-gray-100 p-2 rounded-lg">
+                                    <p className="text-[10px] text-gray-500 uppercase">Total Arquivo</p>
+                                    <p className="text-lg font-bold text-gray-800">{stats.totalFileRows.toLocaleString()}</p>
                                 </div>
-                                <div className="bg-green-50 p-4 rounded-lg">
-                                    <p className="text-xs text-green-600 uppercase">Importadas</p>
-                                    <p className="text-2xl font-bold text-green-700">{stats.success.toLocaleString()}</p>
+                                <div className="bg-green-50 p-2 rounded-lg">
+                                    <p className="text-[10px] text-green-600 uppercase">Importadas</p>
+                                    <p className="text-lg font-bold text-green-700">{stats.success.toLocaleString()}</p>
                                 </div>
-                                <div className="bg-yellow-50 p-4 rounded-lg">
-                                    <p className="text-xs text-yellow-600 uppercase">Ignoradas (Zero)</p>
-                                    <p className="text-2xl font-bold text-yellow-700">{stats.zeroValues.toLocaleString()}</p>
+                                <div className="bg-yellow-50 p-2 rounded-lg">
+                                    <p className="text-[10px] text-yellow-600 uppercase">Ignoradas</p>
+                                    <p className="text-lg font-bold text-yellow-700">{stats.zeroValues.toLocaleString()}</p>
                                 </div>
-                                <div className="bg-red-50 p-4 rounded-lg">
-                                    <p className="text-xs text-red-600 uppercase">Erros de Dados</p>
-                                    <p className="text-2xl font-bold text-red-700">{stats.invalidData.toLocaleString()}</p>
+                                <div className="bg-red-50 p-2 rounded-lg">
+                                    <p className="text-[10px] text-red-600 uppercase">Erros</p>
+                                    <p className="text-lg font-bold text-red-700">{stats.invalidData.toLocaleString()}</p>
                                 </div>
                             </div>
 
                             {stats.invalidData > 0 && (
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
-                                    <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
-                                        <AlertTriangle size={18} />
-                                        Detalhamento dos Erros de Mapeamento
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-left">
+                                    <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2 text-sm">
+                                        <AlertTriangle size={14} />
+                                        Detalhamento dos Erros
                                     </h4>
-                                    <div className="grid grid-cols-3 gap-4 text-sm">
-                                        <div className="bg-white p-3 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium">Empresa não encontrada</p>
-                                            <p className="text-2xl font-bold text-red-800">{stats.companyNotFound.toLocaleString()}</p>
-                                            <p className="text-xs text-red-500">Verifique CNPJ ou Cód. ERP</p>
+                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                        <div className="bg-white p-2 rounded border border-red-100">
+                                            <p className="text-red-600 font-medium text-[10px]">Empresa não encontrada</p>
+                                            <p className="text-lg font-bold text-red-800">{stats.companyNotFound.toLocaleString()}</p>
                                         </div>
-                                        <div className="bg-white p-3 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium">Conta não encontrada</p>
-                                            <p className="text-2xl font-bold text-red-800">{stats.accountNotFound.toLocaleString()}</p>
-                                            <p className="text-xs text-red-500">Verifique Plano de Contas</p>
+                                        <div className="bg-white p-2 rounded border border-red-100">
+                                            <p className="text-red-600 font-medium text-[10px]">Conta não encontrada</p>
+                                            <p className="text-lg font-bold text-red-800">{stats.accountNotFound.toLocaleString()}</p>
                                         </div>
-                                        <div className="bg-white p-3 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium">CR não encontrado</p>
-                                            <p className="text-2xl font-bold text-red-800">{stats.costCenterNotFound.toLocaleString()}</p>
-                                            <p className="text-xs text-red-500">Verifique Centros de Resultado</p>
+                                        <div className="bg-white p-2 rounded border border-red-100">
+                                            <p className="text-red-600 font-medium text-[10px]">CR não encontrado</p>
+                                            <p className="text-lg font-bold text-red-800">{stats.costCenterNotFound.toLocaleString()}</p>
                                         </div>
                                     </div>
 
                                     {errorEntries.length > 0 && (
-                                        <div className="mt-4">
-                                            <p className="text-sm text-red-700 mb-2">Primeiros 5 erros encontrados:</p>
+                                        <div className="mt-2">
+                                            <p className="text-xs text-red-700 mb-1">Primeiros 3 erros:</p>
                                             <div className="bg-white rounded border border-red-100 overflow-hidden">
-                                                <table className="w-full text-xs">
+                                                <table className="w-full text-[10px]">
                                                     <thead className="bg-red-100">
                                                         <tr>
-                                                            <th className="p-2 text-left">Linha</th>
-                                                            <th className="p-2 text-left">Motivo</th>
+                                                            <th className="p-1.5 text-left w-16">Linha</th>
+                                                            <th className="p-1.5 text-left">Motivo</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {errorEntries.slice(0, 5).map((e, i) => (
+                                                        {errorEntries.slice(0, 3).map((e, i) => (
                                                             <tr key={i} className="border-t border-red-50">
-                                                                <td className="p-2 font-mono">{e.linha}</td>
-                                                                <td className="p-2">{e.motivo}</td>
+                                                                <td className="p-1.5 font-mono">{e.linha}</td>
+                                                                <td className="p-1.5 truncate max-w-[300px]">{e.motivo}</td>
                                                             </tr>
                                                         ))}
                                                     </tbody>
@@ -701,17 +702,17 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
 
                                     <button
                                         onClick={downloadAuditLog}
-                                        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
                                     >
-                                        <Download size={18} />
-                                        Baixar Relatório Completo de Erros (CSV)
+                                        <Download size={14} />
+                                        Baixar Relatório de Erros (CSV)
                                     </button>
                                 </div>
                             )}
 
                             <button
                                 onClick={() => { onSuccess(); onClose(); }}
-                                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
                             >
                                 Fechar e Concluir
                             </button>
