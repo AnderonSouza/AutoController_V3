@@ -271,9 +271,11 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
   }
 
   // Remove Supabase default 1000 row limit for large tables
+  // Note: Supabase has a default limit of 1000 rows. We need to explicitly set a higher limit.
   const largeTables = ['plano_contas', 'lancamentos_contabeis', 'mapeamento_contas', 'saldos_mensais']
   if (largeTables.includes(dbTable)) {
-    query = query.range(0, 50000)
+    // Use .limit() to override the default 1000 row limit
+    query = query.limit(100000)
   }
 
   console.log("[v0-db] Querying table:", dbTable, "with filter", tenantColumn, "=", tenantId)
