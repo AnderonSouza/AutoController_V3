@@ -268,7 +268,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
             )}
             <div className="header-text">
               <h1 className="card-title">
-                {mode === "monitor" ? "Monitor de Erros" : "Razão Contábil"}
+                {mode === "monitor" ? "Auditoria Contábil" : "Razão Contábil"}
               </h1>
               <p className="card-subtitle">
                 {mode === "monitor" 

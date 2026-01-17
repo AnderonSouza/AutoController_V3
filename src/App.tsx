@@ -544,7 +544,7 @@ const App: React.FC = () => {
           { id: "MANAGEMENT_TRANSFERS", icon: ArrowRightLeft, label: "Transferências" },
           { id: "CG_ENTRIES", icon: TrendingUp, label: "Ajustes de Caixa" },
           { id: "ACCOUNTING_ADJUSTMENTS", icon: ArrowRightLeft, label: "Ajustes Contábeis" },
-          { id: "QUERIES", icon: Database, label: "Monitor de Erros" },
+          { id: "QUERIES", icon: Database, label: "Auditoria Contábil" },
         ],
       },
       {
@@ -621,7 +621,7 @@ const App: React.FC = () => {
       BUDGET_PLANNING: "Painel Orçamentário",
       BUDGET_ASSUMPTIONS: "Premissas",
       BUDGET_IMPORT: "Dados do Orçamento",
-      QUERIES: "Monitor de Erros",
+      QUERIES: "Auditoria Contábil",
     }
     return viewTitles[view] || view
   }

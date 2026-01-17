@@ -156,7 +156,7 @@ export default function Sidebar({
         { id: "MANAGEMENT_TRANSFERS", label: "Transferências", icon: <ArrowRightLeft size={18} strokeWidth={1.5} /> },
         { id: "CG_ENTRIES", label: "Ajustes de Caixa", icon: <TrendingUp size={18} strokeWidth={1.5} /> },
         { id: "ACCOUNTING_ADJUSTMENTS", label: "Ajustes Contábeis", icon: <ArrowRightLeft size={18} strokeWidth={1.5} /> },
-        { id: "QUERIES", label: "Monitor de Erros", icon: <Database size={18} strokeWidth={1.5} /> },
+        { id: "QUERIES", label: "Auditoria Contábil", icon: <Database size={18} strokeWidth={1.5} /> },
       ],
     },
     {
