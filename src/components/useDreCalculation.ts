@@ -43,15 +43,22 @@ export const useDreCalculation = () => {
         });
 
         // 2. Processar Realizado (Lançamentos Contábeis)
+        // Entries now come with dreAccountId already resolved from mapeamento_contas
         accountingEntries.forEach(entry => {
             if (filterStore !== 'Consolidado' && entry.companyId !== filterStore) return;
 
+            // Match by dreAccountId directly (already mapped from conta_contabil_id)
+            const entryDreId = (entry as any).dreAccountId || entry.idconta;
+            
             reportLines.forEach(line => {
-                if (line.type === 'data_bucket' && line.dreAccountId === entry.idconta) {
+                if (line.type === 'data_bucket' && line.dreAccountId === entryDreId) {
                     const acc = lineMap.get(line.id);
-                    if (acc && acc.monthlyData[entry.year]) {
+                    const entryMonth = entry.month?.toUpperCase() || '';
+                    const monthKey = MONTHS.find(m => m.toUpperCase() === entryMonth) || entry.month;
+                    
+                    if (acc && acc.monthlyData[entry.year] && acc.monthlyData[entry.year][monthKey]) {
                         const val = entry.natureza === 'D' ? -entry.valor : entry.valor;
-                        acc.monthlyData[entry.year][entry.month].balancete += val;
+                        acc.monthlyData[entry.year][monthKey].balancete += val;
                     }
                 }
             });

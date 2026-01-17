@@ -759,6 +759,79 @@ export const getAuditStats = async (year: number, month: string) => {
   return data
 }
 
+// Load aggregated data for DRE reports (all records, with DRE account mapping)
+export const getDreAggregatedData = async (
+  years: number[],
+  tenantId: string,
+  accountMappings: { accountingAccountId?: string; conta_contabil_id?: string; dreAccountId?: string; conta_dre_id?: string }[]
+): Promise<{ dreAccountId: string; year: number; month: string; valor: number; natureza: string; companyId: string; costCenterId: string }[]> => {
+  // Create lookup map from conta_contabil_id to conta_dre_id
+  const contaToDreMap = new Map<string, string>()
+  accountMappings.forEach(m => {
+    const contaId = m.accountingAccountId || m.conta_contabil_id
+    const dreId = m.dreAccountId || m.conta_dre_id
+    if (contaId && dreId) {
+      contaToDreMap.set(contaId, dreId)
+    }
+  })
+
+  const allData: any[] = []
+  const pageSize = 50000
+
+  for (const year of years) {
+    let page = 0
+    let hasMore = true
+
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from("lancamentos_contabeis")
+        .select("conta_contabil_id, empresa_id, centro_resultado_id, ano, mes, valor, natureza")
+        .eq("organizacao_id", tenantId)
+        .eq("ano", year)
+        .range(page * pageSize, (page + 1) * pageSize - 1)
+
+      if (error) {
+        console.error("Error loading DRE data:", error)
+        break
+      }
+
+      if (data && data.length > 0) {
+        // Map to DRE accounts
+        data.forEach(entry => {
+          const dreAccountId = contaToDreMap.get(entry.conta_contabil_id)
+          if (dreAccountId) {
+            allData.push({
+              dreAccountId,
+              year: entry.ano,
+              month: entry.mes,
+              valor: entry.valor || 0,
+              natureza: entry.natureza,
+              companyId: entry.empresa_id,
+              costCenterId: entry.centro_resultado_id
+            })
+          }
+        })
+        
+        if (data.length < pageSize) {
+          hasMore = false
+        } else {
+          page++
+        }
+      } else {
+        hasMore = false
+      }
+
+      // Safety limit
+      if (allData.length >= 1000000) {
+        console.warn("DRE data safety limit reached")
+        hasMore = false
+      }
+    }
+  }
+
+  return allData
+}
+
 export const getNotifications = async (userId: string, limit = 50): Promise<Notification[]> => {
   const { data, error } = await supabase
     .from("notificacoes")

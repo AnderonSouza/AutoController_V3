@@ -76,6 +76,7 @@ import {
   saveCadastroTenant,
   getCadastroTenant,
   getAuditEntries,
+  getDreAggregatedData,
   deleteById,
   createNewUser,
   updateExistingUser,
@@ -298,22 +299,25 @@ const App: React.FC = () => {
     if (departments.length > 0 && !activeTab) setActiveTab(departments[0].name)
   }, [departments])
 
+  // Load DRE data when mappings are available
+  const mappingsLength = mappings.length
   useEffect(() => {
-    const loadEntries = async () => {
-      if (!effectiveTenantId || selectedPeriod.years.length === 0) return
+    const loadDreData = async () => {
+      if (!effectiveTenantId || selectedPeriod.years.length === 0 || mappingsLength === 0) return
       try {
-        let allEntries: any[] = []
-        for (const year of selectedPeriod.years) {
-          const result = await getAuditEntries(year, [], [], 1, 100, "", effectiveTenantId)
-          allEntries = [...allEntries, ...(result.data || [])]
-        }
-        setRealizedEntries(allEntries)
+        console.log("[v0] Loading DRE data with mappings:", { 
+          years: selectedPeriod.years, 
+          mappingsCount: mappingsLength 
+        })
+        const dreData = await getDreAggregatedData(selectedPeriod.years, effectiveTenantId, mappings)
+        console.log("[v0] DRE data loaded:", { count: dreData.length })
+        setRealizedEntries(dreData)
       } catch (e) {
-        console.error(e)
+        console.error("Error loading DRE data:", e)
       }
     }
-    loadEntries()
-  }, [selectedPeriod.years, effectiveTenantId])
+    loadDreData()
+  }, [selectedPeriod.years, effectiveTenantId, mappingsLength])
 
   useEffect(() => {
     const loadBenchmarks = async () => {
