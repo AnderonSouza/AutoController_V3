@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { supabase } from "../utils/supabaseClient"
-import { Search, Filter, Download, RefreshCw, FileText, ChevronLeft, AlertTriangle, CheckCircle2, BarChart3, List } from "lucide-react"
+import { Search, Filter, Download, RefreshCw, FileText, ChevronLeft, AlertTriangle, CheckCircle2, BarChart3, List, X, CheckCircle } from "lucide-react"
 import type {
   CgEntry,
   ManagementTransfer,
@@ -545,8 +545,11 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
 
   const getCompanyName = (empresaId: string) => {
     const company = companies.find(c => c.id === empresaId)
-    return company?.name || "N/A"
+    return company?.nickname || company?.name || "N/A"
   }
+
+  // State for entry detail modal
+  const [selectedEntry, setSelectedEntry] = useState<any>(null)
 
   const exportToCsv = () => {
     const headers = ["Período", "Empresa", "Conta", "Descrição Conta", "Centro de Resultado", "Histórico", "Débito", "Crédito"]
@@ -934,9 +937,9 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 <tr>
                   <th className="text-left">Data</th>
                   <th className="text-left">Empresa</th>
-                  <th className="text-left">Conta Contábil</th>
-                  <th className="text-left">Centro de Resultado</th>
+                  <th className="text-left">Conta</th>
                   <th className="text-left">Descrição</th>
+                  <th className="text-left">Centro de Resultado</th>
                   <th className="text-right">Débito</th>
                   <th className="text-right">Crédito</th>
                   {mode === "monitor" && <th className="text-center">Status</th>}
@@ -968,12 +971,16 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                     const hasError = !entry.conta_contabil_id || !entry.centro_resultado_id
                     
                     return (
-                      <tr key={entry.id || idx} className={hasError && mode === "monitor" ? 'bg-red-50' : ''}>
+                      <tr 
+                        key={entry.id || idx} 
+                        className={`cursor-pointer hover:bg-slate-100 ${hasError && mode === "monitor" ? 'bg-red-50 hover:bg-red-100' : ''}`}
+                        onClick={() => setSelectedEntry(entry)}
+                      >
                         <td className="text-[var(--color-text-muted)]">{entry.mes}/{entry.ano}</td>
-                        <td>{getCompanyName(entry.empresa_id)}</td>
-                        <td className="font-mono text-[var(--color-text-secondary)]">{entry.idconta || "-"}</td>
-                        <td>{entry.descricaocr || entry.siglacr || "-"}</td>
-                        <td className="max-w-[200px] truncate" title={entry.descricaoconta || ""}>{entry.descricaoconta || "-"}</td>
+                        <td className="max-w-[120px] truncate" title={getCompanyName(entry.empresa_id)}>{getCompanyName(entry.empresa_id)}</td>
+                        <td className="font-mono text-[var(--color-text-secondary)] text-xs">{entry.idconta || "-"}</td>
+                        <td className="max-w-[180px] truncate" title={entry.descricaoconta || ""}>{entry.descricaoconta || "-"}</td>
+                        <td className="max-w-[120px] truncate" title={entry.descricaocr || entry.siglacr || ""}>{entry.descricaocr || entry.siglacr || "-"}</td>
                         <td className="text-right font-mono text-red-600">{debit > 0 ? formatCurrency(debit) : "-"}</td>
                         <td className="text-right font-mono text-blue-600">{credit > 0 ? formatCurrency(credit) : "-"}</td>
                         {mode === "monitor" && (
@@ -992,6 +999,92 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
               </tbody>
             </table>
           </div>
+          )}
+
+          {/* Entry Detail Modal */}
+          {selectedEntry && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedEntry(null)}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 rounded-t-xl">
+                  <h2 className="text-lg font-semibold text-slate-800">Detalhes do Lançamento</h2>
+                  <button onClick={() => setSelectedEntry(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                    <X className="h-5 w-5 text-slate-500" />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Período</label>
+                      <p className="text-slate-800 font-medium">{selectedEntry.mes}/{selectedEntry.ano}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Data</label>
+                      <p className="text-slate-800">{selectedEntry.data || "-"}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Empresa</label>
+                    <p className="text-slate-800 font-medium">{getCompanyName(selectedEntry.empresa_id)}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Conta Contábil</label>
+                      <p className="text-slate-800 font-mono">{selectedEntry.idconta || "-"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Centro de Resultado</label>
+                      <p className="text-slate-800">{selectedEntry.descricaocr || selectedEntry.siglacr || "-"}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Descrição da Conta</label>
+                    <p className="text-slate-800">{selectedEntry.descricaoconta || "-"}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-500 uppercase">Histórico</label>
+                    <p className="text-slate-800">{selectedEntry.historico || "-"}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Débito</label>
+                      <p className="text-2xl font-bold text-red-600">
+                        {selectedEntry.natureza === 'D' ? formatCurrency(selectedEntry.valor || 0) : "-"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Crédito</label>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {selectedEntry.natureza === 'C' ? formatCurrency(selectedEntry.valor || 0) : "-"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {mode === "monitor" && (
+                    <div className="pt-4 border-t border-slate-200">
+                      <label className="text-xs font-medium text-slate-500 uppercase">Status</label>
+                      <div className="mt-2">
+                        {(!selectedEntry.conta_contabil_id || !selectedEntry.centro_resultado_id) ? (
+                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 text-red-700">
+                            <AlertTriangle className="h-4 w-4" />
+                            Lançamento com dados incompletos
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                            <CheckCircle className="h-4 w-4" />
+                            Lançamento completo
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
