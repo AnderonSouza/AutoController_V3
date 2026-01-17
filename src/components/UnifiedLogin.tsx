@@ -292,26 +292,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
 
   const companyName = config?.companyName || ""
   
-  const shouldShowSplash = config?.splashVideoUrl && (!splashTimerComplete || loadingTenants)
-  
-  if (shouldShowSplash) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-white">
-        <video
-          src={config.splashVideoUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-64 h-64 object-contain"
-          onError={(e) => {
-            console.log("[v0] Splash video failed to load:", config.splashVideoUrl)
-            setSplashTimerComplete(true)
-          }}
-        />
-      </div>
-    )
-  }
+  // Splash removido da tela de login - agora aparece após o login no App.tsx
 
   const isInitialLoading = loadingConfig && !config
 

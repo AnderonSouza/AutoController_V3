@@ -108,6 +108,9 @@ const App: React.FC = () => {
   const [currentSubdomain, setCurrentSubdomain] = useState<string | null>(null)
   const [isOnAdminConsole, setIsOnAdminConsole] = useState(false)
   const [availableTenants, setAvailableTenants] = useState<EconomicGroup[]>([])
+  const [splashVideoUrl, setSplashVideoUrl] = useState<string | null>(null)
+  const [showPostLoginSplash, setShowPostLoginSplash] = useState(false)
+  const [splashTimerComplete, setSplashTimerComplete] = useState(false)
 
   // Carrega todos os tenants disponíveis na inicialização (independente de login)
   useEffect(() => {
@@ -144,12 +147,32 @@ const App: React.FC = () => {
       try {
         const config = await getConsoleConfig()
         applyConsoleTheme(config)
+        // Armazena a URL do splash video para uso após login
+        if (config.splashVideoUrl) {
+          setSplashVideoUrl(config.splashVideoUrl)
+          console.log("[v0] Splash video URL loaded:", config.splashVideoUrl)
+        }
       } catch (e) {
         console.error("[v0] Error loading console theme:", e)
       }
     }
     loadAndApplyTheme()
   }, [])
+
+  // Ativa o splash após o login bem-sucedido
+  useEffect(() => {
+    if (user && splashVideoUrl && !splashTimerComplete) {
+      console.log("[v0] Activating post-login splash screen")
+      setShowPostLoginSplash(true)
+      // Timer para fechar o splash após 3 segundos
+      const timer = setTimeout(() => {
+        console.log("[v0] Post-login splash timer complete")
+        setSplashTimerComplete(true)
+        setShowPostLoginSplash(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [user, splashVideoUrl, splashTimerComplete])
 
   // Seleciona tenant baseado na URL ou localStorage quando os tenants estão disponíveis
   // Este efeito também roda quando o user muda para re-avaliar o tenant após login
@@ -1026,6 +1049,27 @@ const App: React.FC = () => {
         }}
         tenantInfo={tenantInfo}
       />
+    )
+  }
+
+  // Mostra splash screen após login e antes de carregar o sistema
+  if (showPostLoginSplash && splashVideoUrl) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <video
+          src={splashVideoUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-64 h-64 object-contain"
+          onError={() => {
+            console.log("[v0] Post-login splash video failed to load")
+            setSplashTimerComplete(true)
+            setShowPostLoginSplash(false)
+          }}
+        />
+      </div>
     )
   }
 
