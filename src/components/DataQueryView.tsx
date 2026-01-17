@@ -104,11 +104,8 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     }
   }, [tenantId])
 
-  useEffect(() => {
-    if (tenantId && selectedYear) {
-      loadEntries()
-    }
-  }, [tenantId, selectedYear, selectedMonth, selectedCompanyId, selectedBrandId])
+  // Removed auto-loading - now unified lazy loading for both Razão and Auditoria
+  // loadEntries is called manually via "Carregar Dados" button
 
   const loadReferenceData = async () => {
     if (!tenantId) return
@@ -154,70 +151,11 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     }
   }
 
-  const loadEntries = async () => {
+  // Unified data loading function for both Razão and Auditoria modes
+  const loadAllData = async () => {
     if (!tenantId) return
-    setIsLoading(true)
-
-    try {
-      // Use JOIN to get related data from plano_contas and centros_resultado
-      let query = supabase
-        .from("lancamentos_contabeis")
-        .select(`
-          *,
-          plano_contas:conta_contabil_id(id, codigo_contabil, nome),
-          centros_resultado:centro_resultado_id(id, codigo, nome)
-        `)
-        .eq("organizacao_id", tenantId)
-        .eq("ano", selectedYear)
-        .order("data", { ascending: false })
-
-      if (selectedMonth) {
-        query = query.eq("mes", selectedMonth.toUpperCase())
-      }
-
-      if (selectedCompanyId) {
-        query = query.eq("empresa_id", selectedCompanyId)
-      }
-
-      // Apply brand filter
-      if (selectedBrandId && companies.length > 0) {
-        const brandCompanyIds = companies
-          .filter(c => c.brandId === selectedBrandId)
-          .map(c => c.id)
-        if (brandCompanyIds.length > 0) {
-          query = query.in("empresa_id", brandCompanyIds)
-        }
-      }
-
-      // For entries list, keep limit at 1000 for performance
-      const { data, error } = await query.limit(1000)
-
-      if (error) {
-        console.error("Error loading entries:", error)
-        setEntries([])
-      } else {
-        // Map related data to flat structure for display
-        const mappedData = (data || []).map(e => ({
-          ...e,
-          idconta: e.plano_contas?.codigo_contabil || '',
-          descricaoconta: e.plano_contas?.nome || '',
-          siglacr: e.centros_resultado?.codigo || '',
-          descricaocr: e.centros_resultado?.nome || '',
-        }))
-        setEntries(mappedData)
-      }
-    } catch (error) {
-      console.error("Error loading entries:", error)
-      setEntries([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Load aggregated statistics for audit dashboard (no limit)
-  const loadAggregatedStats = async () => {
-    if (!tenantId || mode !== "monitor") return
     
+    setIsLoading(true)
     setIsLoadingStats(true)
     setNeedsRefresh(false)
 
@@ -230,16 +168,20 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           .map(c => c.id)
       }
 
-      // Fetch all records without limit for aggregation (paginated)
+      // Fetch all records with pagination (unified approach)
       let allData: any[] = []
       let page = 0
-      const pageSize = 50000 // Increased for better performance
+      const pageSize = 50000
       let hasMore = true
 
       while (hasMore) {
         let query = supabase
           .from("lancamentos_contabeis")
-          .select("valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id")
+          .select(`
+            *,
+            plano_contas:conta_contabil_id(id, codigo_contabil, nome),
+            centros_resultado:centro_resultado_id(id, codigo, nome)
+          `)
           .eq("organizacao_id", tenantId)
           .eq("ano", selectedYear)
           .range(page * pageSize, (page + 1) * pageSize - 1)
@@ -250,14 +192,13 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         if (selectedCompanyId) {
           query = query.eq("empresa_id", selectedCompanyId)
         } else if (selectedBrandId && brandCompanyIds.length > 0) {
-          // Filter by brand's companies
           query = query.in("empresa_id", brandCompanyIds)
         }
 
         const { data, error } = await query
 
         if (error) {
-          console.error("Error loading aggregated stats:", error)
+          console.error("Error loading entries:", error)
           break
         }
 
@@ -274,78 +215,92 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
 
         // Safety limit - max 500k records
         if (allData.length >= 500000) {
-          console.warn("Safety limit reached for aggregation")
+          console.warn("Safety limit reached")
           hasMore = false
         }
       }
 
-      // Aggregate the data
-      let totalDebits = 0
-      let totalCredits = 0
-      let errorCount = 0
-      const byMonthMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
-      const byCompanyMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
-      const byCostCenterMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+      // Map related data to flat structure for display
+      const mappedData = allData.map(e => ({
+        ...e,
+        idconta: e.plano_contas?.codigo_contabil || '',
+        descricaoconta: e.plano_contas?.nome || '',
+        siglacr: e.centros_resultado?.codigo || '',
+        descricaocr: e.centros_resultado?.nome || '',
+      }))
+      
+      setEntries(mappedData)
 
-      allData.forEach(e => {
-        const debit = e.natureza === 'D' ? (e.valor || 0) : 0
-        const credit = e.natureza === 'C' ? (e.valor || 0) : 0
-        const hasError = !e.conta_contabil_id || !e.centro_resultado_id || (!e.valor || e.valor === 0)
+      // Calculate aggregated stats for monitor mode
+      if (mode === "monitor") {
+        let totalDebits = 0
+        let totalCredits = 0
+        let errorCount = 0
+        const byMonthMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+        const byCompanyMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+        const byCostCenterMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
 
-        totalDebits += debit
-        totalCredits += credit
-        if (hasError) errorCount++
+        mappedData.forEach(e => {
+          const debit = e.natureza === 'D' ? (e.valor || 0) : 0
+          const credit = e.natureza === 'C' ? (e.valor || 0) : 0
+          const hasError = !e.conta_contabil_id || !e.centro_resultado_id || (!e.valor || e.valor === 0)
 
-        // By Month
-        const monthKey = e.mes || 'Sem Mês'
-        const monthData = byMonthMap.get(monthKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
-        monthData.entries++
-        monthData.debits += debit
-        monthData.credits += credit
-        if (hasError) monthData.errors++
-        byMonthMap.set(monthKey, monthData)
+          totalDebits += debit
+          totalCredits += credit
+          if (hasError) errorCount++
 
-        // By Company
-        const companyKey = e.empresa_id || 'sem_empresa'
-        const companyData = byCompanyMap.get(companyKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
-        companyData.entries++
-        companyData.debits += debit
-        companyData.credits += credit
-        if (hasError) companyData.errors++
-        byCompanyMap.set(companyKey, companyData)
+          // By Month
+          const monthKey = e.mes || 'Sem Mês'
+          const monthData = byMonthMap.get(monthKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+          monthData.entries++
+          monthData.debits += debit
+          monthData.credits += credit
+          if (hasError) monthData.errors++
+          byMonthMap.set(monthKey, monthData)
 
-        // By Cost Center
-        const centerKey = e.centro_resultado_id || 'sem_cr'
-        const centerData = byCostCenterMap.get(centerKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
-        centerData.entries++
-        centerData.debits += debit
-        centerData.credits += credit
-        if (hasError) centerData.errors++
-        byCostCenterMap.set(centerKey, centerData)
-      })
+          // By Company
+          const companyKey = e.empresa_id || 'sem_empresa'
+          const companyData = byCompanyMap.get(companyKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+          companyData.entries++
+          companyData.debits += debit
+          companyData.credits += credit
+          if (hasError) companyData.errors++
+          byCompanyMap.set(companyKey, companyData)
 
-      setAggregatedStats({
-        totalEntries: allData.length,
-        totalDebits,
-        totalCredits,
-        errorCount,
-        byMonth: Array.from(byMonthMap.entries()).map(([mes, data]) => ({ mes, ...data })),
-        byCompany: Array.from(byCompanyMap.entries()).map(([empresa_id, data]) => ({ empresa_id, ...data })),
-        byCostCenter: Array.from(byCostCenterMap.entries()).map(([centro_resultado_id, data]) => ({ centro_resultado_id, ...data })),
-      })
+          // By Cost Center
+          const centerKey = e.centro_resultado_id || 'sem_cr'
+          const centerData = byCostCenterMap.get(centerKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+          centerData.entries++
+          centerData.debits += debit
+          centerData.credits += credit
+          if (hasError) centerData.errors++
+          byCostCenterMap.set(centerKey, centerData)
+        })
+
+        setAggregatedStats({
+          totalEntries: mappedData.length,
+          totalDebits,
+          totalCredits,
+          errorCount,
+          byMonth: Array.from(byMonthMap.entries()).map(([mes, data]) => ({ mes, ...data })),
+          byCompany: Array.from(byCompanyMap.entries()).map(([empresa_id, data]) => ({ empresa_id, ...data })),
+          byCostCenter: Array.from(byCostCenterMap.entries()).map(([centro_resultado_id, data]) => ({ centro_resultado_id, ...data })),
+        })
+      }
     } catch (error) {
-      console.error("Error loading aggregated stats:", error)
+      console.error("Error loading data:", error)
+      setEntries([])
     } finally {
+      setIsLoading(false)
       setIsLoadingStats(false)
     }
   }
 
-  // Mark as needing refresh when filters change
+  // Mark as needing refresh when filters change (both modes)
   useEffect(() => {
-    if (mode === "monitor") {
-      setNeedsRefresh(true)
-    }
-  }, [selectedYear, selectedMonth, selectedCompanyId, selectedBrandId, mode])
+    setNeedsRefresh(true)
+    setEntries([])
+  }, [selectedYear, selectedMonth, selectedCompanyId, selectedBrandId])
 
   const filteredEntries = useMemo(() => {
     let result = entries
@@ -608,12 +563,12 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
               Filtros
             </button>
             <button 
-              onClick={mode === "monitor" ? loadAggregatedStats : loadEntries}
+              onClick={loadAllData}
               disabled={isLoading || isLoadingStats}
-              className={`btn ${needsRefresh && mode === "monitor" ? 'btn-primary' : 'btn-secondary'}`}
+              className={`btn ${needsRefresh ? 'btn-primary' : 'btn-secondary'}`}
             >
               <RefreshCw className={`h-4 w-4 ${isLoading || isLoadingStats ? 'animate-spin' : ''}`} />
-              {needsRefresh && mode === "monitor" ? "Carregar Dados" : "Atualizar"}
+              {needsRefresh ? "Carregar Dados" : "Atualizar"}
             </button>
             <button 
               onClick={exportToCsv}
@@ -746,6 +701,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
             </div>
           )}
 
+          {/* Instruction message for Auditoria mode */}
           {mode === "monitor" && activeAuditTab === "dashboard" && needsRefresh && !isLoadingStats && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mt-4">
               <BarChart3 className="h-12 w-12 text-blue-500 mx-auto mb-3" />
@@ -756,7 +712,19 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
             </div>
           )}
 
-          {mode === "monitor" && activeAuditTab === "dashboard" && isLoadingStats && (
+          {/* Instruction message for Razão mode */}
+          {mode !== "monitor" && needsRefresh && !isLoading && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mt-4">
+              <FileText className="h-12 w-12 text-blue-500 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Clique em "Carregar Dados" para iniciar</h3>
+              <p className="text-blue-600 text-sm">
+                Selecione os filtros desejados e clique no botão acima para carregar os lançamentos contábeis.
+              </p>
+            </div>
+          )}
+
+          {/* Loading state for both modes */}
+          {(isLoading || isLoadingStats) && (
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center mt-4">
               <RefreshCw className="h-12 w-12 text-slate-400 mx-auto mb-3 animate-spin" />
               <h3 className="text-lg font-semibold text-slate-700 mb-2">Carregando dados...</h3>
@@ -930,7 +898,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
             </div>
           )}
 
-          {(mode !== "monitor" || activeAuditTab === "entries") && (
+          {(mode !== "monitor" || activeAuditTab === "entries") && !needsRefresh && !isLoading && (
           <div className="data-table-wrapper mt-4">
             <table className="data-table">
               <thead className="sticky-header">
