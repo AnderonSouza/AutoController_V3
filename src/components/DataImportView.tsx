@@ -601,6 +601,7 @@ const DataImportView: React.FC<DataImportViewProps> = ({
           setIsMonthlyBalanceModalOpen(false)
           alert("Importação de balancetes concluída!")
         }}
+        tenantId={tenantId || ''}
       />
     </main>
   )

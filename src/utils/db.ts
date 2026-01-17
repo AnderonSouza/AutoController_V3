@@ -883,10 +883,56 @@ export const bulkSaveLancamentos = async (entries: TrialBalanceEntry[], tenantId
 }
 
 export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tenantId: string): Promise<void> => {
-  const enrichedEntries = entries.map((entry) => ({
-    ...entry,
-    organizacao_id: tenantId,
-  }))
+  // First, fetch plano_contas to resolve codigo_contabil to UUID
+  const { data: planoContas, error: planoError } = await supabase
+    .from("plano_contas")
+    .select("id, codigo_contabil")
+    .eq("organizacao_id", tenantId)
+  
+  if (planoError) {
+    console.error("[v0-db] Error fetching plano_contas for saldos_mensais import:", planoError)
+    throw planoError
+  }
+
+  // Create a map of codigo_contabil -> UUID
+  const codigoToIdMap = new Map<string, string>()
+  planoContas?.forEach(conta => {
+    if (conta.codigo_contabil) {
+      codigoToIdMap.set(String(conta.codigo_contabil), conta.id)
+    }
+  })
+
+  console.log("[v0-db] bulkSaveSaldosMensais - plano_contas mapping count:", codigoToIdMap.size)
+
+  // Transform entries to match database schema
+  const enrichedEntries = entries
+    .map((entry) => {
+      // Resolve codigo_contabil to UUID
+      const codigoConta = entry.conta_contabil_id || ''
+      const contaContabilUuid = codigoToIdMap.get(codigoConta)
+      
+      if (!contaContabilUuid) {
+        console.warn(`[v0-db] Could not find account UUID for codigo: ${codigoConta}`)
+        return null // Skip entries without valid account mapping
+      }
+
+      return {
+        empresa_id: entry.empresa_id,
+        conta_contabil_id: contaContabilUuid,
+        ano: entry.ano,
+        mes: entry.mes.toUpperCase(),
+        valor: entry.valor,
+        organizacao_id: tenantId,
+      }
+    })
+    .filter(Boolean) // Remove null entries
+
+  if (enrichedEntries.length === 0) {
+    console.warn("[v0-db] No valid entries to save after account mapping")
+    return
+  }
+
+  console.log("[v0-db] Saving", enrichedEntries.length, "saldos_mensais entries")
 
   const { error } = await supabase.from("saldos_mensais").insert(enrichedEntries)
   if (error) throw error

@@ -453,11 +453,10 @@ export interface MonthlyBalanceEntry {
   id?: string
   ano: number
   mes: string
-  conta_id: string
-  conta_descricao: string
+  conta_contabil_id?: string  // UUID reference to plano_contas
   valor: number
-  empresa_cnpj?: string
   empresa_id: string
+  organizacao_id?: string
 }
 
 export interface Notification {

@@ -10,6 +10,7 @@ interface MonthlyBalanceImportModalProps {
     onClose: () => void;
     companies: Company[];
     onSuccess: () => void;
+    tenantId: string;
 }
 
 interface PeriodMapping {
@@ -19,15 +20,14 @@ interface PeriodMapping {
     excelColumn: string;
 }
 
-const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ isOpen, onClose, companies, onSuccess }) => {
+const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ isOpen, onClose, companies, onSuccess, tenantId }) => {
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [file, setFile] = useState<File | null>(null);
     const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
     
-    // Core Mapping (ID, Description)
+    // Core Mapping - only needs the account code column to match with plano_contas
     const [baseMapping, setBaseMapping] = useState({
-        idconta: '',
-        descricaoconta: ''
+        codigoConta: ''  // codigo_contabil from plano_contas
     });
 
     const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
@@ -52,7 +52,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
             setExcelHeaders([]);
             rawSheetDataRef.current = [];
             setPreviewData([]);
-            setBaseMapping({ idconta: '', descricaoconta: '' });
+            setBaseMapping({ codigoConta: '' });
             setPeriodMappings([]);
             setSelectedCompanyId('');
             setProgress(0);
@@ -85,12 +85,13 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                     rawSheetDataRef.current = jsonData;
                     setPreviewData(jsonData.slice(1, 6)); 
                     
-                    // Auto-detect base fields
+                    // Auto-detect account code column
                     const newBaseMapping = { ...baseMapping };
                     headers.forEach(h => {
                         const lower = h.toLowerCase();
-                        if (lower.includes('conta') || lower.includes('reduzido')) newBaseMapping.idconta = h;
-                        else if (lower.includes('descri') && lower.includes('conta')) newBaseMapping.descricaoconta = h;
+                        if (lower.includes('reduzido') || lower.includes('codigo') || (lower.includes('conta') && !lower.includes('descri'))) {
+                            if (!newBaseMapping.codigoConta) newBaseMapping.codigoConta = h;
+                        }
                     });
                     setBaseMapping(newBaseMapping);
                     setStep(2);
@@ -123,7 +124,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
 
     const validateAndStart = () => {
         if (!selectedCompanyId) return alert("Selecione a empresa para vincular os saldos.");
-        if (!baseMapping.idconta) return alert("Selecione a coluna de ID da Conta.");
+        if (!baseMapping.codigoConta) return alert("Selecione a coluna de Código da Conta.");
         if (periodMappings.length === 0) return alert("Adicione pelo menos um período para importar.");
         if (periodMappings.some(m => !m.excelColumn)) return alert("Selecione a coluna do Excel para todos os períodos adicionados.");
         
@@ -137,11 +138,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
         const allData = rawSheetDataRef.current;
         const total = allData.length - 1;
         
-        const idIdx = excelHeaders.indexOf(baseMapping.idconta);
-        const descIdx = excelHeaders.indexOf(baseMapping.descricaoconta);
-
-        const targetCompany = companies.find(c => c.id === selectedCompanyId);
-        const companyCnpj = targetCompany?.cnpj?.replace(/\D/g, '') || undefined;
+        const codigoContaIdx = excelHeaders.indexOf(baseMapping.codigoConta);
 
         const mappingIndices = periodMappings.map(m => ({
             year: m.year,
@@ -159,10 +156,8 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                 for (const row of chunkRaw) {
                     if (!row || row.length === 0) continue;
                     
-                    const idConta = row[idIdx];
-                    if (!idConta) continue;
-
-                    const descConta = descIdx > -1 ? row[descIdx] : '';
+                    const codigoConta = row[codigoContaIdx];
+                    if (!codigoConta) continue;
 
                     // Create one entry per mapped period
                     for (const map of mappingIndices) {
@@ -182,20 +177,21 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
 
                         if (isNaN(val)) continue;
 
+                        // Note: conta_contabil_id will be resolved by the save function
+                        // by matching codigoConta with plano_contas.codigo_contabil
                         chunkTransformed.push({
                             ano: map.year,
                             mes: map.month,
-                            conta_id: String(idConta),
-                            conta_descricao: String(descConta),
                             valor: val,
-                            empresa_cnpj: companyCnpj,
-                            empresa_id: selectedCompanyId
+                            empresa_id: selectedCompanyId,
+                            // Store codigo temporarily - will be resolved to UUID in save function
+                            conta_contabil_id: String(codigoConta)
                         });
                     }
                 }
 
                 if (chunkTransformed.length > 0) {
-                    await bulkSaveSaldosMensais(chunkTransformed);
+                    await bulkSaveSaldosMensais(chunkTransformed, tenantId);
                 }
                 
                 const currentProgress = Math.min(100, Math.round((end / total) * 100));
@@ -246,7 +242,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                                 <h4 className="text-sm font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Mapeamento Básico</h4>
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div className="col-span-2">
+                                    <div>
                                         <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">Empresa Destino</label>
                                         <StyledSelect value={selectedCompanyId} onChange={e => setSelectedCompanyId(e.target.value)} containerClassName="w-full" className="h-11 pl-4 text-sm font-medium border-slate-300 focus:border-primary">
                                             <option value="">Selecione a empresa...</option>
@@ -255,18 +251,12 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                                         <p className="text-xs text-slate-400 mt-1.5">Todos os saldos importados serão atribuídos a esta empresa.</p>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">ID da Conta (Obrigatório)</label>
-                                        <StyledSelect value={baseMapping.idconta} onChange={e => setBaseMapping({...baseMapping, idconta: e.target.value})} containerClassName="w-full" className="h-11 pl-4 text-sm border-slate-300 focus:border-primary">
+                                        <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">Código da Conta (Obrigatório)</label>
+                                        <StyledSelect value={baseMapping.codigoConta} onChange={e => setBaseMapping({...baseMapping, codigoConta: e.target.value})} containerClassName="w-full" className="h-11 pl-4 text-sm border-slate-300 focus:border-primary">
                                             <option value="">Selecione...</option>
                                             {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
                                         </StyledSelect>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">Descrição da Conta</label>
-                                        <StyledSelect value={baseMapping.descricaoconta} onChange={e => setBaseMapping({...baseMapping, descricaoconta: e.target.value})} containerClassName="w-full" className="h-11 pl-4 text-sm border-slate-300 focus:border-primary">
-                                            <option value="">Selecione...</option>
-                                            {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
-                                        </StyledSelect>
+                                        <p className="text-xs text-slate-400 mt-1.5">Coluna com o código reduzido da conta contábil.</p>
                                     </div>
                                 </div>
                             </div>
