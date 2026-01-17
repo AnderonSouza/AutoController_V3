@@ -145,8 +145,8 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
       if (centersRes.data) {
         setCostCenters(centersRes.data.map(c => ({
           id: c.id,
-          code: c.sigla,
-          name: c.descricao,
+          code: c.codigo,
+          name: c.nome,
         })))
       }
     } catch (error) {
