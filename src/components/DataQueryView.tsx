@@ -69,7 +69,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   onNavigateBack,
   tenantId,
 }) => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [entries, setEntries] = useState<any[]>([])
   const [companies, setCompanies] = useState<LocalCompany[]>([])
   const [brands, setBrands] = useState<LocalBrand[]>([])
