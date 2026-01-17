@@ -13,9 +13,27 @@ interface CompaniesViewProps {
   tenantId: string; // Added tenantId prop
 }
 
-// Helper for formatting CNPJ
+// Helper for formatting CNPJ - formato: XX.XXX.XXX/XXXX-XX
 const formatCNPJ = (value: string) => {
-    return value.replace(/\D/g, '').replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2').substring(0, 18);
+    // Remove tudo que não é dígito
+    const digits = value.replace(/\D/g, '').substring(0, 14);
+    
+    // Aplica a máscara progressivamente
+    let formatted = digits;
+    if (digits.length > 2) {
+        formatted = digits.substring(0, 2) + '.' + digits.substring(2);
+    }
+    if (digits.length > 5) {
+        formatted = digits.substring(0, 2) + '.' + digits.substring(2, 5) + '.' + digits.substring(5);
+    }
+    if (digits.length > 8) {
+        formatted = digits.substring(0, 2) + '.' + digits.substring(2, 5) + '.' + digits.substring(5, 8) + '/' + digits.substring(8);
+    }
+    if (digits.length > 12) {
+        formatted = digits.substring(0, 2) + '.' + digits.substring(2, 5) + '.' + digits.substring(5, 8) + '/' + digits.substring(8, 12) + '-' + digits.substring(12);
+    }
+    
+    return formatted;
 };
 
 // Helper Component for Sortable Headers
@@ -291,12 +309,24 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
     };
 
     const handleModalSave = async (updatedCompany: Company) => {
-        const isDuplicate = editableCompanies.some(c => 
-            c.id !== updatedCompany.id && (
-                (c.cnpj && updatedCompany.cnpj && c.cnpj === updatedCompany.cnpj) ||
-                (c.erpCode && updatedCompany.erpCode && c.erpCode === updatedCompany.erpCode)
-            )
-        );
+        // Normaliza CNPJ para comparação (apenas dígitos)
+        const normalizeCnpj = (cnpj: string | undefined) => cnpj?.replace(/\D/g, '') || '';
+        const updatedCnpjNormalized = normalizeCnpj(updatedCompany.cnpj);
+        
+        const isDuplicate = editableCompanies.some(c => {
+            if (c.id === updatedCompany.id) return false;
+            
+            // Compara CNPJs normalizados (apenas dígitos)
+            const existingCnpjNormalized = normalizeCnpj(c.cnpj);
+            const cnpjMatch = updatedCnpjNormalized && existingCnpjNormalized && 
+                              updatedCnpjNormalized === existingCnpjNormalized;
+            
+            // Compara códigos ERP
+            const erpMatch = c.erpCode && updatedCompany.erpCode && 
+                             c.erpCode === updatedCompany.erpCode;
+            
+            return cnpjMatch || erpMatch;
+        });
         if (isDuplicate) { alert("Erro: Já existe uma empresa com este CNPJ ou Código ERP."); return; }
 
         setEditableCompanies(prev => {
