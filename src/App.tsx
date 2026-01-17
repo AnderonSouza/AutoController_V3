@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, useMemo } from "react"
-import type { User, View, ReportTemplate, FinancialAccount, EconomicGroup } from "./types"
+import type { User, View, ReportTemplate, FinancialAccount, EconomicGroup, Benchmark } from "./types"
 import SuperAdminView from "./components/SuperAdminView"
 import SuperAdminDashboard from "./components/SuperAdminDashboard"
 import UnifiedLayout from "./components/UnifiedLayout"
@@ -111,6 +111,7 @@ const App: React.FC = () => {
   const [splashVideoUrl, setSplashVideoUrl] = useState<string | null>(null)
   const [showPostLoginSplash, setShowPostLoginSplash] = useState(false)
   const [splashTimerComplete, setSplashTimerComplete] = useState(false)
+  const [benchmarks, setBenchmarks] = useState<Benchmark[]>([])
 
   // Carrega todos os tenants disponíveis na inicialização (independente de login)
   useEffect(() => {
@@ -313,6 +314,19 @@ const App: React.FC = () => {
     }
     loadEntries()
   }, [selectedPeriod.years, effectiveTenantId])
+
+  useEffect(() => {
+    const loadBenchmarks = async () => {
+      if (!effectiveTenantId) return
+      try {
+        const data = await getCadastroTenant("benchmarks", effectiveTenantId)
+        setBenchmarks(data || [])
+      } catch (e) {
+        console.error("Error loading benchmarks:", e)
+      }
+    }
+    loadBenchmarks()
+  }, [effectiveTenantId])
 
   useEffect(() => {
     if (!reportTemplates.length || !reportLines.length || !selectedPeriod.years.length) return
@@ -929,13 +943,15 @@ const App: React.FC = () => {
       case "BENCHMARKS":
         return (
           <BenchmarkManagementView
-            benchmarks={[]}
+            benchmarks={benchmarks}
             onSaveBenchmarks={async (data) => {
               await saveCadastroTenant("benchmarks", data, effectiveTenantId || user.tenantId)
+              setBenchmarks(data)
             }}
             onNavigateBack={() => handleNavigate("COST_CENTERS")}
             brands={brands}
-            financialAccounts={accountingAccounts}
+            reportLines={reportLines}
+            reportTemplates={reportTemplates}
           />
         )
       case "MANAGEMENT":

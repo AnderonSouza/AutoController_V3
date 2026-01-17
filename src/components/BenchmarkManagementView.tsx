@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Benchmark, Brand, FinancialAccount } from '../types';
+import { Benchmark, Brand, ReportLine, ReportTemplate } from '../types';
 import StyledSelect from './StyledSelect';
 import { generateUUID } from '../utils/helpers';
 import { ChevronLeft, Trash2, Plus } from 'lucide-react';
@@ -9,7 +9,8 @@ interface BenchmarkManagementViewProps {
   onSaveBenchmarks: (benchmarks: Benchmark[]) => Promise<void>;
   onNavigateBack: () => void;
   brands: Brand[];
-  financialAccounts: FinancialAccount[];
+  reportLines: ReportLine[];
+  reportTemplates: ReportTemplate[];
 }
 
 const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({ 
@@ -17,7 +18,8 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
     onSaveBenchmarks, 
     onNavigateBack,
     brands,
-    financialAccounts
+    reportLines,
+    reportTemplates
 }) => {
     const [editableBenchmarks, setEditableBenchmarks] = useState<Benchmark[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -31,22 +33,32 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
     }, [benchmarks]);
 
     const totalizerAccounts = React.useMemo(() => {
-        const list: { id: string; name: string }[] = [];
-        if (!financialAccounts || !Array.isArray(financialAccounts)) {
+        const list: { id: string; name: string; templateName: string }[] = [];
+        if (!reportLines || !Array.isArray(reportLines)) {
             return list;
         }
-        const traverse = (nodes: FinancialAccount[]) => {
-            if (!nodes || !Array.isArray(nodes)) return;
-            for(const node of nodes) {
-                if (node.isTotal || node.isSubTotal) {
-                    list.push({ id: node.id, name: node.name });
-                }
-                if(node.children) traverse(node.children);
+        
+        for (const line of reportLines) {
+            if (line.type === 'total' || line.type === 'header') {
+                const template = reportTemplates.find(t => t.id === line.reportId);
+                const templateName = template?.name || 'Modelo';
+                list.push({ 
+                    id: line.id, 
+                    name: line.name,
+                    templateName 
+                });
             }
         }
-        traverse(financialAccounts);
+        
+        list.sort((a, b) => {
+            if (a.templateName !== b.templateName) {
+                return a.templateName.localeCompare(b.templateName);
+            }
+            return a.name.localeCompare(b.name);
+        });
+        
         return list;
-    }, [financialAccounts]);
+    }, [reportLines, reportTemplates]);
 
     const handleFieldChange = (id: string, field: keyof Benchmark, value: any) => {
         setEditableBenchmarks(prev => prev.map(b => b.id === id ? { ...b, [field]: value } : b));
@@ -81,6 +93,17 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
     };
 
     const inputClasses = "w-full bg-white border border-[var(--color-border)] rounded-lg py-2 px-3 text-sm text-[var(--color-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-50)] focus:border-[var(--color-primary)] transition";
+
+    const groupedAccounts = React.useMemo(() => {
+        const groups: Record<string, { id: string; name: string }[]> = {};
+        for (const acc of totalizerAccounts) {
+            if (!groups[acc.templateName]) {
+                groups[acc.templateName] = [];
+            }
+            groups[acc.templateName].push({ id: acc.id, name: acc.name });
+        }
+        return groups;
+    }, [totalizerAccounts]);
 
     return (
         <div className="page-container">
@@ -118,15 +141,19 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                     />
                                 </div>
                                 <div className="lg:col-span-3">
-                                    <label className="filter-label">Conta Totalizadora (DRE)</label>
+                                    <label className="filter-label">Conta Totalizadora</label>
                                     <StyledSelect 
                                         value={bench.dreAccountId} 
                                         onChange={(e) => handleFieldChange(bench.id, 'dreAccountId', e.target.value)}
                                         containerClassName="w-full"
                                     >
                                         <option value="" disabled>Selecione a conta...</option>
-                                        {totalizerAccounts.map(acc => (
-                                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                        {Object.entries(groupedAccounts).map(([templateName, accounts]) => (
+                                            <optgroup key={templateName} label={templateName}>
+                                                {accounts.map(acc => (
+                                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                ))}
+                                            </optgroup>
                                         ))}
                                     </StyledSelect>
                                 </div>
