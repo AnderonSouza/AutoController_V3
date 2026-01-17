@@ -668,6 +668,7 @@ const App: React.FC = () => {
                   showVerticalAnalysis={showVertical}
                   showHorizontalAnalysis={showHorizontal}
                   showBenchmark={showBenchmark}
+                  benchmarks={benchmarks.filter(b => b.brandId === 'all' || brands.find(brand => brand.id === b.brandId && brand.name === currentBrand))}
                   activeTab={activeTab}
                   selectedPeriod={selectedPeriod}
                   userRole={user.role}

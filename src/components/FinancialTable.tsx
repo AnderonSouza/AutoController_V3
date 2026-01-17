@@ -543,7 +543,7 @@ const FinancialTable: React.FC<FinancialTableProps> = ({
                       style={headerStyle}
                       className={`py-3 px-1 text-center uppercase ${isLastColumnBenchmark ? separatorClass : "border-r border-slate-100"}`}
                     >
-                      Target
+                      Benchmark
                     </th>
                   )}
                 </React.Fragment>

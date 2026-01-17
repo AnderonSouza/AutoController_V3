@@ -146,7 +146,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </div>
           <div className="w-px h-4 bg-[var(--color-border-light)]"></div>
           <div className="flex items-center gap-2">
-            <label htmlFor="benchmark-toggle" className="text-xs font-bold text-[var(--color-text-secondary)] cursor-pointer whitespace-nowrap">Metas</label>
+            <label htmlFor="benchmark-toggle" className="text-xs font-bold text-[var(--color-text-secondary)] cursor-pointer whitespace-nowrap">Benchmarks</label>
             <button
                 id="benchmark-toggle"
                 role="switch"
