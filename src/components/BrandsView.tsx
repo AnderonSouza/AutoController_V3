@@ -202,16 +202,7 @@ const BrandsView: React.FC<BrandsViewProps> = ({ brands, economicGroups, onNavig
                                     {/* Logo Column Reduced to 3 to give space to Group */}
                                     <div className="md:col-span-3 flex items-center gap-4">
                                         <div 
-                                            className="flex-shrink-0 w-24 h-16 flex items-center justify-center rounded border border-slate-100 overflow-hidden"
-                                            style={brand.logo ? {
-                                                backgroundColor: '#f1f5f9',
-                                                backgroundImage: `linear-gradient(45deg, #cbd5e1 25%, transparent 25%), 
-                                                  linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), 
-                                                  linear-gradient(45deg, transparent 75%, #cbd5e1 75%), 
-                                                  linear-gradient(-45deg, transparent 75%, #cbd5e1 75%)`,
-                                                backgroundSize: '16px 16px',
-                                                backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px'
-                                            } : { backgroundColor: '#f8fafc' }}
+                                            className="flex-shrink-0 w-24 h-16 flex items-center justify-center rounded-lg border border-slate-200 overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 shadow-inner"
                                         >
                                             {brand.logo ? (
                                                 <img src={brand.logo} alt="Logo" className="max-h-full max-w-full object-contain"/>
