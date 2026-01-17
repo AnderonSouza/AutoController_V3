@@ -456,6 +456,18 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         economicGroupId: item.organizacao_id,
       }
     }
+    if (dbTable === "benchmarks") {
+      return {
+        id: item.id,
+        description: item.description,
+        type: item.type,
+        dreAccountId: item.dre_account_id,
+        brandId: item.brand_id,
+        value: item.value,
+        createdAt: item.criado_em,
+        economicGroupId: item.organizacao_id,
+      }
+    }
     return item
   })
 }
