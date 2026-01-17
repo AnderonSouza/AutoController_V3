@@ -655,6 +655,8 @@ const App: React.FC = () => {
                 onShowVerticalAnalysisChange={setShowVertical}
                 showHorizontalAnalysis={showHorizontal}
                 onShowHorizontalAnalysisChange={setShowHorizontal}
+                showBenchmark={showBenchmark}
+                onShowBenchmarkChange={setShowBenchmark}
                 isLoading={isLoadingData}
               />
               <div className="flex-grow overflow-auto bg-white">
@@ -665,6 +667,7 @@ const App: React.FC = () => {
                   showCalculationDetails={showDetails}
                   showVerticalAnalysis={showVertical}
                   showHorizontalAnalysis={showHorizontal}
+                  showBenchmark={showBenchmark}
                   activeTab={activeTab}
                   selectedPeriod={selectedPeriod}
                   userRole={user.role}
