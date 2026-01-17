@@ -495,9 +495,11 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
     if (dbTable === "empresas") {
       const obj: any = { ...item }
       Object.entries(FIELD_MAP_COMPANIES).forEach(([appKey, dbKey]) => {
-        if (item[appKey] !== undefined) {
-          obj[dbKey] = item[appKey]
-          if (appKey !== dbKey) delete obj[appKey]
+        if (appKey !== dbKey) {
+          if (item[appKey] !== undefined) {
+            obj[dbKey] = item[appKey]
+          }
+          delete obj[appKey]
         }
       })
       obj.organizacao_id = tenantId
