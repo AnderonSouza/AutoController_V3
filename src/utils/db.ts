@@ -95,6 +95,7 @@ const FIELD_MAP_COMPANIES: Record<string, string> = {
   erpCode: "codigo_erp",
   brandId: "marca_id",
   economicGroupId: "organizacao_id",
+  parentCompanyId: "empresa_pai_id",
 }
 
 const FIELD_MAP_BRANDS: Record<string, string> = {
