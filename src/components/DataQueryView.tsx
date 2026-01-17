@@ -43,6 +43,7 @@ const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Jul
 interface LocalCompany {
   id: string
   name: string
+  nickname: string
   brandId: string
 }
 
@@ -122,6 +123,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         setCompanies(companiesRes.data.map(c => ({
           id: c.id,
           name: c.nome,
+          nickname: c.nome_fantasia || c.nome,
           brandId: c.marca_id,
         })))
       }
@@ -192,19 +194,18 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     if (!tenantId || mode !== "monitor") return
 
     try {
-      // Build base filters
-      let baseFilter = `organizacao_id.eq.${tenantId},ano.eq.${selectedYear}`
-      if (selectedMonth) {
-        baseFilter += `,mes.eq.${selectedMonth}`
-      }
-      if (selectedCompanyId) {
-        baseFilter += `,empresa_id.eq.${selectedCompanyId}`
+      // Get company IDs for selected brand filter
+      let brandCompanyIds: string[] = []
+      if (selectedBrandId && companies.length > 0) {
+        brandCompanyIds = companies
+          .filter(c => c.brandId === selectedBrandId)
+          .map(c => c.id)
       }
 
       // Fetch all records without limit for aggregation (paginated)
       let allData: any[] = []
       let page = 0
-      const pageSize = 10000
+      const pageSize = 50000 // Increased for better performance
       let hasMore = true
 
       while (hasMore) {
@@ -220,6 +221,9 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         }
         if (selectedCompanyId) {
           query = query.eq("empresa_id", selectedCompanyId)
+        } else if (selectedBrandId && brandCompanyIds.length > 0) {
+          // Filter by brand's companies
+          query = query.in("empresa_id", brandCompanyIds)
         }
 
         const { data, error } = await query
@@ -310,7 +314,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     if (tenantId && mode === "monitor") {
       loadAggregatedStats()
     }
-  }, [tenantId, selectedYear, selectedMonth, selectedCompanyId, mode])
+  }, [tenantId, selectedYear, selectedMonth, selectedCompanyId, selectedBrandId, companies, mode])
 
   const filteredEntries = useMemo(() => {
     let result = entries
@@ -629,7 +633,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 <option value="">Todas as empresas</option>
                 {companies
                   .filter(c => !selectedBrandId || c.brandId === selectedBrandId)
-                  .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  .map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
               </select>
             </div>
             <div className="filter-group">
