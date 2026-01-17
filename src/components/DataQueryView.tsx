@@ -89,7 +89,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     errorCount: number
     byMonth: { mes: string; entries: number; debits: number; credits: number; errors: number }[]
     byCompany: { empresa_id: string; entries: number; debits: number; credits: number; errors: number }[]
-    byCostCenter: { siglacr: string; entries: number; debits: number; credits: number; errors: number }[]
+    byCostCenter: { centro_resultado_id: string; entries: number; debits: number; credits: number; errors: number }[]
   } | null>(null)
 
   const currentYear = new Date().getFullYear()
@@ -201,20 +201,6 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         baseFilter += `,empresa_id.eq.${selectedCompanyId}`
       }
 
-      // Get total counts using count query
-      let countQuery = supabase
-        .from("lancamentos_contabeis")
-        .select("id, valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id, siglacr", { count: "exact" })
-        .eq("organizacao_id", tenantId)
-        .eq("ano", selectedYear)
-
-      if (selectedMonth) {
-        countQuery = countQuery.eq("mes", selectedMonth)
-      }
-      if (selectedCompanyId) {
-        countQuery = countQuery.eq("empresa_id", selectedCompanyId)
-      }
-
       // Fetch all records without limit for aggregation (paginated)
       let allData: any[] = []
       let page = 0
@@ -224,7 +210,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
       while (hasMore) {
         let query = supabase
           .from("lancamentos_contabeis")
-          .select("valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id, siglacr")
+          .select("valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id")
           .eq("organizacao_id", tenantId)
           .eq("ano", selectedYear)
           .range(page * pageSize, (page + 1) * pageSize - 1)
@@ -297,7 +283,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         byCompanyMap.set(companyKey, companyData)
 
         // By Cost Center
-        const centerKey = e.siglacr || 'Sem CR'
+        const centerKey = e.centro_resultado_id || 'sem_cr'
         const centerData = byCostCenterMap.get(centerKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
         centerData.entries++
         centerData.debits += debit
@@ -313,7 +299,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         errorCount,
         byMonth: Array.from(byMonthMap.entries()).map(([mes, data]) => ({ mes, ...data })),
         byCompany: Array.from(byCompanyMap.entries()).map(([empresa_id, data]) => ({ empresa_id, ...data })),
-        byCostCenter: Array.from(byCostCenterMap.entries()).map(([siglacr, data]) => ({ siglacr, ...data })),
+        byCostCenter: Array.from(byCostCenterMap.entries()).map(([centro_resultado_id, data]) => ({ centro_resultado_id, ...data })),
       })
     } catch (error) {
       console.error("Error loading aggregated stats:", error)
@@ -425,14 +411,17 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           errors: row.errors,
         })).sort((a, b) => MONTHS.indexOf(a.name) - MONTHS.indexOf(b.name)),
         
-        byCostCenter: aggregatedStats.byCostCenter.map(row => ({
-          id: row.siglacr,
-          name: row.siglacr,
-          entries: row.entries,
-          debits: row.debits,
-          credits: row.credits,
-          errors: row.errors,
-        })).sort((a, b) => b.entries - a.entries),
+        byCostCenter: aggregatedStats.byCostCenter.map(row => {
+          const center = costCenters.find(c => c.id === row.centro_resultado_id)
+          return {
+            id: row.centro_resultado_id,
+            name: center?.code || center?.name || (row.centro_resultado_id === 'sem_cr' ? 'Sem Centro' : row.centro_resultado_id),
+            entries: row.entries,
+            debits: row.debits,
+            credits: row.credits,
+            errors: row.errors,
+          }
+        }).sort((a, b) => b.entries - a.entries),
       }
     }
 
@@ -514,7 +503,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         ...data
       })).sort((a, b) => b.entries - a.entries),
     }
-  }, [filteredEntries, companies, brands, mode, aggregatedStats])
+  }, [filteredEntries, companies, brands, costCenters, mode, aggregatedStats])
 
   const getCompanyName = (empresaId: string) => {
     const company = companies.find(c => c.id === empresaId)
