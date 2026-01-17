@@ -77,12 +77,14 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   const [costCenters, setCostCenters] = useState<LocalCostCenter[]>([])
   
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState<string>("")
+  const [selectedMonth, setSelectedMonth] = useState<string>(MONTHS[new Date().getMonth()])
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [selectedBrandId, setSelectedBrandId] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(true)
   const [activeAuditTab, setActiveAuditTab] = useState<"dashboard" | "entries">("dashboard")
+  const [needsRefresh, setNeedsRefresh] = useState(true)
+  const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [aggregatedStats, setAggregatedStats] = useState<{
     totalEntries: number
     totalDebits: number
@@ -192,6 +194,9 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   // Load aggregated statistics for audit dashboard (no limit)
   const loadAggregatedStats = async () => {
     if (!tenantId || mode !== "monitor") return
+    
+    setIsLoadingStats(true)
+    setNeedsRefresh(false)
 
     try {
       // Get company IDs for selected brand filter
@@ -307,14 +312,17 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
       })
     } catch (error) {
       console.error("Error loading aggregated stats:", error)
+    } finally {
+      setIsLoadingStats(false)
     }
   }
 
+  // Mark as needing refresh when filters change
   useEffect(() => {
-    if (tenantId && mode === "monitor") {
-      loadAggregatedStats()
+    if (mode === "monitor") {
+      setNeedsRefresh(true)
     }
-  }, [tenantId, selectedYear, selectedMonth, selectedCompanyId, selectedBrandId, companies, mode])
+  }, [selectedYear, selectedMonth, selectedCompanyId, selectedBrandId, mode])
 
   const filteredEntries = useMemo(() => {
     let result = entries
@@ -400,11 +408,14 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           ...data
         })).sort((a, b) => b.entries - a.entries),
         
-        byCompany: aggregatedStats.byCompany.map(row => ({
-          id: row.empresa_id,
-          name: companies.find(c => c.id === row.empresa_id)?.name || (row.empresa_id === 'sem_empresa' ? 'Sem Empresa' : row.empresa_id),
-          ...row
-        })).sort((a, b) => b.entries - a.entries),
+        byCompany: aggregatedStats.byCompany.map(row => {
+          const company = companies.find(c => c.id === row.empresa_id)
+          return {
+            id: row.empresa_id,
+            name: company?.nickname || company?.name || (row.empresa_id === 'sem_empresa' ? 'Sem Empresa' : row.empresa_id),
+            ...row
+          }
+        }).sort((a, b) => b.entries - a.entries),
         
         byMonth: aggregatedStats.byMonth.map(row => ({
           id: row.mes,
@@ -419,7 +430,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           const center = costCenters.find(c => c.id === row.centro_resultado_id)
           return {
             id: row.centro_resultado_id,
-            name: center?.code || center?.name || (row.centro_resultado_id === 'sem_cr' ? 'Sem Centro' : row.centro_resultado_id),
+            name: center?.name || (row.centro_resultado_id === 'sem_cr' ? 'Sem Centro' : row.centro_resultado_id),
             entries: row.entries,
             debits: row.debits,
             credits: row.credits,
@@ -571,12 +582,12 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
               Filtros
             </button>
             <button 
-              onClick={loadEntries}
-              disabled={isLoading}
-              className="btn btn-secondary"
+              onClick={mode === "monitor" ? loadAggregatedStats : loadEntries}
+              disabled={isLoading || isLoadingStats}
+              className={`btn ${needsRefresh && mode === "monitor" ? 'btn-primary' : 'btn-secondary'}`}
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Atualizar
+              <RefreshCw className={`h-4 w-4 ${isLoading || isLoadingStats ? 'animate-spin' : ''}`} />
+              {needsRefresh && mode === "monitor" ? "Carregar Dados" : "Atualizar"}
             </button>
             <button 
               onClick={exportToCsv}
@@ -709,7 +720,27 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
             </div>
           )}
 
-          {mode === "monitor" && activeAuditTab === "dashboard" && (
+          {mode === "monitor" && activeAuditTab === "dashboard" && needsRefresh && !isLoadingStats && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center mt-4">
+              <BarChart3 className="h-12 w-12 text-blue-500 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Clique em "Carregar Dados" para iniciar</h3>
+              <p className="text-blue-600 text-sm">
+                Selecione os filtros desejados e clique no botão acima para carregar os dados de auditoria.
+              </p>
+            </div>
+          )}
+
+          {mode === "monitor" && activeAuditTab === "dashboard" && isLoadingStats && (
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 text-center mt-4">
+              <RefreshCw className="h-12 w-12 text-slate-400 mx-auto mb-3 animate-spin" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">Carregando dados...</h3>
+              <p className="text-slate-500 text-sm">
+                Processando lançamentos contábeis. Isso pode levar alguns segundos.
+              </p>
+            </div>
+          )}
+
+          {mode === "monitor" && activeAuditTab === "dashboard" && !needsRefresh && !isLoadingStats && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
               {/* Summary by Month */}
               <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
