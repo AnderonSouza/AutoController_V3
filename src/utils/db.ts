@@ -150,6 +150,17 @@ const FIELD_MAP_REPORT_LINES: Record<string, string> = {
   economicGroupId: "organizacao_id",
 }
 
+const FIELD_MAP_BENCHMARKS: Record<string, string> = {
+  id: "id",
+  description: "description",
+  type: "type",
+  dreAccountId: "dre_account_id",
+  brandId: "brand_id",
+  value: "value",
+  createdAt: "criado_em",
+  economicGroupId: "organizacao_id",
+}
+
 const FIELD_MAP_THEMES: Record<string, string> = {
   cor_primaria: "primarycolor",
   cor_secundaria: "secondarycolor",
@@ -550,6 +561,17 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
         conta_gerencial: item.contasintetica || item.conta_gerencial,
         organizacao_id: tenantId,
       }
+    }
+
+    if (dbTable === "benchmarks") {
+      const obj: any = {}
+      Object.entries(FIELD_MAP_BENCHMARKS).forEach(([appKey, dbKey]) => {
+        if (item[appKey] !== undefined) {
+          obj[dbKey] = item[appKey]
+        }
+      })
+      obj.organizacao_id = tenantId
+      return obj
     }
 
     const obj = { ...item, organizacao_id: tenantId }
