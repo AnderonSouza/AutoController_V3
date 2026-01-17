@@ -82,6 +82,15 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(true)
   const [activeAuditTab, setActiveAuditTab] = useState<"dashboard" | "entries">("dashboard")
+  const [aggregatedStats, setAggregatedStats] = useState<{
+    totalEntries: number
+    totalDebits: number
+    totalCredits: number
+    errorCount: number
+    byMonth: { mes: string; entries: number; debits: number; credits: number; errors: number }[]
+    byCompany: { empresa_id: string; entries: number; debits: number; credits: number; errors: number }[]
+    byCostCenter: { siglacr: string; entries: number; debits: number; credits: number; errors: number }[]
+  } | null>(null)
 
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
@@ -161,6 +170,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         query = query.eq("empresa_id", selectedCompanyId)
       }
 
+      // For entries list, keep limit at 1000 for performance
       const { data, error } = await query.limit(1000)
 
       if (error) {
@@ -176,6 +186,145 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
       setIsLoading(false)
     }
   }
+
+  // Load aggregated statistics for audit dashboard (no limit)
+  const loadAggregatedStats = async () => {
+    if (!tenantId || mode !== "monitor") return
+
+    try {
+      // Build base filters
+      let baseFilter = `organizacao_id.eq.${tenantId},ano.eq.${selectedYear}`
+      if (selectedMonth) {
+        baseFilter += `,mes.eq.${selectedMonth}`
+      }
+      if (selectedCompanyId) {
+        baseFilter += `,empresa_id.eq.${selectedCompanyId}`
+      }
+
+      // Get total counts using count query
+      let countQuery = supabase
+        .from("lancamentos_contabeis")
+        .select("id, valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id, siglacr", { count: "exact" })
+        .eq("organizacao_id", tenantId)
+        .eq("ano", selectedYear)
+
+      if (selectedMonth) {
+        countQuery = countQuery.eq("mes", selectedMonth)
+      }
+      if (selectedCompanyId) {
+        countQuery = countQuery.eq("empresa_id", selectedCompanyId)
+      }
+
+      // Fetch all records without limit for aggregation (paginated)
+      let allData: any[] = []
+      let page = 0
+      const pageSize = 10000
+      let hasMore = true
+
+      while (hasMore) {
+        let query = supabase
+          .from("lancamentos_contabeis")
+          .select("valor, natureza, conta_contabil_id, centro_resultado_id, mes, empresa_id, siglacr")
+          .eq("organizacao_id", tenantId)
+          .eq("ano", selectedYear)
+          .range(page * pageSize, (page + 1) * pageSize - 1)
+
+        if (selectedMonth) {
+          query = query.eq("mes", selectedMonth)
+        }
+        if (selectedCompanyId) {
+          query = query.eq("empresa_id", selectedCompanyId)
+        }
+
+        const { data, error } = await query
+
+        if (error) {
+          console.error("Error loading aggregated stats:", error)
+          break
+        }
+
+        if (data && data.length > 0) {
+          allData = allData.concat(data)
+          if (data.length < pageSize) {
+            hasMore = false
+          } else {
+            page++
+          }
+        } else {
+          hasMore = false
+        }
+
+        // Safety limit - max 500k records
+        if (allData.length >= 500000) {
+          console.warn("Safety limit reached for aggregation")
+          hasMore = false
+        }
+      }
+
+      // Aggregate the data
+      let totalDebits = 0
+      let totalCredits = 0
+      let errorCount = 0
+      const byMonthMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+      const byCompanyMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+      const byCostCenterMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+
+      allData.forEach(e => {
+        const debit = e.natureza === 'D' ? (e.valor || 0) : 0
+        const credit = e.natureza === 'C' ? (e.valor || 0) : 0
+        const hasError = !e.conta_contabil_id || !e.centro_resultado_id || (!e.valor || e.valor === 0)
+
+        totalDebits += debit
+        totalCredits += credit
+        if (hasError) errorCount++
+
+        // By Month
+        const monthKey = e.mes || 'Sem Mês'
+        const monthData = byMonthMap.get(monthKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+        monthData.entries++
+        monthData.debits += debit
+        monthData.credits += credit
+        if (hasError) monthData.errors++
+        byMonthMap.set(monthKey, monthData)
+
+        // By Company
+        const companyKey = e.empresa_id || 'sem_empresa'
+        const companyData = byCompanyMap.get(companyKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+        companyData.entries++
+        companyData.debits += debit
+        companyData.credits += credit
+        if (hasError) companyData.errors++
+        byCompanyMap.set(companyKey, companyData)
+
+        // By Cost Center
+        const centerKey = e.siglacr || 'Sem CR'
+        const centerData = byCostCenterMap.get(centerKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+        centerData.entries++
+        centerData.debits += debit
+        centerData.credits += credit
+        if (hasError) centerData.errors++
+        byCostCenterMap.set(centerKey, centerData)
+      })
+
+      setAggregatedStats({
+        totalEntries: allData.length,
+        totalDebits,
+        totalCredits,
+        errorCount,
+        byMonth: Array.from(byMonthMap.entries()).map(([mes, data]) => ({ mes, ...data })),
+        byCompany: Array.from(byCompanyMap.entries()).map(([empresa_id, data]) => ({ empresa_id, ...data })),
+        byCostCenter: Array.from(byCostCenterMap.entries()).map(([siglacr, data]) => ({ siglacr, ...data })),
+      })
+    } catch (error) {
+      console.error("Error loading aggregated stats:", error)
+    }
+  }
+
+  useEffect(() => {
+    if (tenantId && mode === "monitor") {
+      loadAggregatedStats()
+    }
+  }, [tenantId, selectedYear, selectedMonth, selectedCompanyId, mode])
 
   const filteredEntries = useMemo(() => {
     let result = entries
@@ -200,6 +349,18 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   }, [entries, searchTerm, selectedBrandId, companies])
 
   const stats = useMemo(() => {
+    // In monitor mode, use aggregated stats if available
+    if (mode === "monitor" && aggregatedStats) {
+      return {
+        totalEntries: aggregatedStats.totalEntries,
+        totalDebits: aggregatedStats.totalDebits,
+        totalCredits: aggregatedStats.totalCredits,
+        balance: aggregatedStats.totalDebits - aggregatedStats.totalCredits,
+        errorCount: aggregatedStats.errorCount,
+      }
+    }
+
+    // Otherwise use filtered entries (limited to 1000)
     const totalDebits = filteredEntries.reduce((sum, e) => {
       if (e.natureza === 'D') return sum + (e.valor || 0)
       return sum
@@ -223,10 +384,59 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
       balance,
       errorCount: errorEntries.length,
     }
-  }, [filteredEntries])
+  }, [filteredEntries, mode, aggregatedStats])
 
   // Audit dashboard summaries
   const auditSummaries = useMemo(() => {
+    // Use aggregated data if available in monitor mode
+    if (mode === "monitor" && aggregatedStats) {
+      // Build brand summary from company data
+      const byBrandMap = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+      aggregatedStats.byCompany.forEach(compData => {
+        const company = companies.find(c => c.id === compData.empresa_id)
+        const brandId = company?.brandId || 'sem_marca'
+        const existing = byBrandMap.get(brandId) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+        existing.entries += compData.entries
+        existing.debits += compData.debits
+        existing.credits += compData.credits
+        existing.errors += compData.errors
+        byBrandMap.set(brandId, existing)
+      })
+
+      return {
+        byBrand: Array.from(byBrandMap.entries()).map(([id, data]) => ({
+          id,
+          name: brands.find(b => b.id === id)?.name || (id === 'sem_marca' ? 'Sem Marca' : id),
+          ...data
+        })).sort((a, b) => b.entries - a.entries),
+        
+        byCompany: aggregatedStats.byCompany.map(row => ({
+          id: row.empresa_id,
+          name: companies.find(c => c.id === row.empresa_id)?.name || (row.empresa_id === 'sem_empresa' ? 'Sem Empresa' : row.empresa_id),
+          ...row
+        })).sort((a, b) => b.entries - a.entries),
+        
+        byMonth: aggregatedStats.byMonth.map(row => ({
+          id: row.mes,
+          name: row.mes,
+          entries: row.entries,
+          debits: row.debits,
+          credits: row.credits,
+          errors: row.errors,
+        })).sort((a, b) => MONTHS.indexOf(a.name) - MONTHS.indexOf(b.name)),
+        
+        byCostCenter: aggregatedStats.byCostCenter.map(row => ({
+          id: row.siglacr,
+          name: row.siglacr,
+          entries: row.entries,
+          debits: row.debits,
+          credits: row.credits,
+          errors: row.errors,
+        })).sort((a, b) => b.entries - a.entries),
+      }
+    }
+
+    // Fallback to filtered entries calculation
     // Summary by Brand
     const byBrand = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
     // Summary by Company
@@ -304,7 +514,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         ...data
       })).sort((a, b) => b.entries - a.entries),
     }
-  }, [filteredEntries, companies, brands])
+  }, [filteredEntries, companies, brands, mode, aggregatedStats])
 
   const getCompanyName = (empresaId: string) => {
     const company = companies.find(c => c.id === empresaId)
