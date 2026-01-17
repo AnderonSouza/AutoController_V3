@@ -549,17 +549,20 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                         <table className="min-w-full divide-y divide-slate-200">
                             <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <SortableHeader label="Cód. ERP" sortKey="erpCode" currentSort={sortConfig} onSort={handleSort} className="w-[10%]" />
-                                    <SortableHeader label="Marca" sortKey="brandName" currentSort={sortConfig} onSort={handleSort} className="w-[15%]" />
-                                    <SortableHeader label="CNPJ" sortKey="cnpj" currentSort={sortConfig} onSort={handleSort} className="w-[15%]" />
-                                    <SortableHeader label="Nome / Razão Social" sortKey="name" currentSort={sortConfig} onSort={handleSort} className="w-[25%]" />
-                                    <SortableHeader label="Apelido" sortKey="nickname" currentSort={sortConfig} onSort={handleSort} className="w-[20%]" />
-                                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider w-[15%] border-b-2 border-slate-200">Ações</th>
+                                    <SortableHeader label="Cód. ERP" sortKey="erpCode" currentSort={sortConfig} onSort={handleSort} className="w-[8%]" />
+                                    <SortableHeader label="Marca" sortKey="brandName" currentSort={sortConfig} onSort={handleSort} className="w-[12%]" />
+                                    <SortableHeader label="CNPJ" sortKey="cnpj" currentSort={sortConfig} onSort={handleSort} className="w-[14%]" />
+                                    <SortableHeader label="Nome / Razão Social" sortKey="name" currentSort={sortConfig} onSort={handleSort} className="w-[20%]" />
+                                    <SortableHeader label="Apelido" sortKey="nickname" currentSort={sortConfig} onSort={handleSort} className="w-[15%]" />
+                                    <SortableHeader label="Consolida em" sortKey="parentCompanyId" currentSort={sortConfig} onSort={handleSort} className="w-[18%]" />
+                                    <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider w-[13%] border-b-2 border-slate-200">Ações</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-100">
                                 {filteredAndSortedCompanies.map((company) => {
                                     const brandName = brands.find(b => b.id === company.brandId)?.name || '-';
+                                    const parentCompany = company.parentCompanyId ? editableCompanies.find(c => c.id === company.parentCompanyId) : null;
+                                    const parentDisplay = parentCompany ? (parentCompany.nickname || parentCompany.name) : '-';
                                     return (
                                         <tr key={company.id} className="group hover:bg-slate-50 transition-colors">
                                             <td className="px-4 py-3 text-sm text-slate-600 font-mono">{company.erpCode || '-'}</td>
@@ -567,11 +570,12 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                                             <td className="px-4 py-3 text-sm text-slate-600 font-mono">{company.cnpj || '-'}</td>
                                             <td className="px-4 py-3 text-sm text-slate-800 font-medium">{company.name}</td>
                                             <td className="px-4 py-3 text-sm text-slate-600">{company.nickname || company.name}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-600">{parentDisplay}</td>
                                             <td className="px-4 py-3 align-middle text-center"><button type="button" onClick={() => setCompanyToEdit(company)} className="text-primary hover:text-primary-hover text-sm font-semibold hover:underline">Editar</button></td>
                                         </tr>
                                     );
                                 })}
-                                {filteredAndSortedCompanies.length === 0 && <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">Nenhuma empresa encontrada.</td></tr>}
+                                {filteredAndSortedCompanies.length === 0 && <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 font-medium">Nenhuma empresa encontrada.</td></tr>}
                             </tbody>
                         </table>
                     </div>
