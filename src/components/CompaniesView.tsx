@@ -309,8 +309,8 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
     };
 
     const handleModalSave = async (updatedCompany: Company) => {
-        // Normaliza CNPJ para comparação (apenas dígitos)
-        const normalizeCnpj = (cnpj: string | undefined) => cnpj?.replace(/\D/g, '') || '';
+        // Normaliza CNPJ para armazenar apenas dígitos (14 caracteres)
+        const normalizeCnpj = (cnpj: string | undefined) => cnpj?.replace(/\D/g, '').substring(0, 14) || '';
         const updatedCnpjNormalized = normalizeCnpj(updatedCompany.cnpj);
         
         const isDuplicate = editableCompanies.some(c => {
@@ -329,14 +329,20 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
         });
         if (isDuplicate) { alert("Erro: Já existe uma empresa com este CNPJ ou Código ERP."); return; }
 
+        // Normaliza o CNPJ antes de salvar (apenas números)
+        const companyToSave = {
+            ...updatedCompany,
+            cnpj: updatedCnpjNormalized
+        };
+
         setEditableCompanies(prev => {
-            const exists = prev.find(c => c.id === updatedCompany.id);
-            return exists ? prev.map(c => c.id === updatedCompany.id ? updatedCompany : c) : [...prev, updatedCompany];
+            const exists = prev.find(c => c.id === companyToSave.id);
+            return exists ? prev.map(c => c.id === companyToSave.id ? companyToSave : c) : [...prev, companyToSave];
         });
         setCompanyToEdit(null);
         setIsSaving(true);
-        const currentList = editableCompanies.map(c => c.id === updatedCompany.id ? updatedCompany : c);
-        if (!editableCompanies.find(c => c.id === updatedCompany.id)) currentList.push(updatedCompany);
+        const currentList = editableCompanies.map(c => c.id === companyToSave.id ? companyToSave : c);
+        if (!editableCompanies.find(c => c.id === companyToSave.id)) currentList.push(companyToSave);
         await onSaveCompanies(currentList);
         setIsSaving(false);
     };
@@ -364,7 +370,7 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
     const importFields: ImportFieldDefinition[] = [
         { key: 'name', label: 'Razão Social', required: true, description: 'Nome jurídico da empresa.' },
         { key: 'nickname', label: 'Nome Fantasia', required: false, description: 'Nome utilizado nos relatórios.' },
-        { key: 'cnpj', label: 'CNPJ', required: true, description: 'Identificador único (formatado ou não).' },
+        { key: 'cnpj', label: 'CNPJ', required: true, description: 'Apenas números (14 dígitos). Pontos, barras e hífens serão removidos automaticamente.' },
         { key: 'erpCode', label: 'Cód. ERP', required: true, description: 'Código do sistema de origem.' },
         { key: 'brandName', label: 'Marca', required: false, description: 'Nome exato da marca (Ex: Chevrolet). Se vazio ou não encontrada, a empresa será importada sem marca.' },
         { key: 'parentName', label: 'Empresa Mãe', required: false, description: 'Nome da empresa consolidadora.' }
@@ -384,7 +390,8 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                     return;
                 }
 
-                const cnpj = row.cnpj ? formatCNPJ(String(row.cnpj)) : '';
+                // Normaliza CNPJ para armazenar apenas números (14 dígitos)
+                const cnpj = row.cnpj ? String(row.cnpj).replace(/\D/g, '').substring(0, 14) : '';
                 const erpCode = row.erpCode ? String(row.erpCode).trim() : '';
 
                 if (!cnpj && !erpCode) {

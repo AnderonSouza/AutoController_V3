@@ -49,7 +49,7 @@ const REQUIRED_FIELDS: FieldDefinition[] = [
     { key: 'valor', label: 'Valor', required: true, description: 'Valor monetário do lançamento' },
     { key: 'natureza', label: 'Natureza (D/C)', required: true, description: 'D = Débito, C = Crédito' },
     { key: 'data', label: 'Data Lançamento', required: true, description: 'Data de competência' },
-    { key: 'cnpj', label: 'CNPJ Empresa', required: true, alternativeKey: 'erpCode', description: 'CNPJ ou Cód. ERP (pelo menos um)' },
+    { key: 'cnpj', label: 'CNPJ Empresa', required: true, alternativeKey: 'erpCode', description: 'Apenas números (14 dígitos). Formatação será removida automaticamente.' },
     { key: 'siglacr', label: 'Sigla CR', required: true, description: 'Código do Centro de Resultado' },
     { key: 'historico', label: 'Histórico / Observação', required: true, description: 'Descrição do lançamento' },
 ];
