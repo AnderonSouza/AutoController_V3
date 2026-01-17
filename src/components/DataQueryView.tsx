@@ -159,9 +159,14 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     setIsLoading(true)
 
     try {
+      // Use JOIN to get related data from plano_contas and centros_resultado
       let query = supabase
         .from("lancamentos_contabeis")
-        .select("*")
+        .select(`
+          *,
+          plano_contas:conta_contabil_id(id, codigo_contabil, nome),
+          centros_resultado:centro_resultado_id(id, codigo, nome)
+        `)
         .eq("organizacao_id", tenantId)
         .eq("ano", selectedYear)
         .order("data", { ascending: false })
@@ -174,6 +179,16 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         query = query.eq("empresa_id", selectedCompanyId)
       }
 
+      // Apply brand filter
+      if (selectedBrandId && companies.length > 0) {
+        const brandCompanyIds = companies
+          .filter(c => c.brandId === selectedBrandId)
+          .map(c => c.id)
+        if (brandCompanyIds.length > 0) {
+          query = query.in("empresa_id", brandCompanyIds)
+        }
+      }
+
       // For entries list, keep limit at 1000 for performance
       const { data, error } = await query.limit(1000)
 
@@ -181,7 +196,15 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         console.error("Error loading entries:", error)
         setEntries([])
       } else {
-        setEntries(data || [])
+        // Map related data to flat structure for display
+        const mappedData = (data || []).map(e => ({
+          ...e,
+          idconta: e.plano_contas?.codigo_contabil || '',
+          descricaoconta: e.plano_contas?.nome || '',
+          siglacr: e.centros_resultado?.codigo || '',
+          descricaocr: e.centros_resultado?.nome || '',
+        }))
+        setEntries(mappedData)
       }
     } catch (error) {
       console.error("Error loading entries:", error)
@@ -949,8 +972,8 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                         <td className="text-[var(--color-text-muted)]">{entry.mes}/{entry.ano}</td>
                         <td>{getCompanyName(entry.empresa_id)}</td>
                         <td className="font-mono text-[var(--color-text-secondary)]">{entry.idconta || "-"}</td>
-                        <td>{entry.siglacr || entry.descricaocr || "-"}</td>
-                        <td className="max-w-[200px] truncate">{entry.descricaoconta || "-"}</td>
+                        <td>{entry.descricaocr || entry.siglacr || "-"}</td>
+                        <td className="max-w-[200px] truncate" title={entry.descricaoconta || ""}>{entry.descricaoconta || "-"}</td>
                         <td className="text-right font-mono text-red-600">{debit > 0 ? formatCurrency(debit) : "-"}</td>
                         <td className="text-right font-mono text-blue-600">{credit > 0 ? formatCurrency(credit) : "-"}</td>
                         {mode === "monitor" && (
