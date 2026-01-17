@@ -167,7 +167,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
         .order("data", { ascending: false })
 
       if (selectedMonth) {
-        query = query.eq("mes", selectedMonth)
+        query = query.eq("mes", selectedMonth.toUpperCase())
       }
 
       if (selectedCompanyId) {
@@ -222,7 +222,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           .range(page * pageSize, (page + 1) * pageSize - 1)
 
         if (selectedMonth) {
-          query = query.eq("mes", selectedMonth)
+          query = query.eq("mes", selectedMonth.toUpperCase())
         }
         if (selectedCompanyId) {
           query = query.eq("empresa_id", selectedCompanyId)
