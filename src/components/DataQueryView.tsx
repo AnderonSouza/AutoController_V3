@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { supabase } from "../utils/supabaseClient"
-import { Search, Filter, Download, RefreshCw, FileText, ChevronLeft } from "lucide-react"
+import { Search, Filter, Download, RefreshCw, FileText, ChevronLeft, AlertTriangle, CheckCircle2, BarChart3, List } from "lucide-react"
 import type {
   CgEntry,
   ManagementTransfer,
@@ -81,6 +81,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   const [selectedBrandId, setSelectedBrandId] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [showFilters, setShowFilters] = useState(true)
+  const [activeAuditTab, setActiveAuditTab] = useState<"dashboard" | "entries">("dashboard")
 
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
@@ -224,6 +225,87 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
     }
   }, [filteredEntries])
 
+  // Audit dashboard summaries
+  const auditSummaries = useMemo(() => {
+    // Summary by Brand
+    const byBrand = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+    // Summary by Company
+    const byCompany = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+    // Summary by Month
+    const byMonth = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+    // Summary by Cost Center
+    const byCostCenter = new Map<string, { entries: number; debits: number; credits: number; errors: number }>()
+
+    filteredEntries.forEach(e => {
+      const debit = e.natureza === 'D' ? (e.valor || 0) : 0
+      const credit = e.natureza === 'C' ? (e.valor || 0) : 0
+      const hasError = !e.conta_contabil_id || !e.centro_resultado_id || (!e.valor || e.valor === 0)
+
+      // By Company
+      const companyId = e.empresa_id || 'sem_empresa'
+      const companyData = byCompany.get(companyId) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+      companyData.entries++
+      companyData.debits += debit
+      companyData.credits += credit
+      if (hasError) companyData.errors++
+      byCompany.set(companyId, companyData)
+
+      // By Brand (via company)
+      const company = companies.find(c => c.id === companyId)
+      const brandId = company?.brandId || 'sem_marca'
+      const brandData = byBrand.get(brandId) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+      brandData.entries++
+      brandData.debits += debit
+      brandData.credits += credit
+      if (hasError) brandData.errors++
+      byBrand.set(brandId, brandData)
+
+      // By Month
+      const monthKey = e.mes || 'sem_mes'
+      const monthData = byMonth.get(monthKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+      monthData.entries++
+      monthData.debits += debit
+      monthData.credits += credit
+      if (hasError) monthData.errors++
+      byMonth.set(monthKey, monthData)
+
+      // By Cost Center
+      const centerKey = e.siglacr || e.descricaocr || 'sem_cr'
+      const centerData = byCostCenter.get(centerKey) || { entries: 0, debits: 0, credits: 0, errors: 0 }
+      centerData.entries++
+      centerData.debits += debit
+      centerData.credits += credit
+      if (hasError) centerData.errors++
+      byCostCenter.set(centerKey, centerData)
+    })
+
+    return {
+      byBrand: Array.from(byBrand.entries()).map(([id, data]) => ({
+        id,
+        name: brands.find(b => b.id === id)?.name || (id === 'sem_marca' ? 'Sem Marca' : id),
+        ...data
+      })).sort((a, b) => b.entries - a.entries),
+      
+      byCompany: Array.from(byCompany.entries()).map(([id, data]) => ({
+        id,
+        name: companies.find(c => c.id === id)?.name || (id === 'sem_empresa' ? 'Sem Empresa' : id),
+        ...data
+      })).sort((a, b) => b.entries - a.entries),
+      
+      byMonth: Array.from(byMonth.entries()).map(([id, data]) => ({
+        id,
+        name: id === 'sem_mes' ? 'Sem Mês' : id,
+        ...data
+      })).sort((a, b) => MONTHS.indexOf(a.name) - MONTHS.indexOf(b.name)),
+      
+      byCostCenter: Array.from(byCostCenter.entries()).map(([id, data]) => ({
+        id,
+        name: id === 'sem_cr' ? 'Sem Centro' : id,
+        ...data
+      })).sort((a, b) => b.entries - a.entries),
+    }
+  }, [filteredEntries, companies, brands])
+
   const getCompanyName = (empresaId: string) => {
     const company = companies.find(c => c.id === empresaId)
     return company?.name || "N/A"
@@ -272,7 +354,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
               </h1>
               <p className="card-subtitle">
                 {mode === "monitor" 
-                  ? "Visualize e corrija lançamentos com problemas de mapeamento" 
+                  ? "Valide os lançamentos importados por marca, empresa, mês e centro de resultado" 
                   : "Consulte os lançamentos contábeis importados"}
               </p>
             </div>
@@ -387,8 +469,208 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 {formatCurrency(stats.balance)}
               </p>
             </div>
+            {mode === "monitor" && stats.errorCount > 0 && (
+              <div className="summary-card" style={{ backgroundColor: '#fef2f2', borderLeft: '4px solid #ef4444' }}>
+                <p className="summary-card-label" style={{ color: '#dc2626' }}>Pendências</p>
+                <p className="summary-card-value" style={{ color: '#dc2626' }}>
+                  {stats.errorCount.toLocaleString()}
+                </p>
+              </div>
+            )}
           </div>
 
+          {mode === "monitor" && (
+            <div className="flex gap-2 mt-4 mb-4 border-b border-slate-200">
+              <button
+                onClick={() => setActiveAuditTab("dashboard")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  activeAuditTab === "dashboard"
+                    ? "text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" />
+                Resumo por Dimensão
+              </button>
+              <button
+                onClick={() => setActiveAuditTab("entries")}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+                  activeAuditTab === "entries"
+                    ? "text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <List className="h-4 w-4" />
+                Lançamentos
+              </button>
+            </div>
+          )}
+
+          {mode === "monitor" && activeAuditTab === "dashboard" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+              {/* Summary by Month */}
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                  <h3 className="font-semibold text-slate-700">Por Mês</h3>
+                </div>
+                <div className="max-h-64 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-100">
+                      <tr>
+                        <th className="text-left px-4 py-2">Mês</th>
+                        <th className="text-right px-2 py-2">Lanç.</th>
+                        <th className="text-right px-2 py-2">Débitos</th>
+                        <th className="text-right px-2 py-2">Créditos</th>
+                        <th className="text-center px-2 py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditSummaries.byMonth.map(row => (
+                        <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-2 font-medium">{row.name}</td>
+                          <td className="text-right px-2 py-2">{row.entries.toLocaleString()}</td>
+                          <td className="text-right px-2 py-2 text-red-600 font-mono">{formatCurrency(row.debits)}</td>
+                          <td className="text-right px-2 py-2 text-blue-600 font-mono">{formatCurrency(row.credits)}</td>
+                          <td className="text-center px-2 py-2">
+                            {row.errors > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <AlertTriangle className="h-4 w-4" />
+                                {row.errors}
+                              </span>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Summary by Brand */}
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                  <h3 className="font-semibold text-slate-700">Por Marca</h3>
+                </div>
+                <div className="max-h-64 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-100">
+                      <tr>
+                        <th className="text-left px-4 py-2">Marca</th>
+                        <th className="text-right px-2 py-2">Lanç.</th>
+                        <th className="text-right px-2 py-2">Débitos</th>
+                        <th className="text-right px-2 py-2">Créditos</th>
+                        <th className="text-center px-2 py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditSummaries.byBrand.map(row => (
+                        <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-2 font-medium">{row.name}</td>
+                          <td className="text-right px-2 py-2">{row.entries.toLocaleString()}</td>
+                          <td className="text-right px-2 py-2 text-red-600 font-mono">{formatCurrency(row.debits)}</td>
+                          <td className="text-right px-2 py-2 text-blue-600 font-mono">{formatCurrency(row.credits)}</td>
+                          <td className="text-center px-2 py-2">
+                            {row.errors > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <AlertTriangle className="h-4 w-4" />
+                                {row.errors}
+                              </span>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Summary by Company */}
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                  <h3 className="font-semibold text-slate-700">Por Empresa</h3>
+                </div>
+                <div className="max-h-64 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-100">
+                      <tr>
+                        <th className="text-left px-4 py-2">Empresa</th>
+                        <th className="text-right px-2 py-2">Lanç.</th>
+                        <th className="text-right px-2 py-2">Débitos</th>
+                        <th className="text-right px-2 py-2">Créditos</th>
+                        <th className="text-center px-2 py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditSummaries.byCompany.slice(0, 20).map(row => (
+                        <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-2 font-medium truncate max-w-[200px]" title={row.name}>{row.name}</td>
+                          <td className="text-right px-2 py-2">{row.entries.toLocaleString()}</td>
+                          <td className="text-right px-2 py-2 text-red-600 font-mono">{formatCurrency(row.debits)}</td>
+                          <td className="text-right px-2 py-2 text-blue-600 font-mono">{formatCurrency(row.credits)}</td>
+                          <td className="text-center px-2 py-2">
+                            {row.errors > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <AlertTriangle className="h-4 w-4" />
+                                {row.errors}
+                              </span>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Summary by Cost Center */}
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
+                <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                  <h3 className="font-semibold text-slate-700">Por Centro de Resultado</h3>
+                </div>
+                <div className="max-h-64 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-slate-100">
+                      <tr>
+                        <th className="text-left px-4 py-2">Centro</th>
+                        <th className="text-right px-2 py-2">Lanç.</th>
+                        <th className="text-right px-2 py-2">Débitos</th>
+                        <th className="text-right px-2 py-2">Créditos</th>
+                        <th className="text-center px-2 py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditSummaries.byCostCenter.slice(0, 20).map(row => (
+                        <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-2 font-medium">{row.name}</td>
+                          <td className="text-right px-2 py-2">{row.entries.toLocaleString()}</td>
+                          <td className="text-right px-2 py-2 text-red-600 font-mono">{formatCurrency(row.debits)}</td>
+                          <td className="text-right px-2 py-2 text-blue-600 font-mono">{formatCurrency(row.credits)}</td>
+                          <td className="text-center px-2 py-2">
+                            {row.errors > 0 ? (
+                              <span className="inline-flex items-center gap-1 text-amber-600">
+                                <AlertTriangle className="h-4 w-4" />
+                                {row.errors}
+                              </span>
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(mode !== "monitor" || activeAuditTab === "entries") && (
           <div className="data-table-wrapper mt-4">
             <table className="data-table">
               <thead className="sticky-header">
@@ -453,6 +735,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
     </div>
