@@ -882,7 +882,33 @@ export const bulkSaveLancamentos = async (entries: TrialBalanceEntry[], tenantId
   if (error) throw error
 }
 
-export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tenantId: string): Promise<void> => {
+export interface SaldosMensaisImportStats {
+  totalRows: number;
+  success: number;
+  accountNotFound: number;
+  zeroValues: number;
+  invalidData: number;
+  deletedRecords: number;
+  accountErrors: Array<{ codigo: string; count: number }>;
+}
+
+export const bulkSaveSaldosMensais = async (
+  entries: MonthlyBalanceEntry[], 
+  tenantId: string
+): Promise<SaldosMensaisImportStats> => {
+  const stats: SaldosMensaisImportStats = {
+    totalRows: entries.length,
+    success: 0,
+    accountNotFound: 0,
+    zeroValues: 0,
+    invalidData: 0,
+    deletedRecords: 0,
+    accountErrors: []
+  }
+  
+  // Track account codes not found
+  const accountNotFoundMap = new Map<string, number>()
+
   // First, fetch plano_contas to resolve codigo_contabil to UUID
   const { data: planoContas, error: planoError } = await supabase
     .from("plano_contas")
@@ -907,12 +933,21 @@ export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tena
   // Transform entries to match database schema
   const enrichedEntries = entries
     .map((entry) => {
+      // Check for zero/empty values
+      if (entry.valor === 0 || entry.valor === null || entry.valor === undefined) {
+        stats.zeroValues++
+        return null
+      }
+
       // Resolve codigo_contabil to UUID
       const codigoConta = entry.conta_contabil_id || ''
       const contaContabilUuid = codigoToIdMap.get(codigoConta)
       
       if (!contaContabilUuid) {
-        console.warn(`[v0-db] Could not find account UUID for codigo: ${codigoConta}`)
+        stats.accountNotFound++
+        // Track which codes were not found
+        const currentCount = accountNotFoundMap.get(codigoConta) || 0
+        accountNotFoundMap.set(codigoConta, currentCount + 1)
         return null // Skip entries without valid account mapping
       }
 
@@ -934,9 +969,14 @@ export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tena
       organizacao_id: string;
     }>
 
+  // Convert map to array for stats
+  stats.accountErrors = Array.from(accountNotFoundMap.entries())
+    .map(([codigo, count]) => ({ codigo, count }))
+    .sort((a, b) => b.count - a.count)
+
   if (enrichedEntries.length === 0) {
     console.warn("[v0-db] No valid entries to save after account mapping")
-    return
+    return stats
   }
 
   console.log("[v0-db] Saving", enrichedEntries.length, "saldos_mensais entries (with upsert)")
@@ -959,6 +999,18 @@ export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tena
 
   // Delete existing records for each unique combination
   for (const combo of uniqueCombinations.values()) {
+    // First count existing records
+    const { count: existingCount } = await supabase
+      .from("saldos_mensais")
+      .select('*', { count: 'exact', head: true })
+      .eq("organizacao_id", tenantId)
+      .eq("empresa_id", combo.empresa_id)
+      .eq("ano", combo.ano)
+      .eq("mes", combo.mes)
+    
+    stats.deletedRecords += existingCount || 0
+
+    // Then delete
     const { error: deleteError } = await supabase
       .from("saldos_mensais")
       .delete()
@@ -977,7 +1029,10 @@ export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tena
   const { error } = await supabase.from("saldos_mensais").insert(enrichedEntries)
   if (error) throw error
 
+  stats.success = enrichedEntries.length
   console.log("[v0-db] Successfully saved", enrichedEntries.length, "saldos_mensais entries")
+  
+  return stats
 }
 
 export const getSaldosMensais = async (
