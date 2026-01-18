@@ -9,6 +9,7 @@ AutoController is a comprehensive financial management and analysis system built
 - **Multi-tenant Architecture** - Supporting multiple economic groups with data isolation
 - **Report Generation** - Custom financial report templates and structures
 - **Cost Center Management** - Mapping accounts to cost centers and departments
+- **Operational Data System** - Integrating non-financial KPIs with financial reports using formula-based calculations
 
 The application is designed for controllers and financial managers to perform period closing, generate management reports, and analyze business performance across multiple companies and brands within an economic group.
 
