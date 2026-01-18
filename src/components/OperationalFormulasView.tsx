@@ -101,20 +101,17 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
       const mappedLines: ReportLine[] = (linesData || [])
         .map((row: any) => ({
           id: row.id,
-          reportId: row.relatorio_id || row.report_id,
-          parentId: row.pai_id || row.parent_id,
-          name: row.nome || row.name,
-          code: row.codigo || row.code || "",
-          order: row.ordem || row.order,
-          type: row.tipo || row.type,
-          sign: row.sinal || row.sign,
-          dreAccountId: row.conta_dre_id,
-          balanceAccountId: row.conta_balanco_id,
+          reportId: row.reportId || row.relatorio_id || row.report_id,
+          parentId: row.parentId || row.pai_id || row.parent_id,
+          name: row.name || row.nome,
+          code: row.code || row.codigo || "",
+          order: row.order ?? row.ordem,
+          type: row.type || row.tipo,
+          sign: row.sign ?? row.sinal,
+          dreAccountId: row.dreAccountId || row.conta_dre_id,
+          balanceAccountId: row.balanceAccountId || row.conta_balanco_id,
           formula: row.formula,
         }))
-
-      console.log("[OperationalFormulasView] Report lines loaded:", mappedLines.length, mappedLines.slice(0, 3))
-      console.log("[OperationalFormulasView] Report templates loaded:", mappedTemplates.length)
 
       setFormulas(mappedFormulas)
       setIndicators(mappedIndicators)
