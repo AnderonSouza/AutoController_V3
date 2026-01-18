@@ -416,7 +416,10 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const filteredIndicators = indicators.filter(ind => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      if (!ind.nome.toLowerCase().includes(term) && !ind.codigo.toLowerCase().includes(term)) {
+      const matchesCode = ind.codigo.toLowerCase().includes(term)
+      const matchesName = ind.nome.toLowerCase().includes(term)
+      const matchesDescription = ind.descricao?.toLowerCase().includes(term) || false
+      if (!matchesCode && !matchesName && !matchesDescription) {
         return false
       }
     }
