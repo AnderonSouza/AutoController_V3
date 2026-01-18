@@ -113,7 +113,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                         </div>
                     </div>
                     
-                    <div className="max-h-[220px] overflow-y-auto p-1 custom-scrollbar">
+                    <div className="max-h-[220px] overflow-y-auto p-2 custom-scrollbar">
                         {filteredOptions.length > 0 ? (
                             filteredOptions.map(option => {
                                 const isSelected = selectedValues.includes(option.id);
@@ -122,17 +122,17 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                                         key={option.id} 
                                         onClick={(e) => { e.stopPropagation(); handleOptionToggle(option.id); }}
                                         className={`
-                                            flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors mb-0.5
+                                            flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors mb-1
                                             ${isSelected ? 'bg-primary/5 text-primary' : 'hover:bg-slate-50 text-slate-600'}
                                         `}
                                     >
                                         <div className={`
-                                            w-4 h-4 rounded border flex items-center justify-center transition-all
+                                            w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0
                                             ${isSelected ? 'bg-primary border-primary' : 'bg-white border-slate-300'}
                                         `}>
                                             {isSelected && <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>}
                                         </div>
-                                        <span className="text-xs font-semibold">{option.name}</span>
+                                        <span className="text-xs font-semibold leading-tight">{option.name}</span>
                                     </div>
                                 );
                             })

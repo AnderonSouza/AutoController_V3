@@ -42,6 +42,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
   const [selectedBrandId, setSelectedBrandId] = useState<string>("")
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("")
   const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<string[]>([])
 
@@ -133,13 +134,20 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     return companies.filter(c => c.brandId === selectedBrandId)
   }, [selectedBrandId, companies])
 
+  const displayCompanies = useMemo(() => {
+    if (selectedCompanyId) {
+      return filteredCompanies.filter(c => c.id === selectedCompanyId)
+    }
+    return filteredCompanies
+  }, [filteredCompanies, selectedCompanyId])
+
   const filteredIndicators = useMemo(() => {
     if (selectedIndicatorIds.length === 0) return []
     return indicators.filter(i => selectedIndicatorIds.includes(i.id))
   }, [indicators, selectedIndicatorIds])
 
   const indicatorOptions = useMemo(() => 
-    indicators.map(i => ({ id: i.id, name: `${i.codigo} - ${i.nome}` })), 
+    indicators.map(i => ({ id: i.id, name: i.nome })), 
     [indicators]
   )
 
@@ -383,7 +391,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
           <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-              <div className="md:col-span-4">
+              <div className="md:col-span-3">
                 <MultiSelectDropdown
                   label="Indicadores"
                   options={indicatorOptions}
@@ -393,7 +401,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   placeholder="Selecionar indicadores..."
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="md:col-span-1">
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
                 <StyledSelect
                   value={selectedYear}
@@ -404,15 +412,30 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                 </StyledSelect>
               </div>
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
                 <StyledSelect
                   value={selectedBrandId}
-                  onChange={(e) => setSelectedBrandId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedBrandId(e.target.value)
+                    setSelectedCompanyId("") // Reset company when brand changes
+                  }}
                   containerClassName="w-full"
                   className="h-10"
                 >
                   {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </StyledSelect>
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Empresa/Loja</label>
+                <StyledSelect
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                  containerClassName="w-full"
+                  className="h-10"
+                >
+                  <option value="">Todas as lojas</option>
+                  {filteredCompanies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
                 </StyledSelect>
               </div>
               <div className="md:col-span-3">
@@ -430,14 +453,14 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           </div>
 
           <div className="flex-grow overflow-auto bg-white">
-            {filteredCompanies.length > 0 && filteredIndicators.length > 0 ? (
+            {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
               <table className="min-w-full border-separate border-spacing-0">
                 <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
                   <tr>
-                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[250px] w-[250px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
                       Indicador
                     </th>
-                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-[250px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       Loja
                     </th>
                     {CALENDAR_MONTHS.map(month => (
@@ -450,19 +473,18 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                 <tbody className="divide-y divide-slate-200">
                   {filteredIndicators.map(indicator => (
                     <React.Fragment key={indicator.id}>
-                      {filteredCompanies.map((company, idx) => (
+                      {displayCompanies.map((company, idx) => (
                         <tr key={`${indicator.id}-${company.id}`} className="hover:bg-slate-50/50">
                           {idx === 0 && (
                             <td
-                              rowSpan={filteredCompanies.length}
+                              rowSpan={displayCompanies.length}
                               className="p-3 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
                             >
-                              <div className="font-semibold text-primary">{indicator.codigo}</div>
-                              <div className="text-xs text-slate-500 mt-0.5">{indicator.nome}</div>
+                              <div className="font-semibold text-slate-800">{indicator.nome}</div>
                               <div className="text-[10px] text-slate-400 mt-1">({indicator.unidadeMedida})</div>
                             </td>
                           )}
-                          <td className="p-3 text-sm text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
+                          <td className="p-3 text-sm text-slate-700 border-r border-b bg-white sticky left-[250px] z-20">
                             {company.nickname || company.name}
                           </td>
                           {CALENDAR_MONTHS.map(month => {
