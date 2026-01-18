@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useState, useCallback } from "react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 import type { FinancialAccount, MonthlyData, UserRole, Benchmark } from "../types"
 import { CALENDAR_MONTHS } from "../constants"
 
@@ -42,6 +43,8 @@ interface FinancialTableRowProps {
   selectedPeriod: { years: number[]; months: string[] }
   displayPeriods: { year: number; month: string }[]
   verticalAnalysisBaseMap: Map<string, number>
+  expandedRows: Set<string>
+  onToggleExpand: (id: string) => void
 }
 
 const sumMonthlyDataForPeriod = (
@@ -97,9 +100,13 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
   selectedPeriod,
   displayPeriods,
   verticalAnalysisBaseMap,
+  expandedRows,
+  onToggleExpand,
 }) => {
   const isTotal = account.isTotal
   const isSubTotal = account.isSubTotal
+  const hasChildren = account.children && account.children.length > 0
+  const isExpanded = expandedRows.has(account.id)
 
   // Dynamic Styles from Theme Variables
   let rowStyle: React.CSSProperties = {
@@ -147,9 +154,18 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
       {/* Name Column - Sticky */}
       <td
         style={{ paddingLeft, backgroundColor: "inherit", color: "inherit" }}
-        className={`py-3 px-4 text-sm whitespace-nowrap sticky left-0 z-20 ${nameCellClasses} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r-4 border-slate-200`}
+        className={`py-3 px-4 text-sm whitespace-nowrap sticky left-0 z-20 ${nameCellClasses} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r-4 border-slate-200 ${hasChildren ? "cursor-pointer select-none" : ""}`}
+        onClick={hasChildren ? () => onToggleExpand(account.id) : undefined}
       >
-        {account.name}
+        <div className="flex items-center gap-1">
+          {hasChildren && (
+            isExpanded 
+              ? <ChevronDown className="w-4 h-4 flex-shrink-0 text-slate-500" /> 
+              : <ChevronRight className="w-4 h-4 flex-shrink-0 text-slate-500" />
+          )}
+          {!hasChildren && <span className="w-4" />}
+          <span>{account.name}</span>
+        </div>
       </td>
       {displayPeriods.map(({ year, month }, index) => {
         const data = account.monthlyData[year]?.[month]
@@ -292,7 +308,7 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
   )
 
   const childrenContent =
-    account.children &&
+    isExpanded && account.children &&
     account.children.map((child) => (
       <FinancialTableRow
         key={child.id}
@@ -308,6 +324,8 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
         selectedPeriod={selectedPeriod}
         displayPeriods={displayPeriods}
         verticalAnalysisBaseMap={verticalAnalysisBaseMap}
+        expandedRows={expandedRows}
+        onToggleExpand={onToggleExpand}
       />
     ))
 
@@ -357,6 +375,30 @@ const FinancialTable: React.FC<FinancialTableProps> = ({
   userRole,
   closingConfig,
 }) => {
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
+    const allIds = new Set<string>()
+    const collectIds = (accounts: FinancialAccount[]) => {
+      accounts.forEach(acc => {
+        allIds.add(acc.id)
+        if (acc.children) collectIds(acc.children)
+      })
+    }
+    collectIds(data)
+    return allIds
+  })
+
+  const handleToggleExpand = useCallback((id: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }, [])
+
   const displayPeriods = useMemo(() => {
     let periods = selectedPeriod.years
       .flatMap((year) => selectedPeriod.months.map((month) => ({ year, month })))
@@ -567,6 +609,8 @@ const FinancialTable: React.FC<FinancialTableProps> = ({
               selectedPeriod={selectedPeriod}
               displayPeriods={displayPeriods}
               verticalAnalysisBaseMap={verticalAnalysisBaseMap}
+              expandedRows={expandedRows}
+              onToggleExpand={handleToggleExpand}
             />
           ))}
         </tbody>
