@@ -465,15 +465,15 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
               <table className="min-w-full border-separate border-spacing-0">
                 <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
                   <tr>
-                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[250px] w-[250px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                    <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
                       Indicador
                     </th>
-                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-[250px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[180px] w-[180px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       Loja
                     </th>
                     {selectedPeriod.years.sort((a, b) => a - b).map(year => (
                       selectedMonths.map(month => (
-                        <th key={`${year}-${month}`} className="p-2 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[100px]">
+                        <th key={`${year}-${month}`} className="p-0 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[85px]">
                           {month.slice(0, 3)}/{year}
                         </th>
                       ))
@@ -488,25 +488,25 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                           {idx === 0 && (
                             <td
                               rowSpan={displayCompanies.length}
-                              className="p-3 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
+                              className="p-2 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
                             >
-                              <div className="font-semibold text-slate-800">{indicator.nome}</div>
-                              <div className="text-[10px] text-slate-400 mt-1">({indicator.unidadeMedida})</div>
+                              <div className="font-semibold text-slate-800 text-xs">{indicator.nome}</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">({indicator.unidadeMedida})</div>
                             </td>
                           )}
-                          <td className="p-3 text-sm text-slate-700 border-r border-b bg-white sticky left-[250px] z-20">
+                          <td className="p-2 text-xs text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
                             {company.nickname || company.name}
                           </td>
                           {selectedPeriod.years.sort((a, b) => a - b).map(year => (
                             selectedMonths.map(month => {
                               const value = getValue(indicator.id, company.id, year, month)
                               return (
-                                <td key={`${year}-${month}`} className="p-1.5 border-r border-b">
+                                <td key={`${year}-${month}`} className="p-0 border-r border-b">
                                   <input
                                     type="number"
                                     value={value ?? ''}
                                     onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
-                                    className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-primary"
+                                    className="w-full text-center bg-slate-50 border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
                                     placeholder="-"
                                   />
                                 </td>
