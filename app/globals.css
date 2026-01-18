@@ -60,11 +60,11 @@
   --color-divider: #e2e8f0;
 
   /* === TABLE COLORS === */
-  --color-table-header-bg: #f8fafc;
-  --color-table-header-text: #334155;
+  --color-table-header-bg: #3b82f6;
+  --color-table-header-text: #ffffff;
   --color-table-row-bg: #ffffff;
   --color-table-row-hover: #f8fafc;
-  --color-table-total-bg: #ede9fe;
+  --color-table-total-bg: #cbd5e1;
   --color-table-subtotal-bg: #f1f5f9;
   --color-table-positive: #059669;
   --color-table-negative: #dc2626;
