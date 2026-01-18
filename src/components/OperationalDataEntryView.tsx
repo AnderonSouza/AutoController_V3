@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
 import { Save, Search, ChevronDown, ChevronRight, Upload, Download, FileSpreadsheet } from 'lucide-react'
 import type { OperationalIndicator, Company, Brand, Department } from '../types'
 import { getCadastroTenant, saveCadastroTenant } from '../utils/db'
@@ -42,6 +42,53 @@ interface OperationalValueRow {
   meta?: number
 }
 
+// Custom hook for debounce
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+  return debouncedValue
+}
+
+// Memoized input component to prevent re-renders
+interface ValueInputProps {
+  initialValue: number | null
+  onValueChange: (value: string) => void
+}
+
+const ValueInput = memo(({ initialValue, onValueChange }: ValueInputProps) => {
+  const [localValue, setLocalValue] = useState(initialValue?.toString() ?? "")
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setLocalValue(initialValue?.toString() ?? "")
+  }, [initialValue])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setLocalValue(newValue)
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    timeoutRef.current = setTimeout(() => {
+      onValueChange(newValue)
+    }, 300)
+  }
+
+  return (
+    <input
+      type="number"
+      value={localValue}
+      onChange={handleChange}
+      className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
+      placeholder="-"
+    />
+  )
+})
+
 const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ tenantId }) => {
   const [indicators, setIndicators] = useState<OperationalIndicator[]>([])
   const [values, setValues] = useState<OperationalValueRow[]>([])
@@ -57,6 +104,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [selectedCompany, setSelectedCompany] = useState<string>("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
+  const debouncedSearchTerm = useDebounce(searchTerm, 300) // Debounce search
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
 
   const [editedValues, setEditedValues] = useState<Record<string, number | null>>({})
@@ -413,29 +461,35 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     }
   }
 
-  const filteredIndicators = indicators.filter(ind => {
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      const matchesCode = ind.codigo.toLowerCase().includes(term)
-      const matchesName = ind.nome.toLowerCase().includes(term)
-      const matchesDescription = ind.descricao?.toLowerCase().includes(term) || false
-      if (!matchesCode && !matchesName && !matchesDescription) {
-        return false
+  // Memoized filtered indicators - only recalculates when dependencies change
+  const filteredIndicators = useMemo(() => {
+    return indicators.filter(ind => {
+      if (debouncedSearchTerm) {
+        const term = debouncedSearchTerm.toLowerCase()
+        const matchesCode = ind.codigo.toLowerCase().includes(term)
+        const matchesName = ind.nome.toLowerCase().includes(term)
+        const matchesDescription = ind.descricao?.toLowerCase().includes(term) || false
+        if (!matchesCode && !matchesName && !matchesDescription) {
+          return false
+        }
       }
-    }
-    return true
-  })
+      return true
+    })
+  }, [indicators, debouncedSearchTerm])
 
-  const groupedByCategoria = filteredIndicators.reduce((acc, ind) => {
-    const cat = ind.categoria || "Outros"
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(ind)
-    return acc
-  }, {} as Record<string, OperationalIndicator[]>)
+  // Memoized grouped categories
+  const groupedByCategoria = useMemo(() => {
+    return filteredIndicators.reduce((acc, ind) => {
+      const cat = ind.categoria || "Outros"
+      if (!acc[cat]) acc[cat] = []
+      acc[cat].push(ind)
+      return acc
+    }, {} as Record<string, OperationalIndicator[]>)
+  }, [filteredIndicators])
 
   // Auto-expand categories when searching
   useEffect(() => {
-    if (searchTerm.trim()) {
+    if (debouncedSearchTerm.trim()) {
       const categoriesToExpand = Object.keys(groupedByCategoria)
       const newExpanded: Record<string, boolean> = {}
       categoriesToExpand.forEach(cat => {
@@ -443,7 +497,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       })
       setExpandedCategories(prev => ({ ...prev, ...newExpanded }))
     }
-  }, [searchTerm, filteredIndicators.length])
+  }, [debouncedSearchTerm, groupedByCategoria])
 
   const toggleCategory = (cat: string) => {
     setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))
@@ -679,12 +733,9 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                                 </td>
                                 {MONTHS_DATA.map(month => (
                                   <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
-                                    <input
-                                      type="number"
-                                      value={getCurrentValue(indicator.id, month.value, company.id, dept.id) ?? ""}
-                                      onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value, company.id, dept.id)}
-                                      className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
-                                      placeholder="-"
+                                    <ValueInput
+                                      initialValue={getCurrentValue(indicator.id, month.value, company.id, dept.id)}
+                                      onValueChange={(value) => handleValueChange(indicator.id, month.value, value, company.id, dept.id)}
                                     />
                                   </td>
                                 ))}
@@ -710,12 +761,9 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                         </td>
                         {MONTHS_DATA.map(month => (
                           <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
-                            <input
-                              type="number"
-                              value={getCurrentValue(indicator.id, month.value) ?? ""}
-                              onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value)}
-                              className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
-                              placeholder="-"
+                            <ValueInput
+                              initialValue={getCurrentValue(indicator.id, month.value)}
+                              onValueChange={(value) => handleValueChange(indicator.id, month.value, value)}
                             />
                           </td>
                         ))}
