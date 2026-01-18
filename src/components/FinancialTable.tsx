@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState, useCallback } from "react"
-import { ChevronDown, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react"
 import type { FinancialAccount, MonthlyData, UserRole, Benchmark } from "../types"
 import { CALENDAR_MONTHS } from "../constants"
 
@@ -160,7 +160,7 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
         <div className="flex items-center gap-1">
           {hasChildren && (
             isExpanded 
-              ? <ChevronDown className="w-4 h-4 flex-shrink-0 text-slate-500" /> 
+              ? <ChevronUp className="w-4 h-4 flex-shrink-0 text-slate-500" /> 
               : <ChevronRight className="w-4 h-4 flex-shrink-0 text-slate-500" />
           )}
           {!hasChildren && <span className="w-4" />}
