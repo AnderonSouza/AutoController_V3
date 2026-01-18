@@ -55,8 +55,8 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
       const [formulasData, indicatorsData, templatesData, linesData] = await Promise.all([
         getCadastroTenant("operational_formulas", tenantId),
         getCadastroTenant("operational_indicators", tenantId),
-        getCadastroTenant("reporttemplates", tenantId),
-        getCadastroTenant("reportlines", tenantId),
+        getCadastroTenant("report_templates", tenantId),
+        getCadastroTenant("report_lines", tenantId),
       ])
 
       const mappedFormulas: FormulaRow[] = (formulasData || []).map((row: any) => ({
@@ -91,24 +91,24 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
 
       const mappedTemplates: ReportTemplate[] = (templatesData || []).map((row: any) => ({
         id: row.id,
-        name: row.nome,
-        type: row.tipo,
-        economicGroupId: row.organizacao_id,
-        createdAt: row.criado_em,
-        isActive: row.ativo ?? true,
+        name: row.nome || row.name,
+        type: row.tipo || row.type,
+        economicGroupId: row.organizacao_id || row.grupo_economico_id,
+        createdAt: row.criado_em || row.created_at,
+        isActive: row.ativo ?? row.is_active ?? true,
       }))
 
       const mappedLines: ReportLine[] = (linesData || [])
-        .filter((row: any) => row.codigo)
+        .filter((row: any) => row.codigo || row.code)
         .map((row: any) => ({
           id: row.id,
-          reportId: row.relatorio_id,
-          parentId: row.linha_pai_id,
-          name: row.nome,
-          code: row.codigo,
-          order: row.ordem,
-          type: row.tipo,
-          sign: row.sinal,
+          reportId: row.relatorio_id || row.report_id,
+          parentId: row.pai_id || row.parent_id,
+          name: row.nome || row.name,
+          code: row.codigo || row.code,
+          order: row.ordem || row.order,
+          type: row.tipo || row.type,
+          sign: row.sinal || row.sign,
           dreAccountId: row.conta_dre_id,
           balanceAccountId: row.conta_balanco_id,
           formula: row.formula,
