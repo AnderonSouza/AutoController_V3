@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Save, Search, ChevronDown, ChevronRight } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Save, Search, ChevronDown, ChevronRight, Upload, Download, FileSpreadsheet } from 'lucide-react'
 import type { OperationalIndicator, Company, Brand } from '../types'
 import { getCadastroTenant, saveCadastroTenant } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
+import * as XLSX from 'xlsx'
 
 interface OperationalDataEntryViewProps {
   tenantId: string
@@ -57,6 +58,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
 
   const [editedValues, setEditedValues] = useState<Record<string, number | null>>({})
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadData = useCallback(async () => {
     try {
@@ -196,6 +199,197 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     }
   }
 
+  const handleExportTemplate = () => {
+    const templateData: any[] = []
+    
+    indicators.forEach(ind => {
+      MONTHS_DATA.forEach(month => {
+        templateData.push({
+          "Código Indicador": ind.codigo,
+          "Nome Indicador": ind.nome,
+          "Categoria": ind.categoria || "Outros",
+          "Unidade": ind.unidadeMedida,
+          "Ano": selectedYear,
+          "Mês": month.value,
+          "Empresa (CNPJ)": selectedCompany ? companies.find(c => c.id === selectedCompany)?.cnpj || "" : "",
+          "Marca": selectedBrand ? brands.find(b => b.id === selectedBrand)?.name || "" : "",
+          "Valor": ""
+        })
+      })
+    })
+
+    const ws = XLSX.utils.json_to_sheet(templateData)
+    
+    ws['!cols'] = [
+      { wch: 20 },
+      { wch: 40 },
+      { wch: 20 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 15 }
+    ]
+    
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Dados Operacionais")
+    
+    const instrucoes = [
+      ["INSTRUÇÕES DE PREENCHIMENTO"],
+      [""],
+      ["1. Preencha apenas a coluna 'Valor' com os dados numéricos."],
+      ["2. Não altere as colunas 'Código Indicador', 'Ano' e 'Mês'."],
+      ["3. O campo 'Empresa (CNPJ)' deve conter apenas os 14 dígitos (sem pontuação)."],
+      ["4. Deixe 'Empresa (CNPJ)' e 'Marca' em branco para dados consolidados."],
+      ["5. Os meses devem estar em maiúsculas (JANEIRO, FEVEREIRO, etc.)."],
+      [""],
+      ["CÓDIGOS DOS INDICADORES DISPONÍVEIS:"],
+      ...indicators.map(ind => [`${ind.codigo} - ${ind.nome} (${ind.unidadeMedida})`])
+    ]
+    const wsInstrucoes = XLSX.utils.aoa_to_sheet(instrucoes)
+    wsInstrucoes['!cols'] = [{ wch: 80 }]
+    XLSX.utils.book_append_sheet(wb, wsInstrucoes, "Instruções")
+    
+    XLSX.writeFile(wb, `modelo_dados_operacionais_${selectedYear}.xlsx`)
+  }
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      setImporting(true)
+      
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        try {
+          const data = e.target?.result
+          const workbook = XLSX.read(data, { type: 'binary' })
+          const sheetName = workbook.SheetNames[0]
+          const worksheet = workbook.Sheets[sheetName]
+          const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[]
+
+          const valuesToImport: any[] = []
+          const errors: string[] = []
+          let imported = 0
+
+          for (const row of jsonData) {
+            const codigo = row["Código Indicador"]?.toString().trim().toUpperCase()
+            const ano = parseInt(row["Ano"])
+            const mes = row["Mês"]?.toString().trim().toUpperCase()
+            const valorStr = row["Valor"]?.toString().trim()
+            const empresaCnpj = row["Empresa (CNPJ)"]?.toString().replace(/\D/g, '').trim()
+            const marcaNome = row["Marca"]?.toString().trim()
+
+            if (!codigo || !ano || !mes) {
+              continue
+            }
+
+            if (!valorStr || valorStr === "") {
+              continue
+            }
+
+            const valor = parseFloat(valorStr.replace(",", "."))
+            if (isNaN(valor)) {
+              errors.push(`Valor inválido para ${codigo} em ${mes}/${ano}`)
+              continue
+            }
+
+            const indicator = indicators.find(i => i.codigo.toUpperCase() === codigo)
+            if (!indicator) {
+              errors.push(`Indicador não encontrado: ${codigo}`)
+              continue
+            }
+
+            const validMonth = MONTHS_DATA.find(m => m.value === mes)
+            if (!validMonth) {
+              errors.push(`Mês inválido: ${mes}`)
+              continue
+            }
+
+            let empresaId: string | null = null
+            if (empresaCnpj) {
+              const empresa = companies.find(c => c.cnpj?.replace(/\D/g, '') === empresaCnpj)
+              if (!empresa) {
+                errors.push(`Empresa não encontrada com CNPJ: ${empresaCnpj}`)
+                continue
+              }
+              empresaId = empresa.id
+            }
+
+            let marcaId: string | null = null
+            if (marcaNome) {
+              const marca = brands.find(b => b.name.toLowerCase() === marcaNome.toLowerCase())
+              if (!marca) {
+                errors.push(`Marca não encontrada: ${marcaNome}`)
+                continue
+              }
+              marcaId = marca.id
+            }
+
+            const existing = values.find(v => 
+              v.indicadorId === indicator.id &&
+              v.ano === ano &&
+              v.mes === mes &&
+              (empresaId ? v.empresaId === empresaId : !v.empresaId) &&
+              (marcaId ? v.marcaId === marcaId : !v.marcaId)
+            )
+
+            valuesToImport.push({
+              id: existing?.id || generateUUID(),
+              organizacao_id: tenantId,
+              indicador_id: indicator.id,
+              ano: ano,
+              mes: mes,
+              empresa_id: empresaId,
+              marca_id: marcaId,
+              departamento_id: null,
+              valor: valor,
+              meta: null,
+              origem: "importacao",
+              status: "confirmado",
+            })
+            imported++
+          }
+
+          if (valuesToImport.length > 0) {
+            await saveCadastroTenant("operational_values", valuesToImport, tenantId)
+            await loadData()
+          }
+
+          let message = `Importação concluída! ${imported} valores importados.`
+          if (errors.length > 0) {
+            message += `\n\nAvisos (${errors.length}):\n${errors.slice(0, 10).join('\n')}`
+            if (errors.length > 10) {
+              message += `\n... e mais ${errors.length - 10} avisos.`
+            }
+          }
+          alert(message)
+        } catch (parseError) {
+          console.error("Erro ao processar arquivo:", parseError)
+          alert("Erro ao processar o arquivo. Verifique se o formato está correto.")
+        } finally {
+          setImporting(false)
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+          }
+        }
+      }
+
+      reader.onerror = () => {
+        alert("Erro ao ler o arquivo.")
+        setImporting(false)
+      }
+
+      reader.readAsBinaryString(file)
+    } catch (err) {
+      console.error("Erro na importação:", err)
+      alert("Erro ao importar arquivo.")
+      setImporting(false)
+    }
+  }
+
   const filteredIndicators = indicators.filter(ind => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -251,16 +445,45 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             Informe os valores mensais dos indicadores.
           </p>
         </div>
-        {hasChanges && (
+        <div className="flex items-center gap-3">
           <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            onClick={handleExportTemplate}
+            className="flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition border border-slate-200"
+            title="Baixar planilha modelo"
           >
-            <Save className="w-4 h-4" />
-            {saving ? "Salvando..." : "Salvar Alterações"}
+            <Download className="w-4 h-4" />
+            Planilha Modelo
           </button>
-        )}
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onChange={handleImportFile}
+            className="hidden"
+            id="import-file-input"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+            title="Importar dados de planilha"
+          >
+            <Upload className="w-4 h-4" />
+            {importing ? "Importando..." : "Importar"}
+          </button>
+
+          {hasChanges && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? "Salvando..." : "Salvar Alterações"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 bg-white border border-slate-200 rounded-xl p-4">
