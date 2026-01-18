@@ -451,6 +451,13 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
       }
     }
     if (dbTable === "linhas_relatorio") {
+      // For operational lines, extract operationalFormulaId from formula field
+      let operationalFormulaId: string | undefined;
+      let formula = item.formula;
+      if (item.tipo === 'operational' && item.formula?.startsWith('OP:')) {
+        operationalFormulaId = item.formula.substring(3); // Remove 'OP:' prefix
+        formula = undefined; // Clear formula since it was used for operationalFormulaId
+      }
       return {
         id: item.id,
         reportId: item.relatorio_id,
@@ -460,7 +467,8 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         order: item.ordem,
         type: item.tipo,
         sign: item.sinal,
-        formula: item.formula,
+        formula: formula,
+        operationalFormulaId: operationalFormulaId,
         sourceAccounts: item.contas_origem,
         style: item.estilo,
         createdAt: item.criado_em,
@@ -573,6 +581,10 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
           obj[dbKey] = item[appKey]
         }
       })
+      // For operational lines, store operationalFormulaId in the formula field
+      if (item.type === 'operational' && item.operationalFormulaId) {
+        obj.formula = `OP:${item.operationalFormulaId}`;
+      }
       obj.organizacao_id = tenantId
       return obj
     }
