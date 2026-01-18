@@ -1,10 +1,12 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import type { Brand, Company, ReportTemplate, ReportLine, AccountCostCenterMapping } from "@/types"
+import type { Brand, Company, ReportTemplate, ReportLine, AccountCostCenterMapping, UserRole, Benchmark } from "@/types"
 import { useBalanceSheetCalculation } from "./useBalanceSheetCalculation"
 import { MONTHS } from "../constants"
-import FinancialReportLayout from "./FinancialReportLayout"
+import FinancialTable from "./FinancialTable"
+import Toolbar from "./Toolbar"
+import Tabs from "./Tabs"
 
 interface SelectedPeriod {
   years: number[]
@@ -30,6 +32,8 @@ interface BalanceSheetViewProps {
   selectedPeriod: SelectedPeriod
   onPeriodChange: (period: SelectedPeriod) => void
   isLoading?: boolean
+  userRole?: UserRole
+  benchmarks?: Benchmark[]
 }
 
 export default function BalanceSheetView({
@@ -41,11 +45,19 @@ export default function BalanceSheetView({
   monthlyBalances,
   selectedPeriod,
   onPeriodChange,
-  isLoading = false
+  isLoading = false,
+  userRole,
+  benchmarks = []
 }: BalanceSheetViewProps) {
   const [activeTab, setActiveTab] = useState<string>("Consolidado")
-  const [showVerticalAnalysis, setShowVerticalAnalysis] = useState(false)
-  const [showHorizontalAnalysis, setShowHorizontalAnalysis] = useState(false)
+  const [currentBrand, setCurrentBrand] = useState<string>("Todas as Marcas")
+  const [currentStore, setCurrentStore] = useState<string>("Consolidado")
+  const [isBudgetMode, setIsBudgetMode] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+  const [showVertical, setShowVertical] = useState(false)
+  const [showHorizontal, setShowHorizontal] = useState(false)
+  const [showBenchmark, setShowBenchmark] = useState(false)
+
   const { calculateBalanceSheet } = useBalanceSheetCalculation()
 
   const tabs = useMemo(() => {
@@ -73,49 +85,78 @@ export default function BalanceSheetView({
     return calculateBalanceSheet(
       reportTemplate,
       reportLines,
-      monthlyBalances,
-      accountMappings,
+      monthlyBalances as any,
+      accountMappings as any,
       selectedPeriod,
       filteredCompanyIds
     )
   }, [reportTemplate, reportLines, monthlyBalances, accountMappings, selectedPeriod, filteredCompanyIds, calculateBalanceSheet])
 
-  const selectedMonths = selectedPeriod.months.length > 0 
-    ? selectedPeriod.months 
-    : MONTHS.slice(0, new Date().getMonth() + 1)
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
+      </div>
+    )
+  }
 
-  const toggles = [
-    {
-      id: "bs-vertical-toggle",
-      label: "Anál. Vert.",
-      enabled: showVerticalAnalysis,
-      onChange: setShowVerticalAnalysis
-    },
-    {
-      id: "bs-horizontal-toggle",
-      label: "Anál. Horiz.",
-      enabled: showHorizontalAnalysis,
-      onChange: setShowHorizontalAnalysis
-    }
-  ]
+  if (!reportTemplate || reportLines.length === 0) {
+    return (
+      <div className="flex flex-col h-full overflow-hidden p-4">
+        <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+          <div className="flex-1 flex items-center justify-center text-slate-400">
+            <div className="text-center">
+              <p className="text-lg font-medium">Nenhuma estrutura de relatório configurada</p>
+              <p className="text-sm">Configure as linhas do modelo Balanço Patrimonial para visualizar os dados</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <FinancialReportLayout
-      data={balanceSheetData}
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      selectedPeriod={selectedPeriod}
-      onPeriodChange={onPeriodChange}
-      displayMonths={selectedMonths}
-      toggles={toggles}
-      showBrandFilter={true}
-      brands={brands}
-      currentBrand={activeTab === "Consolidado" ? "Todas as Marcas" : activeTab}
-      onBrandChange={(brand) => setActiveTab(brand === "Todas as Marcas" ? "Consolidado" : brand)}
-      isLoading={isLoading}
-      emptyMessage="Nenhuma estrutura de relatório configurada"
-      emptySubMessage="Configure as linhas do modelo Balanço Patrimonial para visualizar os dados"
-    />
+    <div className="flex flex-col h-full overflow-hidden p-4">
+      <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+        <Toolbar
+          storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
+          currentStore={currentStore}
+          onStoreChange={setCurrentStore}
+          brands={brands}
+          currentBrand={currentBrand}
+          onBrandChange={setCurrentBrand}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={onPeriodChange}
+          isBudgetMode={isBudgetMode}
+          onBudgetModeChange={setIsBudgetMode}
+          showCalculationDetails={showDetails}
+          onShowCalculationDetailsChange={setShowDetails}
+          showVerticalAnalysis={showVertical}
+          onShowVerticalAnalysisChange={setShowVertical}
+          showHorizontalAnalysis={showHorizontal}
+          onShowHorizontalAnalysisChange={setShowHorizontal}
+          showBenchmark={showBenchmark}
+          onShowBenchmarkChange={setShowBenchmark}
+          isLoading={isLoading}
+          hideStoreFilter={true}
+        />
+        <div className="flex-grow overflow-auto bg-white">
+          <FinancialTable
+            data={balanceSheetData}
+            onDataChange={() => {}}
+            isBudgetMode={isBudgetMode}
+            showCalculationDetails={showDetails}
+            showVerticalAnalysis={showVertical}
+            showHorizontalAnalysis={showHorizontal}
+            showBenchmark={showBenchmark}
+            benchmarks={benchmarks.filter(b => b.brandId === 'all' || brands.find(brand => brand.id === b.brandId && brand.name === currentBrand))}
+            activeTab={activeTab}
+            selectedPeriod={selectedPeriod}
+            userRole={userRole}
+          />
+        </div>
+        <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
+    </div>
   )
 }
