@@ -224,6 +224,9 @@ export type View =
   | "SUPPORT"
   | "CLOSING_SCHEDULE"
   | "CLOSING_LOCK"
+  | "OPERATIONAL_INDICATORS"
+  | "OPERATIONAL_DATA_ENTRY"
+  | "OPERATIONAL_FORMULAS"
   | "SuperAdmin"
 
 export interface ReportTemplate {
@@ -474,4 +477,75 @@ export interface Notification {
   actionLink?: string
   createdAt: string
   readAt?: string
+}
+
+// ============================================================
+// DADOS OPERACIONAIS (KPIs não-financeiros)
+// ============================================================
+
+export interface OperationalIndicator {
+  id: string
+  organizacaoId: string
+  codigo: string
+  nome: string
+  descricao?: string
+  categoria?: string
+  unidadeMedida: string
+  natureza: "volume" | "eficiencia" | "qualidade" | "financeiro"
+  escopo: "empresa" | "marca" | "departamento" | "loja" | "consolidado"
+  permiteMeta: boolean
+  ativo: boolean
+  ordem: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface OperationalValue {
+  id: string
+  organizacaoId: string
+  indicadorId: string
+  ano: number
+  mes: string
+  empresaId?: string
+  marcaId?: string
+  departamentoId?: string
+  lojaId?: string
+  valor: number
+  meta?: number
+  origem: "manual" | "importacao" | "api" | "calculado"
+  status: "rascunho" | "confirmado" | "bloqueado"
+  observacao?: string
+  preenchidoPor?: string
+  confirmadoPor?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface OperationalFormula {
+  id: string
+  organizacaoId: string
+  codigo: string
+  nome: string
+  descricao?: string
+  expressao: string
+  categoria?: string
+  unidadeMedida: string
+  casasDecimais: number
+  formatoExibicao: "numero" | "percentual" | "moeda"
+  escopo: "empresa" | "marca" | "departamento" | "consolidado"
+  ordem: number
+  ativo: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface OperationalReportLineMapping {
+  id: string
+  organizacaoId: string
+  linhaRelatorioId: string
+  tipo: "INDICADOR" | "FORMULA"
+  indicadorId?: string
+  formulaId?: string
+  ordem: number
+  ativo: boolean
 }

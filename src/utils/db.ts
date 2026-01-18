@@ -60,6 +60,13 @@ const TABLE_MAPPING: Record<string, string> = {
 
   // Tabelas de notificações
   notifications: "notificacoes",
+
+  // Tabelas de dados operacionais
+  operational_indicators: "indicadores_operacionais",
+  operational_values: "valores_operacionais",
+  operational_formulas: "formulas_operacionais",
+  operational_formula_dependencies: "formulas_operacionais_dependencias",
+  operational_report_mappings: "relatorio_linhas_operacionais",
 }
 
 const resolveTableName = (tableName: string) => TABLE_MAPPING[tableName] || tableName

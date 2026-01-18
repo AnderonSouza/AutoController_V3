@@ -29,6 +29,8 @@ import {
   Phone,
   Code,
   Home,
+  Activity,
+  Gauge,
 } from "lucide-react"
 import type { View, EconomicGroup, User, ReportTemplate } from "../types"
 
@@ -157,6 +159,16 @@ export default function Sidebar({
         { id: "CG_ENTRIES", label: "Ajustes de Caixa", icon: <TrendingUp size={18} strokeWidth={1.5} /> },
         { id: "ACCOUNTING_ADJUSTMENTS", label: "Ajustes Contábeis", icon: <ArrowRightLeft size={18} strokeWidth={1.5} /> },
         { id: "QUERIES", label: "Auditoria Contábil", icon: <Database size={18} strokeWidth={1.5} /> },
+      ],
+    },
+    {
+      id: "dados_operacionais",
+      label: "Dados Operacionais",
+      icon: <Activity size={24} strokeWidth={1.5} />,
+      children: [
+        { id: "OPERATIONAL_INDICATORS", label: "Indicadores", icon: <Gauge size={18} strokeWidth={1.5} /> },
+        { id: "OPERATIONAL_DATA_ENTRY", label: "Preenchimento", icon: <FileInput size={18} strokeWidth={1.5} /> },
+        { id: "OPERATIONAL_FORMULAS", label: "Fórmulas", icon: <Calculator size={18} strokeWidth={1.5} /> },
       ],
     },
     {
