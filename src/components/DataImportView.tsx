@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react"
 import { CALENDAR_MONTHS } from "../constants"
 import StyledSelect from "./StyledSelect"
 import type { Brand, Company } from "../types"
-import { getCadastro, deleteEntriesInBatches, BatchDeleteProgress } from "../utils/db"
+import { getCadastroTenant, deleteEntriesInBatches, BatchDeleteProgress } from "../utils/db"
 import { useTenant } from "../context/TenantContext"
 import AccountingEntryImportModal from "./AccountingEntryImportModal"
 import MonthlyBalanceImportModal from "./MonthlyBalanceImportModal"
@@ -162,11 +162,16 @@ const DataImportView: React.FC<DataImportViewProps> = ({
     setLocalCompanies(propCompanies || [])
   }, [propCompanies])
 
+  const { effectiveTenantId } = useTenant()
+  const tenantId = effectiveTenantId || null
+
   useEffect(() => {
     const loadMissingData = async () => {
+      if (!tenantId) return
+      
       if (!propBrands || propBrands.length === 0) {
         try {
-          const fetchedBrands = await getCadastro("brands") as Brand[]
+          const fetchedBrands = await getCadastroTenant("brands", tenantId) as Brand[]
           if (fetchedBrands && fetchedBrands.length > 0) {
             setLocalBrands(fetchedBrands)
           }
@@ -176,7 +181,7 @@ const DataImportView: React.FC<DataImportViewProps> = ({
       }
       if (!propCompanies || propCompanies.length === 0) {
         try {
-          const fetchedCompanies = await getCadastro("companies") as Company[]
+          const fetchedCompanies = await getCadastroTenant("companies", tenantId) as Company[]
           if (fetchedCompanies && fetchedCompanies.length > 0) {
             setLocalCompanies(fetchedCompanies)
           }
@@ -188,7 +193,7 @@ const DataImportView: React.FC<DataImportViewProps> = ({
     if (!propBrands || !propCompanies || propBrands.length === 0 || propCompanies.length === 0) {
       loadMissingData()
     }
-  }, [propBrands?.length, propCompanies?.length])
+  }, [propBrands?.length, propCompanies?.length, tenantId])
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deleteProgress, setDeleteProgress] = useState<BatchDeleteProgress | null>(null)
@@ -216,9 +221,6 @@ const DataImportView: React.FC<DataImportViewProps> = ({
     }
     return msg
   }
-
-  const { effectiveTenantId } = useTenant()
-  const tenantId = effectiveTenantId || null
 
   // Custom Delete Logic with batch processing
   const handleConfirmDelete = async () => {

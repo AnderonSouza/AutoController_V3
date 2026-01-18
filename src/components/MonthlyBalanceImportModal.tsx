@@ -22,6 +22,17 @@ interface PeriodMapping {
 
 const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ isOpen, onClose, companies, onSuccess, tenantId }) => {
     const [step, setStep] = useState<1 | 2 | 3>(1);
+    
+    // Debug log to check companies data
+    React.useEffect(() => {
+        if (isOpen) {
+            console.log("[v0-modal] MonthlyBalanceImportModal opened with companies:", {
+                count: companies?.length,
+                firstCompany: companies?.[0],
+                tenantId
+            });
+        }
+    }, [isOpen, companies, tenantId]);
     const [file, setFile] = useState<File | null>(null);
     const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
     
@@ -254,7 +265,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                                         <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">Código da Conta (Obrigatório)</label>
                                         <StyledSelect value={baseMapping.codigoConta} onChange={e => setBaseMapping({...baseMapping, codigoConta: e.target.value})} containerClassName="w-full" className="h-11 pl-4 text-sm border-slate-300 focus:border-primary">
                                             <option value="">Selecione...</option>
-                                            {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                                            {excelHeaders.map((h, idx) => <option key={`header-${idx}-${h}`} value={h}>{h}</option>)}
                                         </StyledSelect>
                                         <p className="text-xs text-slate-400 mt-1.5">Coluna com o código reduzido da conta contábil.</p>
                                     </div>
@@ -291,7 +302,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                                                 <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Coluna do Excel (Saldo)</label>
                                                 <StyledSelect value={map.excelColumn} onChange={e => updatePeriodMapping(map.id, 'excelColumn', e.target.value)} containerClassName="w-full" className="py-2 text-sm h-11 pl-4">
                                                     <option value="">Selecione...</option>
-                                                    {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                                                    {excelHeaders.map((h, idx) => <option key={`period-header-${idx}-${h}`} value={h}>{h}</option>)}
                                                 </StyledSelect>
                                             </div>
                                             <div className="col-span-1 flex justify-end pb-2">
