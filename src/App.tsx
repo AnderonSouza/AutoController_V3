@@ -643,8 +643,8 @@ const App: React.FC = () => {
       case "CASH_FLOW":
       case "DYNAMIC_REPORT":
         return (
-          <div className="flex flex-col h-full overflow-hidden p-1">
-            <div className="flex-grow flex flex-col bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+          <div className="flex flex-col h-full overflow-hidden p-0">
+            <div className="flex-grow flex flex-col bg-white border border-slate-200 overflow-hidden">
               <Toolbar
                 storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
                 currentStore={currentStore}
