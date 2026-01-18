@@ -160,7 +160,7 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
         <div className="flex items-center gap-1">
           {hasChildren && (
             isExpanded 
-              ? <ChevronUp className="w-4 h-4 flex-shrink-0 text-slate-500" /> 
+              ? <ChevronDown className="w-4 h-4 flex-shrink-0 text-slate-500" /> 
               : <ChevronRight className="w-4 h-4 flex-shrink-0 text-slate-500" />
           )}
           {!hasChildren && <span className="w-4" />}
@@ -328,15 +328,6 @@ const FinancialTableRow: React.FC<FinancialTableRowProps> = ({
         onToggleExpand={onToggleExpand}
       />
     ))
-
-  if (isTotal || isSubTotal) {
-    return (
-      <>
-        {childrenContent}
-        {rowContent}
-      </>
-    )
-  }
 
   return (
     <>
