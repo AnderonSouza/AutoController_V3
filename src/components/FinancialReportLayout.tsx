@@ -178,79 +178,79 @@ export default function FinancialReportLayout({
   const selectClassName = "h-10 text-sm py-0 pl-3 pr-8 border-[var(--color-border)] bg-white shadow-sm rounded-lg"
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="px-6 py-3 bg-[var(--color-bg-subtle)] border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-3 shrink-0">
-        <div className="flex items-center gap-3 flex-wrap">
-          {showBrandFilter && brands.length > 0 && onBrandChange && (
-            <StyledSelect 
-              value={currentBrand} 
-              onChange={(e) => onBrandChange(e.target.value)}
-              containerClassName="w-44"
-              className={selectClassName}
-            >
-              <option value="Todas as Marcas">Todas as Marcas</option>
-              {brands.map(brand => (
-                <option key={brand.id} value={brand.name}>{brand.name}</option>
-              ))}
-            </StyledSelect>
-          )}
+    <div className="flex flex-col h-full overflow-hidden p-4">
+      <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+        <div className="px-6 py-3 bg-[var(--color-bg-subtle)] border-b border-[var(--color-border)] flex items-center justify-between flex-wrap gap-3 shrink-0">
+          <div className="flex items-center gap-3 flex-wrap">
+            {showBrandFilter && brands.length > 0 && onBrandChange && (
+              <StyledSelect 
+                value={currentBrand} 
+                onChange={(e) => onBrandChange(e.target.value)}
+                containerClassName="w-44"
+                className={selectClassName}
+              >
+                <option value="Todas as Marcas">Todas as Marcas</option>
+                {brands.map(brand => (
+                  <option key={brand.id} value={brand.name}>{brand.name}</option>
+                ))}
+              </StyledSelect>
+            )}
 
-          {showStoreFilter && storeOptions.length > 0 && onStoreChange && (
-            <StyledSelect 
-              value={currentStore} 
-              onChange={(e) => onStoreChange(e.target.value)}
-              containerClassName="w-48"
-              className={selectClassName}
-            >
-              {storeOptions.map(option => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </StyledSelect>
-          )}
+            {showStoreFilter && storeOptions.length > 0 && onStoreChange && (
+              <StyledSelect 
+                value={currentStore} 
+                onChange={(e) => onStoreChange(e.target.value)}
+                containerClassName="w-48"
+                className={selectClassName}
+              >
+                {storeOptions.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </StyledSelect>
+            )}
 
-          <PeriodSelector
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={onPeriodChange}
-            availableYears={availableYears}
-            className={selectClassName}
-          />
+            <PeriodSelector
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={onPeriodChange}
+              availableYears={availableYears}
+              className={selectClassName}
+            />
+          </div>
+
+          {toggles.length > 0 && (
+            <div className="flex items-center gap-5 bg-white px-4 py-2 rounded-lg border border-[var(--color-border)] shadow-sm h-10">
+              {toggles.map((toggle, index) => (
+                <React.Fragment key={toggle.id}>
+                  {index > 0 && <div className="w-px h-4 bg-[var(--color-border-light)]"></div>}
+                  <div className="flex items-center gap-2">
+                    <label 
+                      htmlFor={toggle.id} 
+                      className="text-xs font-bold text-[var(--color-text-secondary)] cursor-pointer whitespace-nowrap"
+                    >
+                      {toggle.label}
+                    </label>
+                    <button
+                      id={toggle.id}
+                      role="switch"
+                      aria-checked={toggle.enabled}
+                      onClick={() => toggle.onChange(!toggle.enabled)}
+                      className={cn(
+                        "relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none",
+                        toggle.enabled ? (toggle.color || 'bg-[var(--color-primary)]') : 'bg-slate-300'
+                      )}
+                    >
+                      <span className={cn(
+                        "inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform",
+                        toggle.enabled ? 'translate-x-4.5' : 'translate-x-0.5'
+                      )}/>
+                    </button>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
 
-        {toggles.length > 0 && (
-          <div className="flex items-center gap-5 bg-white px-4 py-2 rounded-lg border border-[var(--color-border)] shadow-sm h-10">
-            {toggles.map((toggle, index) => (
-              <React.Fragment key={toggle.id}>
-                {index > 0 && <div className="w-px h-4 bg-[var(--color-border-light)]"></div>}
-                <div className="flex items-center gap-2">
-                  <label 
-                    htmlFor={toggle.id} 
-                    className="text-xs font-bold text-[var(--color-text-secondary)] cursor-pointer whitespace-nowrap"
-                  >
-                    {toggle.label}
-                  </label>
-                  <button
-                    id={toggle.id}
-                    role="switch"
-                    aria-checked={toggle.enabled}
-                    onClick={() => toggle.onChange(!toggle.enabled)}
-                    className={cn(
-                      "relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none",
-                      toggle.enabled ? (toggle.color || 'bg-[var(--color-primary)]') : 'bg-slate-300'
-                    )}
-                  >
-                    <span className={cn(
-                      "inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform",
-                      toggle.enabled ? 'translate-x-4.5' : 'translate-x-0.5'
-                    )}/>
-                  </button>
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="flex-grow flex flex-col bg-white overflow-hidden">
         <div className="flex-grow overflow-auto">
           {data.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-slate-500">
