@@ -1,33 +1,22 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
-import { Save, Search, ChevronDown, ChevronRight, Upload, Download, FileSpreadsheet } from 'lucide-react'
+import { Download, Upload } from 'lucide-react'
 import type { OperationalIndicator, Company, Brand, Department } from '../types'
 import { getCadastroTenant, saveCadastroTenant } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
+import StyledSelect from './StyledSelect'
+import MultiSelectDropdown from './MultiSelectDropdown'
+import { CALENDAR_MONTHS } from '../constants'
 import * as XLSX from 'xlsx'
 
 interface OperationalDataEntryViewProps {
   tenantId: string
+  onNavigateBack?: () => void
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
-
-const MONTHS_DATA = [
-  { value: "JANEIRO", short: "Jan" },
-  { value: "FEVEREIRO", short: "Fev" },
-  { value: "MARÇO", short: "Mar" },
-  { value: "ABRIL", short: "Abr" },
-  { value: "MAIO", short: "Mai" },
-  { value: "JUNHO", short: "Jun" },
-  { value: "JULHO", short: "Jul" },
-  { value: "AGOSTO", short: "Ago" },
-  { value: "SETEMBRO", short: "Set" },
-  { value: "OUTUBRO", short: "Out" },
-  { value: "NOVEMBRO", short: "Nov" },
-  { value: "DEZEMBRO", short: "Dez" },
-]
 
 interface OperationalValueRow {
   id: string
@@ -42,54 +31,7 @@ interface OperationalValueRow {
   meta?: number
 }
 
-// Custom hook for debounce
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(handler)
-  }, [value, delay])
-  return debouncedValue
-}
-
-// Memoized input component to prevent re-renders
-interface ValueInputProps {
-  initialValue: number | null
-  onValueChange: (value: string) => void
-}
-
-const ValueInput = memo(({ initialValue, onValueChange }: ValueInputProps) => {
-  const [localValue, setLocalValue] = useState(initialValue?.toString() ?? "")
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    setLocalValue(initialValue?.toString() ?? "")
-  }, [initialValue])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setLocalValue(newValue)
-    
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    timeoutRef.current = setTimeout(() => {
-      onValueChange(newValue)
-    }, 300)
-  }
-
-  return (
-    <input
-      type="number"
-      value={localValue}
-      onChange={handleChange}
-      className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
-      placeholder="-"
-    />
-  )
-})
-
-const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ tenantId }) => {
+const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ tenantId, onNavigateBack }) => {
   const [indicators, setIndicators] = useState<OperationalIndicator[]>([])
   const [values, setValues] = useState<OperationalValueRow[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
@@ -97,17 +39,13 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
 
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
-  const [selectedBrand, setSelectedBrand] = useState<string>("")
-  const [selectedCompany, setSelectedCompany] = useState<string>("")
+  const [selectedBrandId, setSelectedBrandId] = useState<string>("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState("")
-  const debouncedSearchTerm = useDebounce(searchTerm, 300) // Debounce search
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
+  const [selectedIndicatorIds, setSelectedIndicatorIds] = useState<string[]>([])
 
-  const [editedValues, setEditedValues] = useState<Record<string, number | null>>({})
+  const [pendingChanges, setPendingChanges] = useState<Record<string, number | null>>({})
   const [importing, setImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -170,10 +108,15 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       setBrands(brandsData || [])
       setDepartments(mappedDepartments)
 
-      const categories = [...new Set(mappedIndicators.map(i => i.categoria))]
-      const expanded: Record<string, boolean> = {}
-      categories.forEach(cat => { expanded[cat || "Outros"] = true })
-      setExpandedCategories(expanded)
+      if (brandsData?.length > 0 && !selectedBrandId) {
+        setSelectedBrandId(brandsData[0].id)
+      }
+      if (mappedDepartments.length > 0 && !selectedDepartment) {
+        setSelectedDepartment(mappedDepartments[0].id)
+      }
+      if (mappedIndicators.length > 0 && selectedIndicatorIds.length === 0) {
+        setSelectedIndicatorIds([mappedIndicators[0].id])
+      }
     } catch (err) {
       console.error("Erro ao carregar dados:", err)
     } finally {
@@ -185,69 +128,74 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     loadData()
   }, [loadData])
 
-  const getValueKey = (indicatorId: string, month: string, companyId?: string, departmentId?: string) => {
-    const cId = companyId ?? selectedCompany ?? 'all'
-    const dId = departmentId ?? selectedDepartment ?? 'all'
-    return `${indicatorId}_${selectedYear}_${month}_${cId}_${selectedBrand || 'all'}_${dId}`
+  const filteredCompanies = useMemo(() => {
+    if (!selectedBrandId) return []
+    return companies.filter(c => c.brandId === selectedBrandId)
+  }, [selectedBrandId, companies])
+
+  const filteredIndicators = useMemo(() => {
+    if (selectedIndicatorIds.length === 0) return []
+    return indicators.filter(i => selectedIndicatorIds.includes(i.id))
+  }, [indicators, selectedIndicatorIds])
+
+  const indicatorOptions = useMemo(() => 
+    indicators.map(i => ({ id: i.id, name: `${i.codigo} - ${i.nome}` })), 
+    [indicators]
+  )
+
+  const getValueKey = (indicatorId: string, companyId: string, month: string) => {
+    return `${indicatorId}|${companyId}|${month}`
   }
 
-  const getCurrentValue = (indicatorId: string, month: string, companyId?: string, departmentId?: string): number | null => {
-    const key = getValueKey(indicatorId, month, companyId, departmentId)
-    if (editedValues[key] !== undefined) return editedValues[key]
-
-    const cId = companyId ?? selectedCompany
-    const dId = departmentId ?? selectedDepartment
-
-    const existing = values.find(v => 
+  const getValue = (indicatorId: string, companyId: string, month: string): number | null => {
+    const key = getValueKey(indicatorId, companyId, month)
+    if (pendingChanges.hasOwnProperty(key)) {
+      return pendingChanges[key]
+    }
+    const found = values.find(v =>
       v.indicadorId === indicatorId &&
       v.ano === selectedYear &&
       v.mes === month &&
-      (cId ? v.empresaId === cId : !v.empresaId) &&
-      (selectedBrand ? v.marcaId === selectedBrand : !v.marcaId) &&
-      (dId ? v.departamentoId === dId : !v.departamentoId)
+      v.empresaId === companyId &&
+      v.departamentoId === selectedDepartment
     )
-    return existing?.valor ?? null
+    return found?.valor ?? null
   }
 
-  const handleValueChange = (indicatorId: string, month: string, value: string, companyId?: string, departmentId?: string) => {
-    const key = getValueKey(indicatorId, month, companyId, departmentId)
+  const handleValueChange = (indicatorId: string, companyId: string, month: string, value: string) => {
+    const key = getValueKey(indicatorId, companyId, month)
     const numValue = value === "" ? null : parseFloat(value)
-    setEditedValues(prev => ({ ...prev, [key]: numValue }))
-    setHasChanges(true)
+    setPendingChanges(prev => ({ ...prev, [key]: numValue }))
   }
 
   const handleSave = async () => {
+    setSaving(true)
     try {
-      setSaving(true)
       const valuesToSave: any[] = []
 
-      Object.entries(editedValues).forEach(([key, valor]) => {
-        const parts = key.split('_')
-        const indicatorId = parts[0]
-        const year = parts[1]
-        const month = parts[2]
-        const companyId = parts[3] === 'all' ? null : parts[3]
-        const brandId = parts[4] === 'all' ? null : parts[4]
-        const departmentId = parts[5] === 'all' ? null : parts[5]
+      Object.entries(pendingChanges).forEach(([key, valor]) => {
+        if (valor === null) return // Skip null values - cannot save to DB
         
-        const existing = values.find(v => 
+        const [indicatorId, companyId, month] = key.split('|')
+        const company = companies.find(c => c.id === companyId)
+
+        const existing = values.find(v =>
           v.indicadorId === indicatorId &&
-          v.ano === parseInt(year) &&
+          v.ano === selectedYear &&
           v.mes === month &&
-          (companyId ? v.empresaId === companyId : !v.empresaId) &&
-          (brandId ? v.marcaId === brandId : !v.marcaId) &&
-          (departmentId ? v.departamentoId === departmentId : !v.departamentoId)
+          v.empresaId === companyId &&
+          v.departamentoId === selectedDepartment
         )
 
         valuesToSave.push({
           id: existing?.id || generateUUID(),
           organizacao_id: tenantId,
           indicador_id: indicatorId,
-          ano: parseInt(year),
+          ano: selectedYear,
           mes: month,
           empresa_id: companyId,
-          marca_id: brandId,
-          departamento_id: departmentId,
+          marca_id: company?.brandId || null,
+          departamento_id: selectedDepartment,
           valor: valor,
           meta: null,
           origem: "manual",
@@ -259,9 +207,9 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         await saveCadastroTenant("operational_values", valuesToSave, tenantId)
       }
 
-      setEditedValues({})
-      setHasChanges(false)
+      setPendingChanges({})
       await loadData()
+      alert('Dados salvos com sucesso!')
     } catch (err) {
       console.error("Erro ao salvar valores:", err)
       alert("Erro ao salvar valores. Tente novamente.")
@@ -270,60 +218,41 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     }
   }
 
+  const handleCancelChanges = () => {
+    if (confirm('Deseja descartar todas as alterações não salvas?')) {
+      setPendingChanges({})
+    }
+  }
+
   const handleExportTemplate = () => {
     const templateData: any[] = []
-    const selectedCompanyData = selectedCompany ? companies.find(c => c.id === selectedCompany) : null
-    
-    indicators.forEach(ind => {
-      MONTHS_DATA.forEach(month => {
-        templateData.push({
-          "Código Indicador": ind.codigo,
-          "Nome Indicador": ind.nome,
-          "Categoria": ind.categoria || "Outros",
-          "Unidade": ind.unidadeMedida,
-          "Ano": selectedYear,
-          "Mês": month.value,
-          "CNPJ": selectedCompanyData?.cnpj || "",
-          "Código ERP": selectedCompanyData?.erpCode || "",
-          "Valor": ""
+
+    filteredIndicators.forEach(ind => {
+      filteredCompanies.forEach(company => {
+        CALENDAR_MONTHS.forEach(month => {
+          templateData.push({
+            "Código Indicador": ind.codigo,
+            "Nome Indicador": ind.nome,
+            "Unidade": ind.unidadeMedida,
+            "Ano": selectedYear,
+            "Mês": month,
+            "CNPJ": company.cnpj || "",
+            "Loja": company.nickname || company.name,
+            "Valor": getValue(ind.id, company.id, month) ?? ""
+          })
         })
       })
     })
 
     const ws = XLSX.utils.json_to_sheet(templateData)
-    
     ws['!cols'] = [
-      { wch: 20 },
-      { wch: 40 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 10 },
-      { wch: 15 },
-      { wch: 18 },
-      { wch: 15 },
-      { wch: 15 }
+      { wch: 20 }, { wch: 40 }, { wch: 15 }, { wch: 10 },
+      { wch: 15 }, { wch: 18 }, { wch: 30 }, { wch: 15 }
     ]
-    
+
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "Dados Operacionais")
-    
-    const instrucoes = [
-      ["INSTRUÇÕES DE PREENCHIMENTO"],
-      [""],
-      ["1. Preencha apenas a coluna 'Valor' com os dados numéricos."],
-      ["2. Não altere as colunas 'Código Indicador', 'Ano' e 'Mês'."],
-      ["3. Para identificar a empresa/loja, preencha UM dos campos: 'CNPJ' (14 dígitos) ou 'Código ERP'."],
-      ["4. Deixe 'CNPJ' e 'Código ERP' em branco para dados consolidados."],
-      ["5. Os meses devem estar em maiúsculas (JANEIRO, FEVEREIRO, etc.)."],
-      [""],
-      ["CÓDIGOS DOS INDICADORES DISPONÍVEIS:"],
-      ...indicators.map(ind => [`${ind.codigo} - ${ind.nome} (${ind.unidadeMedida})`])
-    ]
-    const wsInstrucoes = XLSX.utils.aoa_to_sheet(instrucoes)
-    wsInstrucoes['!cols'] = [{ wch: 80 }]
-    XLSX.utils.book_append_sheet(wb, wsInstrucoes, "Instruções")
-    
-    XLSX.writeFile(wb, `modelo_dados_operacionais_${selectedYear}.xlsx`)
+    XLSX.writeFile(wb, `dados_operacionais_${selectedYear}.xlsx`)
   }
 
   const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -332,7 +261,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
     try {
       setImporting(true)
-      
+
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
@@ -343,7 +272,6 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[]
 
           const valuesToImport: any[] = []
-          const errors: string[] = []
           let imported = 0
 
           for (const row of jsonData) {
@@ -352,70 +280,27 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             const mes = row["Mês"]?.toString().trim().toUpperCase()
             const valorStr = row["Valor"]?.toString().trim()
             const cnpj = row["CNPJ"]?.toString().replace(/\D/g, '').trim()
-            const codigoErp = row["Código ERP"]?.toString().trim()
 
-            if (!codigo || !ano || !mes) {
-              continue
-            }
-
-            if (!valorStr || valorStr === "") {
-              continue
-            }
+            if (!codigo || !ano || !mes || !valorStr) continue
 
             const valor = parseFloat(valorStr.replace(",", "."))
-            if (isNaN(valor)) {
-              errors.push(`Valor inválido para ${codigo} em ${mes}/${ano}`)
-              continue
-            }
+            if (isNaN(valor)) continue
 
             const indicator = indicators.find(i => i.codigo.toUpperCase() === codigo)
-            if (!indicator) {
-              errors.push(`Indicador não encontrado: ${codigo}`)
-              continue
-            }
+            if (!indicator) continue
 
-            const validMonth = MONTHS_DATA.find(m => m.value === mes)
-            if (!validMonth) {
-              errors.push(`Mês inválido: ${mes}`)
-              continue
-            }
-
-            let empresaId: string | null = null
-            if (cnpj || codigoErp) {
-              let empresa = null
-              if (cnpj) {
-                empresa = companies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj)
-              }
-              if (!empresa && codigoErp) {
-                empresa = companies.find(c => c.erpCode === codigoErp)
-              }
-              if (!empresa) {
-                errors.push(`Empresa não encontrada com CNPJ: ${cnpj || '-'} ou Código ERP: ${codigoErp || '-'}`)
-                continue
-              }
-              empresaId = empresa.id
-            }
-
-            const empresa = empresaId ? companies.find(c => c.id === empresaId) : null
-            const marcaId = empresa?.brandId || null
-
-            const existing = values.find(v => 
-              v.indicadorId === indicator.id &&
-              v.ano === ano &&
-              v.mes === mes &&
-              (empresaId ? v.empresaId === empresaId : !v.empresaId) &&
-              (marcaId ? v.marcaId === marcaId : !v.marcaId)
-            )
+            let empresa = companies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj)
+            if (!empresa) continue
 
             valuesToImport.push({
-              id: existing?.id || generateUUID(),
+              id: generateUUID(),
               organizacao_id: tenantId,
               indicador_id: indicator.id,
               ano: ano,
               mes: mes,
-              empresa_id: empresaId,
-              marca_id: marcaId,
-              departamento_id: null,
+              empresa_id: empresa.id,
+              marca_id: empresa.brandId,
+              departamento_id: selectedDepartment,
               valor: valor,
               meta: null,
               origem: "importacao",
@@ -429,354 +314,220 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             await loadData()
           }
 
-          let message = `Importação concluída! ${imported} valores importados.`
-          if (errors.length > 0) {
-            message += `\n\nAvisos (${errors.length}):\n${errors.slice(0, 10).join('\n')}`
-            if (errors.length > 10) {
-              message += `\n... e mais ${errors.length - 10} avisos.`
-            }
-          }
-          alert(message)
-        } catch (parseError) {
-          console.error("Erro ao processar arquivo:", parseError)
-          alert("Erro ao processar o arquivo. Verifique se o formato está correto.")
+          alert(`Importação concluída! ${imported} valores importados.`)
+        } catch (err) {
+          console.error("Erro ao processar arquivo:", err)
+          alert("Erro ao processar arquivo.")
         } finally {
           setImporting(false)
-          if (fileInputRef.current) {
-            fileInputRef.current.value = ""
-          }
         }
       }
-
-      reader.onerror = () => {
-        alert("Erro ao ler o arquivo.")
-        setImporting(false)
-      }
-
       reader.readAsBinaryString(file)
     } catch (err) {
       console.error("Erro na importação:", err)
-      alert("Erro ao importar arquivo.")
       setImporting(false)
     }
+
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  // Memoized filtered indicators - only recalculates when dependencies change
-  const filteredIndicators = useMemo(() => {
-    return indicators.filter(ind => {
-      if (debouncedSearchTerm) {
-        const term = debouncedSearchTerm.toLowerCase()
-        const matchesCode = ind.codigo.toLowerCase().includes(term)
-        const matchesName = ind.nome.toLowerCase().includes(term)
-        const matchesDescription = ind.descricao?.toLowerCase().includes(term) || false
-        if (!matchesCode && !matchesName && !matchesDescription) {
-          return false
-        }
-      }
-      return true
-    })
-  }, [indicators, debouncedSearchTerm])
-
-  // Memoized grouped categories
-  const groupedByCategoria = useMemo(() => {
-    return filteredIndicators.reduce((acc, ind) => {
-      const cat = ind.categoria || "Outros"
-      if (!acc[cat]) acc[cat] = []
-      acc[cat].push(ind)
-      return acc
-    }, {} as Record<string, OperationalIndicator[]>)
-  }, [filteredIndicators])
-
-  // Auto-expand categories when searching
-  useEffect(() => {
-    if (debouncedSearchTerm.trim()) {
-      const categoriesToExpand = Object.keys(groupedByCategoria)
-      const newExpanded: Record<string, boolean> = {}
-      categoriesToExpand.forEach(cat => {
-        newExpanded[cat] = true
-      })
-      setExpandedCategories(prev => ({ ...prev, ...newExpanded }))
-    }
-  }, [debouncedSearchTerm, groupedByCategoria])
-
-  const toggleCategory = (cat: string) => {
-    setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))
-  }
-
-  const inputClasses = "w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-  const selectClasses = "bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+  const hasPendingChanges = Object.keys(pendingChanges).length > 0
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (indicators.length === 0) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-slate-800">Preenchimento de Dados Operacionais</h1>
-        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center mt-6">
-          <p className="text-slate-500">Nenhum indicador operacional cadastrado.</p>
-          <p className="text-sm text-slate-400 mt-1">
-            Primeiro cadastre os indicadores na tela "Indicadores".
-          </p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Preenchimento de Dados Operacionais</h1>
-          <p className="text-slate-500 mt-1">
-            Informe os valores mensais dos indicadores.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExportTemplate}
-            className="flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition border border-slate-200"
-            title="Baixar planilha modelo"
-          >
-            <Download className="w-4 h-4" />
-            Planilha Modelo
+    <main className="flex-grow flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: 'var(--color-bg-app)' }}>
+      <div className="max-w-full mx-auto w-full flex flex-col h-full p-6 lg:p-8">
+        {onNavigateBack && (
+          <button onClick={onNavigateBack} className="mb-6 text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center self-start shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            Voltar
           </button>
-          
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleImportFile}
-            className="hidden"
-            id="import-file-input"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-            className="flex items-center gap-2 text-white px-4 py-2 rounded-lg transition disabled:opacity-50"
-            style={{ backgroundColor: 'var(--color-primary)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary)'}
-            title="Importar dados de planilha"
-          >
-            <Upload className="w-4 h-4" />
-            {importing ? "Importando..." : "Importar"}
-          </button>
+        )}
 
-          {hasChanges && (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              <Save className="w-4 h-4" />
-              {saving ? "Salvando..." : "Salvar Alterações"}
-            </button>
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col overflow-hidden flex-grow">
+          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+            <div>
+              <h1 className="text-xl font-bold text-slate-800">Dados Operacionais</h1>
+              <p className="text-sm text-slate-500 mt-1">Insira os valores dos indicadores operacionais para cada loja.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportTemplate}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+              >
+                <Download className="h-4 w-4" />
+                Planilha Modelo
+              </button>
+              <label className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover transition-colors shadow-sm cursor-pointer">
+                <Upload className="h-4 w-4" />
+                Importar
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleImportFile}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+              <div className="md:col-span-4">
+                <MultiSelectDropdown
+                  label="Indicadores"
+                  options={indicatorOptions}
+                  selectedValues={selectedIndicatorIds}
+                  onChange={setSelectedIndicatorIds}
+                  className="w-full"
+                  placeholder="Selecionar indicadores..."
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
+                <StyledSelect
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  containerClassName="w-full"
+                  className="h-10"
+                >
+                  {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                </StyledSelect>
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
+                <StyledSelect
+                  value={selectedBrandId}
+                  onChange={(e) => setSelectedBrandId(e.target.value)}
+                  containerClassName="w-full"
+                  className="h-10"
+                >
+                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </StyledSelect>
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Departamento</label>
+                <StyledSelect
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  containerClassName="w-full"
+                  className="h-10"
+                >
+                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </StyledSelect>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-grow overflow-auto bg-white">
+            {filteredCompanies.length > 0 && filteredIndicators.length > 0 ? (
+              <table className="min-w-full border-separate border-spacing-0">
+                <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
+                  <tr>
+                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                      Indicador
+                    </th>
+                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                      Loja
+                    </th>
+                    {CALENDAR_MONTHS.map(month => (
+                      <th key={month} className="p-2 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[100px]">
+                        {month.slice(0, 3)}/{selectedYear}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {filteredIndicators.map(indicator => (
+                    <React.Fragment key={indicator.id}>
+                      {filteredCompanies.map((company, idx) => (
+                        <tr key={`${indicator.id}-${company.id}`} className="hover:bg-slate-50/50">
+                          {idx === 0 && (
+                            <td
+                              rowSpan={filteredCompanies.length}
+                              className="p-3 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
+                            >
+                              <div className="font-semibold text-primary">{indicator.codigo}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{indicator.nome}</div>
+                              <div className="text-[10px] text-slate-400 mt-1">({indicator.unidadeMedida})</div>
+                            </td>
+                          )}
+                          <td className="p-3 text-sm text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
+                            {company.nickname || company.name}
+                          </td>
+                          {CALENDAR_MONTHS.map(month => {
+                            const value = getValue(indicator.id, company.id, month)
+                            return (
+                              <td key={month} className="p-1.5 border-r border-b">
+                                <input
+                                  type="number"
+                                  value={value ?? ''}
+                                  onChange={(e) => handleValueChange(indicator.id, company.id, month, e.target.value)}
+                                  className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-primary"
+                                  placeholder="-"
+                                />
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-sm font-medium">Selecione indicadores, marca e departamento para visualizar os dados.</p>
+              </div>
+            )}
+          </div>
+
+          {hasPendingChanges && (
+            <div className="px-6 py-4 bg-amber-50 border-t border-amber-200 flex justify-between items-center shrink-0">
+              <span className="text-sm text-amber-700 font-medium">
+                Você tem {Object.keys(pendingChanges).length} alteração(ões) não salva(s).
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancelChanges}
+                  className="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+                >
+                  Descartar
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50"
+                >
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 bg-white border border-slate-200 rounded-xl p-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Ano</label>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className={selectClasses}
-          >
-            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Marca</label>
-          <select
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">Todas</option>
-            {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Empresa/Loja</label>
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">Todas</option>
-            {companies
-              .filter(c => !selectedBrand || c.brandId === selectedBrand)
-              .map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Departamento</label>
-          <select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className={selectClasses}
-          >
-            <option value="">Todos</option>
-            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-
-        <div className="flex-1 min-w-[200px]">
-          <label className="block text-xs font-medium text-slate-500 mb-1">Buscar</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Buscar indicador..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`${inputClasses} pl-10`}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-card)]">
-        <div className="overflow-x-auto" style={{ maxWidth: '100%' }}>
-          <table className="text-sm border-collapse min-w-[1400px]">
-            <thead>
-              <tr className="bg-[var(--color-primary)]">
-                <th className="text-left py-3 px-4 font-semibold text-[var(--color-on-primary)] sticky left-0 min-w-[280px] bg-[var(--color-primary)]">
-                  Indicador
-                </th>
-                {MONTHS_DATA.map(month => (
-                  <th key={month.value} className="text-center py-3 px-2 font-semibold text-[var(--color-on-primary)] min-w-[90px] uppercase text-xs tracking-wide">
-                    {month.short}/{selectedYear}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(groupedByCategoria).map(([categoria, items]) => (
-                <React.Fragment key={categoria}>
-                  <tr 
-                    className="cursor-pointer hover:opacity-90 transition-[var(--transition-fast)] bg-[var(--color-table-header-bg)]"
-                    onClick={() => toggleCategory(categoria)}
-                  >
-                    <td colSpan={13} className="py-2.5 px-4 font-semibold text-[var(--color-table-header-text)]">
-                      <div className="flex items-center gap-2">
-                        {expandedCategories[categoria] ? (
-                          <ChevronDown className="w-4 h-4" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" />
-                        )}
-                        {categoria} ({items.length})
-                      </div>
-                    </td>
-                  </tr>
-                  {expandedCategories[categoria] && items.map(indicator => {
-                    if (indicator.escopo === 'departamento') {
-                      const filteredCompanies = companies.filter(c => 
-                        (!selectedBrand || c.brandId === selectedBrand) &&
-                        (!selectedCompany || c.id === selectedCompany)
-                      )
-                      const filteredDepartments = departments.filter(d =>
-                        !selectedDepartment || d.id === selectedDepartment
-                      )
-                      
-                      if (filteredCompanies.length === 0 || filteredDepartments.length === 0) {
-                        return (
-                          <tr key={indicator.id} className="border-b border-slate-100 bg-amber-50">
-                            <td colSpan={13} className="py-2 px-4 text-sm text-amber-700">
-                              <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 mr-2">
-                                {indicator.codigo}
-                              </span>
-                              {indicator.nome} - Selecione uma loja e departamento para preencher
-                            </td>
-                          </tr>
-                        )
-                      }
-
-                      return (
-                        <React.Fragment key={indicator.id}>
-                          <tr className="bg-[var(--color-info-50)] border-b border-[var(--color-border)]">
-                            <td colSpan={13} className="py-2.5 px-4">
-                              <div className="flex items-center gap-2">
-                                <span className="font-[var(--font-mono)] text-xs px-2 py-0.5 rounded-[var(--radius-sm)] text-[var(--color-info)] bg-[var(--color-info-50)]">
-                                  {indicator.codigo}
-                                </span>
-                                <span className="font-semibold text-[var(--color-text-main)]">{indicator.nome}</span>
-                                <span className="text-xs text-[var(--color-info)] ml-2 font-medium">
-                                  ({indicator.unidadeMedida} - por Departamento)
-                                </span>
-                              </div>
-                            </td>
-                          </tr>
-                          {filteredCompanies.flatMap(company => 
-                            filteredDepartments.map(dept => (
-                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-[var(--color-border)] hover:bg-[var(--color-table-row-hover)] transition-[var(--transition-fast)]">
-                                <td className="py-3 px-4 sticky left-0 bg-[var(--color-table-row-bg)] pl-8 border-r border-[var(--color-border-light)]">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs bg-[var(--color-success-50)] text-[var(--color-success)] px-2 py-0.5 rounded-[var(--radius-sm)] font-medium">
-                                      {company.nickname || company.name}
-                                    </span>
-                                    <span className="text-xs text-[var(--color-text-muted)]">→</span>
-                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-[var(--radius-sm)] font-medium">
-                                      {dept.name}
-                                    </span>
-                                  </div>
-                                </td>
-                                {MONTHS_DATA.map(month => (
-                                  <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
-                                    <ValueInput
-                                      initialValue={getCurrentValue(indicator.id, month.value, company.id, dept.id)}
-                                      onValueChange={(value) => handleValueChange(indicator.id, month.value, value, company.id, dept.id)}
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))
-                          )}
-                        </React.Fragment>
-                      )
-                    }
-
-                    return (
-                      <tr key={indicator.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-table-row-hover)] transition-[var(--transition-fast)]">
-                        <td className="py-3 px-4 sticky left-0 bg-[var(--color-table-row-bg)] border-r border-[var(--color-border-light)]">
-                          <div className="flex items-center gap-2">
-                            <span className="font-[var(--font-mono)] text-xs px-2 py-0.5 rounded-[var(--radius-sm)] text-[var(--color-info)] bg-[var(--color-info-50)]">
-                              {indicator.codigo}
-                            </span>
-                            <span className="text-[var(--color-text-main)] font-medium">{indicator.nome}</span>
-                          </div>
-                          <div className="text-xs text-[var(--color-text-secondary)] mt-0.5 ml-1">
-                            {indicator.unidadeMedida}
-                          </div>
-                        </td>
-                        {MONTHS_DATA.map(month => (
-                          <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
-                            <ValueInput
-                              initialValue={getCurrentValue(indicator.id, month.value)}
-                              onValueChange={(value) => handleValueChange(indicator.id, month.value, value)}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    )
-                  })}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImportFile}
+        accept=".xlsx,.xls"
+        className="hidden"
+      />
+    </main>
   )
 }
 
