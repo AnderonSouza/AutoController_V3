@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Save, Search, ChevronDown, ChevronRight, Upload, Download, FileSpreadsheet } from 'lucide-react'
-import type { OperationalIndicator, Company, Brand } from '../types'
+import type { OperationalIndicator, Company, Brand, Department } from '../types'
 import { getCadastroTenant, saveCadastroTenant } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
 import * as XLSX from 'xlsx'
@@ -47,6 +47,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [values, setValues] = useState<OperationalValueRow[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -54,6 +55,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
   const [selectedBrand, setSelectedBrand] = useState<string>("")
   const [selectedCompany, setSelectedCompany] = useState<string>("")
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
 
@@ -64,11 +66,12 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      const [indicatorsData, valuesData, companiesData, brandsData] = await Promise.all([
+      const [indicatorsData, valuesData, companiesData, brandsData, departmentsData] = await Promise.all([
         getCadastroTenant("operational_indicators", tenantId),
         getCadastroTenant("operational_values", tenantId),
         getCadastroTenant("companies", tenantId),
         getCadastroTenant("brands", tenantId),
+        getCadastroTenant("departments", tenantId),
       ])
 
       const mappedIndicators: OperationalIndicator[] = (indicatorsData || [])
@@ -107,10 +110,17 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         meta: row.meta,
       }))
 
+      const mappedDepartments: Department[] = (departmentsData || []).map((row: any) => ({
+        id: row.id,
+        name: row.name || row.nome,
+        economicGroupId: row.economicGroupId || row.organizacao_id,
+      }))
+
       setIndicators(mappedIndicators)
       setValues(mappedValues)
       setCompanies(companiesData || [])
       setBrands(brandsData || [])
+      setDepartments(mappedDepartments)
 
       const categories = [...new Set(mappedIndicators.map(i => i.categoria))]
       const expanded: Record<string, boolean> = {}
@@ -127,26 +137,32 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     loadData()
   }, [loadData])
 
-  const getValueKey = (indicatorId: string, month: string) => {
-    return `${indicatorId}_${selectedYear}_${month}_${selectedCompany || 'all'}_${selectedBrand || 'all'}`
+  const getValueKey = (indicatorId: string, month: string, companyId?: string, departmentId?: string) => {
+    const cId = companyId ?? selectedCompany ?? 'all'
+    const dId = departmentId ?? selectedDepartment ?? 'all'
+    return `${indicatorId}_${selectedYear}_${month}_${cId}_${selectedBrand || 'all'}_${dId}`
   }
 
-  const getCurrentValue = (indicatorId: string, month: string): number | null => {
-    const key = getValueKey(indicatorId, month)
+  const getCurrentValue = (indicatorId: string, month: string, companyId?: string, departmentId?: string): number | null => {
+    const key = getValueKey(indicatorId, month, companyId, departmentId)
     if (editedValues[key] !== undefined) return editedValues[key]
+
+    const cId = companyId ?? selectedCompany
+    const dId = departmentId ?? selectedDepartment
 
     const existing = values.find(v => 
       v.indicadorId === indicatorId &&
       v.ano === selectedYear &&
       v.mes === month &&
-      (selectedCompany ? v.empresaId === selectedCompany : !v.empresaId) &&
-      (selectedBrand ? v.marcaId === selectedBrand : !v.marcaId)
+      (cId ? v.empresaId === cId : !v.empresaId) &&
+      (selectedBrand ? v.marcaId === selectedBrand : !v.marcaId) &&
+      (dId ? v.departamentoId === dId : !v.departamentoId)
     )
     return existing?.valor ?? null
   }
 
-  const handleValueChange = (indicatorId: string, month: string, value: string) => {
-    const key = getValueKey(indicatorId, month)
+  const handleValueChange = (indicatorId: string, month: string, value: string, companyId?: string, departmentId?: string) => {
+    const key = getValueKey(indicatorId, month, companyId, departmentId)
     const numValue = value === "" ? null : parseFloat(value)
     setEditedValues(prev => ({ ...prev, [key]: numValue }))
     setHasChanges(true)
@@ -158,14 +174,21 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       const valuesToSave: any[] = []
 
       Object.entries(editedValues).forEach(([key, valor]) => {
-        const [indicatorId, year, month] = key.split('_')
+        const parts = key.split('_')
+        const indicatorId = parts[0]
+        const year = parts[1]
+        const month = parts[2]
+        const companyId = parts[3] === 'all' ? null : parts[3]
+        const brandId = parts[4] === 'all' ? null : parts[4]
+        const departmentId = parts[5] === 'all' ? null : parts[5]
         
         const existing = values.find(v => 
           v.indicadorId === indicatorId &&
           v.ano === parseInt(year) &&
           v.mes === month &&
-          (selectedCompany ? v.empresaId === selectedCompany : !v.empresaId) &&
-          (selectedBrand ? v.marcaId === selectedBrand : !v.marcaId)
+          (companyId ? v.empresaId === companyId : !v.empresaId) &&
+          (brandId ? v.marcaId === brandId : !v.marcaId) &&
+          (departmentId ? v.departamentoId === departmentId : !v.departamentoId)
         )
 
         valuesToSave.push({
@@ -174,9 +197,9 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           indicador_id: indicatorId,
           ano: parseInt(year),
           mes: month,
-          empresa_id: selectedCompany || null,
-          marca_id: selectedBrand || null,
-          departamento_id: null,
+          empresa_id: companyId,
+          marca_id: brandId,
+          departamento_id: departmentId,
           valor: valor,
           meta: null,
           origem: "manual",
@@ -527,6 +550,18 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           </select>
         </div>
 
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Departamento</label>
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className={selectClasses}
+          >
+            <option value="">Todos</option>
+            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+
         <div className="flex-1 min-w-[200px]">
           <label className="block text-xs font-medium text-slate-500 mb-1">Buscar</label>
           <div className="relative">
@@ -575,32 +610,103 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                       </div>
                     </td>
                   </tr>
-                  {expandedCategories[categoria] && items.map(indicator => (
-                    <tr key={indicator.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="py-2 px-4 sticky left-0 bg-white">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
-                            {indicator.codigo}
-                          </span>
-                          <span className="text-slate-700">{indicator.nome}</span>
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          {indicator.unidadeMedida}
-                        </div>
-                      </td>
-                      {MONTHS_DATA.map(month => (
-                        <td key={month.value} className="py-2 px-1 text-center">
-                          <input
-                            type="number"
-                            value={getCurrentValue(indicator.id, month.value) ?? ""}
-                            onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value)}
-                            className="w-full text-center bg-slate-50 border border-slate-200 rounded py-1 px-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
-                            placeholder="-"
-                          />
+                  {expandedCategories[categoria] && items.map(indicator => {
+                    if (indicator.escopo === 'departamento') {
+                      const filteredCompanies = companies.filter(c => 
+                        (!selectedBrand || c.brandId === selectedBrand) &&
+                        (!selectedCompany || c.id === selectedCompany)
+                      )
+                      const filteredDepartments = departments.filter(d =>
+                        !selectedDepartment || d.id === selectedDepartment
+                      )
+                      
+                      if (filteredCompanies.length === 0 || filteredDepartments.length === 0) {
+                        return (
+                          <tr key={indicator.id} className="border-b border-slate-100 bg-amber-50">
+                            <td colSpan={13} className="py-2 px-4 text-sm text-amber-700">
+                              <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 mr-2">
+                                {indicator.codigo}
+                              </span>
+                              {indicator.nome} - Selecione uma loja e departamento para preencher
+                            </td>
+                          </tr>
+                        )
+                      }
+
+                      return (
+                        <React.Fragment key={indicator.id}>
+                          <tr className="bg-blue-50 border-b border-blue-100">
+                            <td colSpan={13} className="py-2 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs bg-blue-100 px-1.5 py-0.5 rounded text-blue-600">
+                                  {indicator.codigo}
+                                </span>
+                                <span className="font-medium text-blue-800">{indicator.nome}</span>
+                                <span className="text-xs text-blue-500 ml-2">
+                                  ({indicator.unidadeMedida} - por Departamento)
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                          {filteredCompanies.flatMap(company => 
+                            filteredDepartments.map(dept => (
+                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-slate-100 hover:bg-slate-50">
+                                <td className="py-2 px-4 sticky left-0 bg-white pl-8">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
+                                      {company.nickname || company.name}
+                                    </span>
+                                    <span className="text-xs text-slate-400">→</span>
+                                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                                      {dept.name}
+                                    </span>
+                                  </div>
+                                </td>
+                                {MONTHS_DATA.map(month => (
+                                  <td key={month.value} className="py-2 px-1 text-center">
+                                    <input
+                                      type="number"
+                                      value={getCurrentValue(indicator.id, month.value, company.id, dept.id) ?? ""}
+                                      onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value, company.id, dept.id)}
+                                      className="w-full text-center bg-slate-50 border border-slate-200 rounded py-1 px-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                                      placeholder="-"
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            ))
+                          )}
+                        </React.Fragment>
+                      )
+                    }
+
+                    return (
+                      <tr key={indicator.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-2 px-4 sticky left-0 bg-white">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
+                              {indicator.codigo}
+                            </span>
+                            <span className="text-slate-700">{indicator.nome}</span>
+                          </div>
+                          <div className="text-xs text-slate-400 mt-0.5">
+                            {indicator.unidadeMedida}
+                          </div>
                         </td>
-                      ))}
-                    </tr>
-                  ))}
+                        {MONTHS_DATA.map(month => (
+                          <td key={month.value} className="py-2 px-1 text-center">
+                            <input
+                              type="number"
+                              value={getCurrentValue(indicator.id, month.value) ?? ""}
+                              onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value)}
+                              className="w-full text-center bg-slate-50 border border-slate-200 rounded py-1 px-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                              placeholder="-"
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    )
+                  })}
                 </React.Fragment>
               ))}
             </tbody>
