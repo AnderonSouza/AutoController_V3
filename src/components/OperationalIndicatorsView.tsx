@@ -41,10 +41,9 @@ const NATUREZAS: { value: OperationalIndicator["natureza"]; label: string }[] = 
 ]
 
 const ESCOPOS: { value: OperationalIndicator["escopo"]; label: string }[] = [
-  { value: "empresa", label: "Empresa" },
-  { value: "marca", label: "Marca" },
   { value: "departamento", label: "Departamento" },
   { value: "loja", label: "Loja" },
+  { value: "marca", label: "Marca" },
   { value: "consolidado", label: "Consolidado" }
 ]
 
@@ -64,7 +63,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
     categoria: "Comercial",
     unidadeMedida: "Unidades",
     natureza: "volume",
-    escopo: "marca",
+    escopo: "departamento",
     permiteMeta: true,
     ativo: true,
     ordem: 0
@@ -190,7 +189,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
       categoria: "Comercial",
       unidadeMedida: "Unidades",
       natureza: "volume",
-      escopo: "marca",
+      escopo: "departamento",
       permiteMeta: true,
       ativo: true,
       ordem: 0
