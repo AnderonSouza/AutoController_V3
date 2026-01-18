@@ -580,17 +580,17 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left py-3 px-4 font-medium text-slate-600 sticky left-0 bg-slate-50 min-w-[250px]">
+              <tr style={{ backgroundColor: '#1e3a5f' }}>
+                <th className="text-left py-3 px-4 font-semibold text-white sticky left-0 min-w-[280px]" style={{ backgroundColor: '#1e3a5f' }}>
                   Indicador
                 </th>
                 {MONTHS_DATA.map(month => (
-                  <th key={month.value} className="text-center py-3 px-2 font-medium text-slate-600 min-w-[80px]">
-                    {month.short}
+                  <th key={month.value} className="text-center py-3 px-2 font-semibold text-white min-w-[90px] uppercase text-xs tracking-wide">
+                    {month.short}/{selectedYear}
                   </th>
                 ))}
               </tr>
@@ -599,10 +599,11 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
               {Object.entries(groupedByCategoria).map(([categoria, items]) => (
                 <React.Fragment key={categoria}>
                   <tr 
-                    className="bg-slate-100 cursor-pointer hover:bg-slate-200 transition"
+                    className="cursor-pointer hover:opacity-90 transition"
+                    style={{ backgroundColor: '#2563eb' }}
                     onClick={() => toggleCategory(categoria)}
                   >
-                    <td colSpan={13} className="py-2 px-4 font-semibold text-slate-700">
+                    <td colSpan={13} className="py-2.5 px-4 font-semibold text-white">
                       <div className="flex items-center gap-2">
                         {expandedCategories[categoria] ? (
                           <ChevronDown className="w-4 h-4" />
@@ -638,14 +639,14 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
                       return (
                         <React.Fragment key={indicator.id}>
-                          <tr className="bg-blue-50 border-b border-blue-100">
-                            <td colSpan={13} className="py-2 px-4">
+                          <tr style={{ backgroundColor: '#dbeafe' }} className="border-b border-blue-200">
+                            <td colSpan={13} className="py-2.5 px-4">
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs bg-blue-100 px-1.5 py-0.5 rounded text-blue-600">
+                                <span className="font-mono text-xs px-2 py-0.5 rounded text-blue-700" style={{ backgroundColor: '#bfdbfe' }}>
                                   {indicator.codigo}
                                 </span>
-                                <span className="font-medium text-blue-800">{indicator.nome}</span>
-                                <span className="text-xs text-blue-500 ml-2">
+                                <span className="font-semibold text-blue-900">{indicator.nome}</span>
+                                <span className="text-xs text-blue-600 ml-2 font-medium">
                                   ({indicator.unidadeMedida} - por Departamento)
                                 </span>
                               </div>
@@ -653,25 +654,25 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                           </tr>
                           {filteredCompanies.flatMap(company => 
                             filteredDepartments.map(dept => (
-                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-slate-100 hover:bg-slate-50">
-                                <td className="py-2 px-4 sticky left-0 bg-white pl-8">
+                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-slate-200 hover:bg-blue-50/30 transition">
+                                <td className="py-3 px-4 sticky left-0 bg-white pl-8 border-r border-slate-100">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
+                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">
                                       {company.nickname || company.name}
                                     </span>
                                     <span className="text-xs text-slate-400">→</span>
-                                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
                                       {dept.name}
                                     </span>
                                   </div>
                                 </td>
                                 {MONTHS_DATA.map(month => (
-                                  <td key={month.value} className="py-2 px-1 text-center">
+                                  <td key={month.value} className="py-2 px-1 text-center border-r border-slate-100">
                                     <input
                                       type="number"
                                       value={getCurrentValue(indicator.id, month.value, company.id, dept.id) ?? ""}
                                       onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value, company.id, dept.id)}
-                                      className="w-full text-center bg-slate-50 border border-slate-200 rounded py-1 px-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                                      className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500"
                                       placeholder="-"
                                     />
                                   </td>
@@ -684,25 +685,25 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                     }
 
                     return (
-                      <tr key={indicator.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-2 px-4 sticky left-0 bg-white">
+                      <tr key={indicator.id} className="border-b border-slate-200 hover:bg-blue-50/30 transition">
+                        <td className="py-3 px-4 sticky left-0 bg-white border-r border-slate-100">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">
+                            <span className="font-mono text-xs px-2 py-0.5 rounded text-blue-600" style={{ backgroundColor: '#e0e7ff' }}>
                               {indicator.codigo}
                             </span>
-                            <span className="text-slate-700">{indicator.nome}</span>
+                            <span className="text-slate-800 font-medium">{indicator.nome}</span>
                           </div>
-                          <div className="text-xs text-slate-400 mt-0.5">
+                          <div className="text-xs text-slate-500 mt-0.5 ml-1">
                             {indicator.unidadeMedida}
                           </div>
                         </td>
                         {MONTHS_DATA.map(month => (
-                          <td key={month.value} className="py-2 px-1 text-center">
+                          <td key={month.value} className="py-2 px-1 text-center border-r border-slate-100">
                             <input
                               type="number"
                               value={getCurrentValue(indicator.id, month.value) ?? ""}
                               onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value)}
-                              className="w-full text-center bg-slate-50 border border-slate-200 rounded py-1 px-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                              className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500"
                               placeholder="-"
                             />
                           </td>
