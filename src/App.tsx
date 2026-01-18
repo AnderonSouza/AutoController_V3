@@ -29,6 +29,8 @@ import {
   Users,
   HelpCircle,
   Shield,
+  Activity,
+  Gauge,
 } from "lucide-react"
 
 import { TenantProvider } from "./context/TenantContext"
@@ -552,6 +554,16 @@ const App: React.FC = () => {
           { id: "CG_ENTRIES", icon: TrendingUp, label: "Ajustes de Caixa" },
           { id: "ACCOUNTING_ADJUSTMENTS", icon: ArrowRightLeft, label: "Ajustes Contábeis" },
           { id: "QUERIES", icon: Database, label: "Auditoria Contábil" },
+        ],
+      },
+      {
+        id: "dados_operacionais",
+        icon: Activity,
+        label: "Operacional",
+        children: [
+          { id: "OPERATIONAL_INDICATORS", icon: Gauge, label: "Indicadores" },
+          { id: "OPERATIONAL_DATA_ENTRY", icon: FileInput, label: "Preenchimento" },
+          { id: "OPERATIONAL_FORMULAS", icon: Calculator, label: "Fórmulas" },
         ],
       },
       {
