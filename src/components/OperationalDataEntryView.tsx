@@ -214,7 +214,6 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           "Mês": month.value,
           "CNPJ": selectedCompanyData?.cnpj || "",
           "Código ERP": selectedCompanyData?.erpCode || "",
-          "Marca": selectedBrand ? brands.find(b => b.id === selectedBrand)?.name || "" : "",
           "Valor": ""
         })
       })
@@ -231,7 +230,6 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       { wch: 15 },
       { wch: 18 },
       { wch: 15 },
-      { wch: 20 },
       { wch: 15 }
     ]
     
@@ -244,7 +242,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       ["1. Preencha apenas a coluna 'Valor' com os dados numéricos."],
       ["2. Não altere as colunas 'Código Indicador', 'Ano' e 'Mês'."],
       ["3. Para identificar a empresa/loja, preencha UM dos campos: 'CNPJ' (14 dígitos) ou 'Código ERP'."],
-      ["4. Deixe 'CNPJ', 'Código ERP' e 'Marca' em branco para dados consolidados."],
+      ["4. Deixe 'CNPJ' e 'Código ERP' em branco para dados consolidados."],
       ["5. Os meses devem estar em maiúsculas (JANEIRO, FEVEREIRO, etc.)."],
       [""],
       ["CÓDIGOS DOS INDICADORES DISPONÍVEIS:"],
@@ -284,7 +282,6 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             const valorStr = row["Valor"]?.toString().trim()
             const cnpj = row["CNPJ"]?.toString().replace(/\D/g, '').trim()
             const codigoErp = row["Código ERP"]?.toString().trim()
-            const marcaNome = row["Marca"]?.toString().trim()
 
             if (!codigo || !ano || !mes) {
               continue
@@ -328,15 +325,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
               empresaId = empresa.id
             }
 
-            let marcaId: string | null = null
-            if (marcaNome) {
-              const marca = brands.find(b => b.name.toLowerCase() === marcaNome.toLowerCase())
-              if (!marca) {
-                errors.push(`Marca não encontrada: ${marcaNome}`)
-                continue
-              }
-              marcaId = marca.id
-            }
+            const empresa = empresaId ? companies.find(c => c.id === empresaId) : null
+            const marcaId = empresa?.brandId || null
 
             const existing = values.find(v => 
               v.indicadorId === indicator.id &&
