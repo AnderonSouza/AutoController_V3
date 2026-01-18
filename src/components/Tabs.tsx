@@ -32,19 +32,15 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, setActiveTab }) => {
               data-tab={tab}
               onClick={() => setActiveTab(tab)}
               className={`
-                relative flex-shrink-0 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 rounded-t-lg border-t border-l border-r 
+                relative flex-shrink-0 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 rounded-t-lg
                 ${
                   isActive
-                    ? "bg-white text-[var(--color-primary)] border-[var(--color-border)] shadow-[0_-2px_5px_rgba(0,0,0,0.05)] translate-y-[1px] z-10"
-                    : "bg-[var(--color-bg-muted)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:bg-white hover:text-[var(--color-text-secondary)] mb-[1px]"
+                    ? "bg-[var(--color-primary)] text-white shadow-md z-10"
+                    : "bg-[var(--color-bg-muted)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-text-secondary)]"
                 }
               `}
-              style={{
-                marginBottom: isActive ? "-1px" : "0",
-              }}
             >
               {tab}
-              {isActive && <div className="absolute top-0 left-0 w-full h-0.5 bg-[var(--color-primary)] rounded-t-lg"></div>}
             </button>
           )
         })}
