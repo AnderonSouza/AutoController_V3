@@ -201,6 +201,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
   const handleExportTemplate = () => {
     const templateData: any[] = []
+    const selectedCompanyData = selectedCompany ? companies.find(c => c.id === selectedCompany) : null
     
     indicators.forEach(ind => {
       MONTHS_DATA.forEach(month => {
@@ -211,7 +212,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           "Unidade": ind.unidadeMedida,
           "Ano": selectedYear,
           "Mês": month.value,
-          "Empresa (CNPJ)": selectedCompany ? companies.find(c => c.id === selectedCompany)?.cnpj || "" : "",
+          "CNPJ": selectedCompanyData?.cnpj || "",
+          "Código ERP": selectedCompanyData?.erpCode || "",
           "Marca": selectedBrand ? brands.find(b => b.id === selectedBrand)?.name || "" : "",
           "Valor": ""
         })
@@ -227,7 +229,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       { wch: 15 },
       { wch: 10 },
       { wch: 15 },
-      { wch: 20 },
+      { wch: 18 },
+      { wch: 15 },
       { wch: 20 },
       { wch: 15 }
     ]
@@ -240,8 +243,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       [""],
       ["1. Preencha apenas a coluna 'Valor' com os dados numéricos."],
       ["2. Não altere as colunas 'Código Indicador', 'Ano' e 'Mês'."],
-      ["3. O campo 'Empresa (CNPJ)' deve conter apenas os 14 dígitos (sem pontuação)."],
-      ["4. Deixe 'Empresa (CNPJ)' e 'Marca' em branco para dados consolidados."],
+      ["3. Para identificar a empresa/loja, preencha UM dos campos: 'CNPJ' (14 dígitos) ou 'Código ERP'."],
+      ["4. Deixe 'CNPJ', 'Código ERP' e 'Marca' em branco para dados consolidados."],
       ["5. Os meses devem estar em maiúsculas (JANEIRO, FEVEREIRO, etc.)."],
       [""],
       ["CÓDIGOS DOS INDICADORES DISPONÍVEIS:"],
@@ -279,7 +282,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             const ano = parseInt(row["Ano"])
             const mes = row["Mês"]?.toString().trim().toUpperCase()
             const valorStr = row["Valor"]?.toString().trim()
-            const empresaCnpj = row["Empresa (CNPJ)"]?.toString().replace(/\D/g, '').trim()
+            const cnpj = row["CNPJ"]?.toString().replace(/\D/g, '').trim()
+            const codigoErp = row["Código ERP"]?.toString().trim()
             const marcaNome = row["Marca"]?.toString().trim()
 
             if (!codigo || !ano || !mes) {
@@ -309,10 +313,16 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
             }
 
             let empresaId: string | null = null
-            if (empresaCnpj) {
-              const empresa = companies.find(c => c.cnpj?.replace(/\D/g, '') === empresaCnpj)
+            if (cnpj || codigoErp) {
+              let empresa = null
+              if (cnpj) {
+                empresa = companies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj)
+              }
+              if (!empresa && codigoErp) {
+                empresa = companies.find(c => c.erpCode === codigoErp)
+              }
               if (!empresa) {
-                errors.push(`Empresa não encontrada com CNPJ: ${empresaCnpj}`)
+                errors.push(`Empresa não encontrada com CNPJ: ${cnpj || '-'} ou Código ERP: ${codigoErp || '-'}`)
                 continue
               }
               empresaId = empresa.id
