@@ -1,8 +1,8 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Trash2, Edit2, Save, X, Search, Calculator } from 'lucide-react'
-import type { OperationalIndicator } from '../types'
+import { Plus, Trash2, Edit2, Save, X, Search, Calculator, FileText } from 'lucide-react'
+import type { OperationalIndicator, ReportLine, ReportTemplate } from '../types'
 import { getCadastroTenant, saveCadastroTenant, deleteById } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
 
@@ -27,11 +27,15 @@ interface FormulaRow {
 const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenantId }) => {
   const [formulas, setFormulas] = useState<FormulaRow[]>([])
   const [indicators, setIndicators] = useState<OperationalIndicator[]>([])
+  const [reportLines, setReportLines] = useState<ReportLine[]>([])
+  const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [reportLineSearch, setReportLineSearch] = useState("")
+  const [selectedReportType, setSelectedReportType] = useState<string>("all")
 
   const [formData, setFormData] = useState<Partial<FormulaRow>>({
     codigo: "",
@@ -45,9 +49,11 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      const [formulasData, indicatorsData] = await Promise.all([
+      const [formulasData, indicatorsData, templatesData, linesData] = await Promise.all([
         getCadastroTenant("operational_formulas", tenantId),
         getCadastroTenant("operational_indicators", tenantId),
+        getCadastroTenant("reporttemplates", tenantId),
+        getCadastroTenant("reportlines", tenantId),
       ])
 
       const mappedFormulas: FormulaRow[] = (formulasData || []).map((row: any) => ({
@@ -80,8 +86,35 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
           ordem: row.ordem,
         }))
 
+      const mappedTemplates: ReportTemplate[] = (templatesData || []).map((row: any) => ({
+        id: row.id,
+        name: row.nome,
+        type: row.tipo,
+        economicGroupId: row.organizacao_id,
+        createdAt: row.criado_em,
+        isActive: row.ativo ?? true,
+      }))
+
+      const mappedLines: ReportLine[] = (linesData || [])
+        .filter((row: any) => row.codigo)
+        .map((row: any) => ({
+          id: row.id,
+          reportId: row.relatorio_id,
+          parentId: row.linha_pai_id,
+          name: row.nome,
+          code: row.codigo,
+          order: row.ordem,
+          type: row.tipo,
+          sign: row.sinal,
+          dreAccountId: row.conta_dre_id,
+          balanceAccountId: row.conta_balanco_id,
+          formula: row.formula,
+        }))
+
       setFormulas(mappedFormulas)
       setIndicators(mappedIndicators)
+      setReportTemplates(mappedTemplates)
+      setReportLines(mappedLines)
     } catch (err) {
       console.error("Erro ao carregar dados:", err)
     } finally {
@@ -179,6 +212,29 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
     const currentExpressao = formData.expressao || ""
     setFormData({ ...formData, expressao: currentExpressao + `FORM[${codigo}]` })
   }
+
+  const insertReportLineCode = (codigo: string) => {
+    const currentExpressao = formData.expressao || ""
+    setFormData({ ...formData, expressao: currentExpressao + `DRE[${codigo}]` })
+  }
+
+  const getReportTypeName = (reportId: string) => {
+    const template = reportTemplates.find(t => t.id === reportId)
+    return template?.name || template?.type || "Relatório"
+  }
+
+  const filteredReportLines = reportLines.filter(line => {
+    if (!line.code) return false
+    if (selectedReportType !== "all" && line.reportId !== selectedReportType) return false
+    if (reportLineSearch) {
+      const term = reportLineSearch.toLowerCase()
+      return (
+        line.name.toLowerCase().includes(term) ||
+        (line.code && line.code.toLowerCase().includes(term))
+      )
+    }
+    return true
+  })
 
   const filteredFormulas = formulas.filter(f => {
     if (!searchTerm) return true
@@ -286,8 +342,9 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
               </div>
               <div className="mt-2 p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-600 mb-2">
-                  <strong>Sintaxe:</strong> Use <code className="bg-slate-200 px-1 rounded">OPE[CODIGO]</code> para indicadores operacionais 
-                  e <code className="bg-slate-200 px-1 rounded">FORM[CODIGO]</code> para outras fórmulas.
+                  <strong>Sintaxe:</strong> Use <code className="bg-slate-200 px-1 rounded">OPE[CODIGO]</code> para indicadores operacionais, 
+                  <code className="bg-slate-200 px-1 rounded ml-1">DRE[CODIGO]</code> para linhas de relatório (DRE, Balanço) e 
+                  <code className="bg-slate-200 px-1 rounded ml-1">FORM[CODIGO]</code> para outras fórmulas.
                 </p>
                 <p className="text-xs text-slate-500">
                   Operadores: <code>+</code> soma, <code>-</code> subtração, <code>*</code> multiplicação, <code>/</code> divisão, <code>( )</code> parênteses
@@ -297,8 +354,12 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
 
             {indicators.length > 0 && (
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Indicadores disponíveis (clique para inserir)</label>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-50 rounded-lg">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <span className="inline-flex items-center gap-1">
+                    Indicadores Operacionais <span className="text-xs text-slate-400">(clique para inserir)</span>
+                  </span>
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-blue-50 rounded-lg border border-blue-100">
                   {indicators.map(ind => (
                     <button
                       key={ind.id}
@@ -314,10 +375,73 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
               </div>
             )}
 
+            {reportLines.length > 0 && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <span className="inline-flex items-center gap-1">
+                    <FileText className="w-4 h-4" />
+                    Linhas de Relatório (DRE, Balanço)
+                  </span>
+                </label>
+                <div className="bg-emerald-50 rounded-lg border border-emerald-100 p-3">
+                  <div className="flex gap-2 mb-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar linha..."
+                        value={reportLineSearch}
+                        onChange={(e) => setReportLineSearch(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 rounded py-1.5 pl-7 pr-2 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <select
+                      value={selectedReportType}
+                      onChange={(e) => setSelectedReportType(e.target.value)}
+                      className="text-xs bg-white border border-slate-200 rounded py-1.5 px-2 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    >
+                      <option value="all">Todos os relatórios</option>
+                      {reportTemplates.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                    {filteredReportLines.slice(0, 50).map(line => (
+                      <button
+                        key={line.id}
+                        type="button"
+                        onClick={() => insertReportLineCode(line.code!)}
+                        className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200 transition flex items-center gap-1"
+                        title={`${line.name} (${getReportTypeName(line.reportId)})`}
+                      >
+                        <span className="font-mono">{line.code}</span>
+                        <span className="text-emerald-500 text-[10px] max-w-[100px] truncate">
+                          {line.name}
+                        </span>
+                      </button>
+                    ))}
+                    {filteredReportLines.length === 0 && (
+                      <span className="text-xs text-slate-400">Nenhuma linha encontrada</span>
+                    )}
+                    {filteredReportLines.length > 50 && (
+                      <span className="text-xs text-slate-400">
+                        Mostrando 50 de {filteredReportLines.length}. Use a busca para filtrar.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {formulas.filter(f => f.id !== editingId).length > 0 && (
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-2">Fórmulas disponíveis (clique para inserir)</label>
-                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-slate-50 rounded-lg">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <span className="inline-flex items-center gap-1">
+                    Outras Fórmulas <span className="text-xs text-slate-400">(clique para inserir)</span>
+                  </span>
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-purple-50 rounded-lg border border-purple-100">
                   {formulas.filter(f => f.id !== editingId).map(f => (
                     <button
                       key={f.id}
