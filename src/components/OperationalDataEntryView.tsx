@@ -7,6 +7,7 @@ import { getCadastroTenant, saveCadastroTenant } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
 import StyledSelect from './StyledSelect'
 import MultiSelectDropdown from './MultiSelectDropdown'
+import PeriodSelector from './PeriodSelector'
 import { CALENDAR_MONTHS } from '../constants'
 import * as XLSX from 'xlsx'
 
@@ -16,7 +17,7 @@ interface OperationalDataEntryViewProps {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
+const AVAILABLE_YEARS = [CURRENT_YEAR + 1, CURRENT_YEAR, CURRENT_YEAR - 1, CURRENT_YEAR - 2, CURRENT_YEAR - 3, CURRENT_YEAR - 4]
 
 interface OperationalValueRow {
   id: string
@@ -40,7 +41,10 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
+  const [selectedPeriod, setSelectedPeriod] = useState<{ years: number[]; months: string[] }>({
+    years: [CURRENT_YEAR],
+    months: [...CALENDAR_MONTHS]
+  })
   const [selectedBrandId, setSelectedBrandId] = useState<string>("")
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("")
@@ -151,18 +155,21 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     [indicators]
   )
 
-  const getValueKey = (indicatorId: string, companyId: string, month: string) => {
-    return `${indicatorId}|${companyId}|${month}`
+  const selectedYear = selectedPeriod.years[0] || CURRENT_YEAR
+  const selectedMonths = selectedPeriod.months
+
+  const getValueKey = (indicatorId: string, companyId: string, year: number, month: string) => {
+    return `${indicatorId}|${companyId}|${year}|${month}`
   }
 
-  const getValue = (indicatorId: string, companyId: string, month: string): number | null => {
-    const key = getValueKey(indicatorId, companyId, month)
+  const getValue = (indicatorId: string, companyId: string, year: number, month: string): number | null => {
+    const key = getValueKey(indicatorId, companyId, year, month)
     if (pendingChanges.hasOwnProperty(key)) {
       return pendingChanges[key]
     }
     const found = values.find(v =>
       v.indicadorId === indicatorId &&
-      v.ano === selectedYear &&
+      v.ano === year &&
       v.mes === month &&
       v.empresaId === companyId &&
       v.departamentoId === selectedDepartment
@@ -170,8 +177,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     return found?.valor ?? null
   }
 
-  const handleValueChange = (indicatorId: string, companyId: string, month: string, value: string) => {
-    const key = getValueKey(indicatorId, companyId, month)
+  const handleValueChange = (indicatorId: string, companyId: string, year: number, month: string, value: string) => {
+    const key = getValueKey(indicatorId, companyId, year, month)
     const numValue = value === "" ? null : parseFloat(value)
     setPendingChanges(prev => ({ ...prev, [key]: numValue }))
   }
@@ -182,14 +189,15 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       const valuesToSave: any[] = []
 
       Object.entries(pendingChanges).forEach(([key, valor]) => {
-        if (valor === null) return // Skip null values - cannot save to DB
+        if (valor === null) return
         
-        const [indicatorId, companyId, month] = key.split('|')
+        const [indicatorId, companyId, yearStr, month] = key.split('|')
+        const year = parseInt(yearStr)
         const company = companies.find(c => c.id === companyId)
 
         const existing = values.find(v =>
           v.indicadorId === indicatorId &&
-          v.ano === selectedYear &&
+          v.ano === year &&
           v.mes === month &&
           v.empresaId === companyId &&
           v.departamentoId === selectedDepartment
@@ -199,7 +207,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           id: existing?.id || generateUUID(),
           organizacao_id: tenantId,
           indicador_id: indicatorId,
-          ano: selectedYear,
+          ano: year,
           mes: month,
           empresa_id: companyId,
           marca_id: company?.brandId || null,
@@ -237,16 +245,18 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
     filteredIndicators.forEach(ind => {
       filteredCompanies.forEach(company => {
-        CALENDAR_MONTHS.forEach(month => {
-          templateData.push({
-            "Código Indicador": ind.codigo,
-            "Nome Indicador": ind.nome,
-            "Unidade": ind.unidadeMedida,
-            "Ano": selectedYear,
-            "Mês": month,
-            "CNPJ": company.cnpj || "",
-            "Loja": company.nickname || company.name,
-            "Valor": getValue(ind.id, company.id, month) ?? ""
+        selectedPeriod.years.forEach(year => {
+          selectedMonths.forEach(month => {
+            templateData.push({
+              "Código Indicador": ind.codigo,
+              "Nome Indicador": ind.nome,
+              "Unidade": ind.unidadeMedida,
+              "Ano": year,
+              "Mês": month,
+              "CNPJ": company.cnpj || "",
+              "Loja": company.nickname || company.name,
+              "Valor": getValue(ind.id, company.id, year, month) ?? ""
+            })
           })
         })
       })
@@ -260,7 +270,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "Dados Operacionais")
-    XLSX.writeFile(wb, `dados_operacionais_${selectedYear}.xlsx`)
+    XLSX.writeFile(wb, `dados_operacionais_${selectedPeriod.years.join('-')}.xlsx`)
   }
 
   const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -391,7 +401,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
           <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <MultiSelectDropdown
                   label="Indicadores"
                   options={indicatorOptions}
@@ -401,16 +411,14 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   placeholder="Selecionar indicadores..."
                 />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
-                <StyledSelect
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  containerClassName="w-full"
-                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
-                >
-                  {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-                </StyledSelect>
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Período</label>
+                <PeriodSelector
+                  selectedPeriod={selectedPeriod}
+                  onPeriodChange={setSelectedPeriod}
+                  availableYears={AVAILABLE_YEARS}
+                  className="h-[42px] py-2.5 pl-4 pr-3 text-sm"
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
@@ -463,10 +471,12 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                     <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-[250px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       Loja
                     </th>
-                    {CALENDAR_MONTHS.map(month => (
-                      <th key={month} className="p-2 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[100px]">
-                        {month.slice(0, 3)}/{selectedYear}
-                      </th>
+                    {selectedPeriod.years.sort((a, b) => a - b).map(year => (
+                      selectedMonths.map(month => (
+                        <th key={`${year}-${month}`} className="p-2 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[100px]">
+                          {month.slice(0, 3)}/{year}
+                        </th>
+                      ))
                     ))}
                   </tr>
                 </thead>
@@ -487,20 +497,22 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                           <td className="p-3 text-sm text-slate-700 border-r border-b bg-white sticky left-[250px] z-20">
                             {company.nickname || company.name}
                           </td>
-                          {CALENDAR_MONTHS.map(month => {
-                            const value = getValue(indicator.id, company.id, month)
-                            return (
-                              <td key={month} className="p-1.5 border-r border-b">
-                                <input
-                                  type="number"
-                                  value={value ?? ''}
-                                  onChange={(e) => handleValueChange(indicator.id, company.id, month, e.target.value)}
-                                  className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-primary"
-                                  placeholder="-"
-                                />
-                              </td>
-                            )
-                          })}
+                          {selectedPeriod.years.sort((a, b) => a - b).map(year => (
+                            selectedMonths.map(month => {
+                              const value = getValue(indicator.id, company.id, year, month)
+                              return (
+                                <td key={`${year}-${month}`} className="p-1.5 border-r border-b">
+                                  <input
+                                    type="number"
+                                    value={value ?? ''}
+                                    onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
+                                    className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-primary"
+                                    placeholder="-"
+                                  />
+                                </td>
+                              )
+                            })
+                          ))}
                         </tr>
                       ))}
                     </React.Fragment>
