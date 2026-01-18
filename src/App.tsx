@@ -63,6 +63,7 @@ import Toolbar from "./components/Toolbar"
 import FinancialTable from "./components/FinancialTable"
 import ClosingModuleView from "./components/ClosingModuleView"
 import ClosingLockView from "./components/ClosingLockView"
+import OperationalIndicatorsView from "./components/OperationalIndicatorsView"
 import Tabs from "./components/Tabs"
 import BudgetAssumptionsView from "./components/BudgetAssumptionsView"
 import BudgetValuesView from "./components/BudgetValuesView"
@@ -930,6 +931,22 @@ const App: React.FC = () => {
         )
       case "CLOSING_LOCK":
         return <ClosingLockView onNavigateBack={() => handleNavigate("MANAGEMENT")} tenantId={effectiveTenantId || user.tenantId} user={user} economicGroup={economicGroups[0]} />
+      case "OPERATIONAL_INDICATORS":
+        return <OperationalIndicatorsView tenantId={effectiveTenantId || user.tenantId} />
+      case "OPERATIONAL_DATA_ENTRY":
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-slate-800">Preenchimento de Dados Operacionais</h1>
+            <p className="text-slate-500 mt-2">Em desenvolvimento - aqui você poderá preencher os valores mensais dos indicadores.</p>
+          </div>
+        )
+      case "OPERATIONAL_FORMULAS":
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-slate-800">Fórmulas Operacionais</h1>
+            <p className="text-slate-500 mt-2">Em desenvolvimento - aqui você poderá criar fórmulas calculadas.</p>
+          </div>
+        )
       case "REPORT_TEMPLATES":
         return (
           <ReportTemplatesView

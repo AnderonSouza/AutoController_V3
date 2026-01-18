@@ -268,6 +268,11 @@ const TENANT_COLUMN_MAP: Record<string, string> = {
   saldos_mensais: "organizacao_id",
   benchmarks: "organizacao_id",
   notificacoes: "organizacao_id",
+  indicadores_operacionais: "organizacao_id",
+  valores_operacionais: "organizacao_id",
+  formulas_operacionais: "organizacao_id",
+  formulas_operacionais_dependencias: "organizacao_id",
+  relatorio_linhas_operacionais: "organizacao_id",
 }
 
 export const getCadastroTenant = async (table: string, tenantId: string | null): Promise<any[]> => {
