@@ -147,6 +147,7 @@ const FIELD_MAP_REPORT_LINES: Record<string, string> = {
   createdAt: "criado_em",
   updatedAt: "atualizado_em",
   dreAccountId: "conta_dre_id",
+  balanceAccountId: "conta_balanco_id",
   economicGroupId: "organizacao_id",
 }
 

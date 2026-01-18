@@ -247,6 +247,7 @@ export interface ReportLine {
   type: "header" | "data_bucket" | "total" | "formula"
   sign: 1 | -1
   dreAccountId?: string
+  balanceAccountId?: string
   formula?: string
   style?: any
 }

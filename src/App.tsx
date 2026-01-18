@@ -685,11 +685,16 @@ const App: React.FC = () => {
           </div>
         )
       case "BALANCE_SHEET":
+        const balanceSheetTemplate = reportTemplates.find(t => t.type === 'BALANCE_SHEET')
+        const balanceSheetLines = balanceSheetTemplate 
+          ? reportLines.filter(l => l.reportId === balanceSheetTemplate.id)
+          : []
         return (
           <BalanceSheetView
             brands={brands}
             companies={companies}
-            balanceSheetAccounts={balanceSheetAccounts}
+            reportTemplate={balanceSheetTemplate || null}
+            reportLines={balanceSheetLines}
             accountMappings={mappings}
             monthlyBalances={monthlyBalances}
             selectedPeriod={selectedPeriod}
