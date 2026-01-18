@@ -580,16 +580,16 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-card)]">
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr style={{ backgroundColor: '#1e3a5f' }}>
-                <th className="text-left py-3 px-4 font-semibold text-white sticky left-0 min-w-[280px]" style={{ backgroundColor: '#1e3a5f' }}>
+              <tr className="bg-[var(--color-primary)]">
+                <th className="text-left py-3 px-4 font-semibold text-[var(--color-on-primary)] sticky left-0 min-w-[280px] bg-[var(--color-primary)]">
                   Indicador
                 </th>
                 {MONTHS_DATA.map(month => (
-                  <th key={month.value} className="text-center py-3 px-2 font-semibold text-white min-w-[90px] uppercase text-xs tracking-wide">
+                  <th key={month.value} className="text-center py-3 px-2 font-semibold text-[var(--color-on-primary)] min-w-[90px] uppercase text-xs tracking-wide">
                     {month.short}/{selectedYear}
                   </th>
                 ))}
@@ -599,11 +599,10 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
               {Object.entries(groupedByCategoria).map(([categoria, items]) => (
                 <React.Fragment key={categoria}>
                   <tr 
-                    className="cursor-pointer hover:opacity-90 transition"
-                    style={{ backgroundColor: '#2563eb' }}
+                    className="cursor-pointer hover:opacity-90 transition-[var(--transition-fast)] bg-[var(--color-table-header-bg)]"
                     onClick={() => toggleCategory(categoria)}
                   >
-                    <td colSpan={13} className="py-2.5 px-4 font-semibold text-white">
+                    <td colSpan={13} className="py-2.5 px-4 font-semibold text-[var(--color-table-header-text)]">
                       <div className="flex items-center gap-2">
                         {expandedCategories[categoria] ? (
                           <ChevronDown className="w-4 h-4" />
@@ -639,14 +638,14 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
                       return (
                         <React.Fragment key={indicator.id}>
-                          <tr style={{ backgroundColor: '#dbeafe' }} className="border-b border-blue-200">
+                          <tr className="bg-[var(--color-info-50)] border-b border-[var(--color-border)]">
                             <td colSpan={13} className="py-2.5 px-4">
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs px-2 py-0.5 rounded text-blue-700" style={{ backgroundColor: '#bfdbfe' }}>
+                                <span className="font-[var(--font-mono)] text-xs px-2 py-0.5 rounded-[var(--radius-sm)] text-[var(--color-info)] bg-[var(--color-info-50)]">
                                   {indicator.codigo}
                                 </span>
-                                <span className="font-semibold text-blue-900">{indicator.nome}</span>
-                                <span className="text-xs text-blue-600 ml-2 font-medium">
+                                <span className="font-semibold text-[var(--color-text-main)]">{indicator.nome}</span>
+                                <span className="text-xs text-[var(--color-info)] ml-2 font-medium">
                                   ({indicator.unidadeMedida} - por Departamento)
                                 </span>
                               </div>
@@ -654,25 +653,25 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                           </tr>
                           {filteredCompanies.flatMap(company => 
                             filteredDepartments.map(dept => (
-                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-slate-200 hover:bg-blue-50/30 transition">
-                                <td className="py-3 px-4 sticky left-0 bg-white pl-8 border-r border-slate-100">
+                              <tr key={`${indicator.id}-${company.id}-${dept.id}`} className="border-b border-[var(--color-border)] hover:bg-[var(--color-table-row-hover)] transition-[var(--transition-fast)]">
+                                <td className="py-3 px-4 sticky left-0 bg-[var(--color-table-row-bg)] pl-8 border-r border-[var(--color-border-light)]">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">
+                                    <span className="text-xs bg-[var(--color-success-50)] text-[var(--color-success)] px-2 py-0.5 rounded-[var(--radius-sm)] font-medium">
                                       {company.nickname || company.name}
                                     </span>
-                                    <span className="text-xs text-slate-400">→</span>
-                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
+                                    <span className="text-xs text-[var(--color-text-muted)]">→</span>
+                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-[var(--radius-sm)] font-medium">
                                       {dept.name}
                                     </span>
                                   </div>
                                 </td>
                                 {MONTHS_DATA.map(month => (
-                                  <td key={month.value} className="py-2 px-1 text-center border-r border-slate-100">
+                                  <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
                                     <input
                                       type="number"
                                       value={getCurrentValue(indicator.id, month.value, company.id, dept.id) ?? ""}
                                       onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value, company.id, dept.id)}
-                                      className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500"
+                                      className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
                                       placeholder="-"
                                     />
                                   </td>
@@ -685,25 +684,25 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                     }
 
                     return (
-                      <tr key={indicator.id} className="border-b border-slate-200 hover:bg-blue-50/30 transition">
-                        <td className="py-3 px-4 sticky left-0 bg-white border-r border-slate-100">
+                      <tr key={indicator.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-table-row-hover)] transition-[var(--transition-fast)]">
+                        <td className="py-3 px-4 sticky left-0 bg-[var(--color-table-row-bg)] border-r border-[var(--color-border-light)]">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs px-2 py-0.5 rounded text-blue-600" style={{ backgroundColor: '#e0e7ff' }}>
+                            <span className="font-[var(--font-mono)] text-xs px-2 py-0.5 rounded-[var(--radius-sm)] text-[var(--color-info)] bg-[var(--color-info-50)]">
                               {indicator.codigo}
                             </span>
-                            <span className="text-slate-800 font-medium">{indicator.nome}</span>
+                            <span className="text-[var(--color-text-main)] font-medium">{indicator.nome}</span>
                           </div>
-                          <div className="text-xs text-slate-500 mt-0.5 ml-1">
+                          <div className="text-xs text-[var(--color-text-secondary)] mt-0.5 ml-1">
                             {indicator.unidadeMedida}
                           </div>
                         </td>
                         {MONTHS_DATA.map(month => (
-                          <td key={month.value} className="py-2 px-1 text-center border-r border-slate-100">
+                          <td key={month.value} className="py-2 px-1 text-center border-r border-[var(--color-border-light)]">
                             <input
                               type="number"
                               value={getCurrentValue(indicator.id, month.value) ?? ""}
                               onChange={(e) => handleValueChange(indicator.id, month.value, e.target.value)}
-                              className="w-full text-center bg-slate-50 border border-slate-200 rounded-md py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500"
+                              className="w-full text-center bg-[var(--color-bg-muted)] border border-[var(--color-border)] rounded-[var(--radius-sm)] py-1.5 px-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-[var(--color-bg-card)] focus:border-[var(--color-primary)]"
                               placeholder="-"
                             />
                           </td>
