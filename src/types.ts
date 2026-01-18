@@ -355,6 +355,8 @@ export interface AccountCostCenterMapping {
   conta: string
   contasintetica: string
   dreAccountId?: string
+  contaContabilId?: string
+  contaBalancoId?: string
   economicGroupId: string
   isNew?: boolean
 }

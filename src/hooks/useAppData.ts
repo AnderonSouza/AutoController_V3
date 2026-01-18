@@ -17,6 +17,7 @@ import type {
   ReportLine,
   BudgetAssumption,
   BudgetAssumptionValue,
+  MonthlyBalanceEntry,
 } from "../types"
 import { getCadastroTenant, getUnreadNotificationCount } from "../utils/db"
 
@@ -87,6 +88,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [reportLines, setReportLines] = useState<ReportLine[]>([])
   const [budgetAssumptions, setBudgetAssumptions] = useState<BudgetAssumption[]>([])
   const [budgetAssumptionValues, setBudgetAssumptionValues] = useState<BudgetAssumptionValue[]>([])
+  const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -150,6 +152,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("plano_contas_dre", tenantId),
           getCadastroTenant("budget_assumptions", tenantId),
           getCadastroTenant("budget_values", tenantId),
+          getCadastroTenant("saldos_mensais", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -195,6 +198,8 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           return {
             ...m,
             idconta: m.accountingAccountId || m.conta_contabil_id,
+            contaContabilId: m.accountingAccountId || m.conta_contabil_id,
+            contaBalancoId: m.balanceAccountId || m.conta_balanco_id,
             conta: contaContabil?.nome || '',
             codigoContabil: contaContabil?.codigo || '',
             contasintetica: dreName || balanceName || '',
@@ -225,6 +230,17 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           year: v.ano || v.year,
           month: v.mes || v.month,
           value: v.valor || v.value || 0,
+        })))
+
+        const rawMonthlyBalances = getVal<any>(14)
+        setMonthlyBalances(rawMonthlyBalances.map((b: any) => ({
+          id: b.id,
+          empresaId: b.empresa_id,
+          contaContabilId: b.conta_contabil_id,
+          ano: b.ano,
+          mes: b.mes,
+          valor: b.valor || 0,
+          organizacaoId: b.organizacao_id,
         })))
 
         const unread = await getUnreadNotificationCount(user.id)
@@ -269,6 +285,8 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     setBudgetAssumptions,
     budgetAssumptionValues,
     setBudgetAssumptionValues,
+    monthlyBalances,
+    setMonthlyBalances,
     unreadNotifications,
     setUnreadNotifications,
     isLoadingData,

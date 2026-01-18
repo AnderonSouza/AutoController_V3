@@ -69,6 +69,7 @@ import BudgetValuesView from "./components/BudgetValuesView"
 import BudgetView from "./components/BudgetView"
 import OrganizationalStructureView from "./components/OrganizationalStructureView"
 import ParametrosApuracaoView from "./components/ParametrosApuracaoView"
+import BalanceSheetView from "./components/BalanceSheetView"
 
 // Utils
 import {
@@ -253,6 +254,7 @@ const App: React.FC = () => {
     setBudgetAssumptions,
     budgetAssumptionValues,
     setBudgetAssumptionValues,
+    monthlyBalances,
     unreadNotifications,
     isLoadingData,
   } = useAppData(user, effectiveTenantId)
@@ -681,6 +683,19 @@ const App: React.FC = () => {
               <Tabs tabs={departments.map((d) => d.name)} activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
           </div>
+        )
+      case "BALANCE_SHEET":
+        return (
+          <BalanceSheetView
+            brands={brands}
+            companies={companies}
+            balanceSheetAccounts={balanceSheetAccounts}
+            accountMappings={mappings}
+            monthlyBalances={monthlyBalances}
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+            isLoading={isLoadingData}
+          />
         )
       case "SUPPORT":
         return (
