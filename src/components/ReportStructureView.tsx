@@ -10,6 +10,7 @@ interface OperationalFormulaOption {
     codigo: string;
     nome: string;
     unidadeMedida?: string;
+    tipo?: 'indicator' | 'formula';
 }
 
 interface ReportStructureViewProps {
@@ -165,7 +166,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     const [lines, setLines] = useState<ReportLine[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-    const [operationalFormulas, setOperationalFormulas] = useState<OperationalFormulaOption[]>([]);
+    const [operationalOptions, setOperationalOptions] = useState<OperationalFormulaOption[]>([]);
     
     // Modals
     const [lineToDelete, setLineToDelete] = useState<ReportLine | null>(null);
@@ -173,27 +174,51 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
 
     const listContainerRef = useRef<HTMLDivElement>(null);
 
-    const loadOperationalFormulas = useCallback(async () => {
+    const loadOperationalOptions = useCallback(async () => {
         if (!tenantId) return;
         try {
-            const data = await getCadastroTenant("operational_formulas", tenantId);
-            const mapped: OperationalFormulaOption[] = (data || [])
+            // Load both operational indicators and formulas
+            const [indicatorsData, formulasData] = await Promise.all([
+                getCadastroTenant("operational_indicators", tenantId),
+                getCadastroTenant("operational_formulas", tenantId)
+            ]);
+            
+            // Map indicators with prefix OPE
+            const mappedIndicators: OperationalFormulaOption[] = (indicatorsData || [])
                 .filter((row: any) => row.ativo !== false)
                 .map((row: any) => ({
-                    id: row.id,
+                    id: `OPE:${row.id}`,
                     codigo: row.codigo,
                     nome: row.nome,
-                    unidadeMedida: row.unidade_medida
+                    unidadeMedida: row.unidade_medida,
+                    tipo: 'indicator' as const
                 }));
-            setOperationalFormulas(mapped);
+            
+            // Map formulas with prefix FORM
+            const mappedFormulas: OperationalFormulaOption[] = (formulasData || [])
+                .filter((row: any) => row.ativo !== false)
+                .map((row: any) => ({
+                    id: `FORM:${row.id}`,
+                    codigo: row.codigo,
+                    nome: row.nome,
+                    unidadeMedida: row.unidade_medida,
+                    tipo: 'formula' as const
+                }));
+            
+            // Combine and sort by code
+            const combined = [...mappedIndicators, ...mappedFormulas].sort((a, b) => 
+                a.codigo.localeCompare(b.codigo)
+            );
+            
+            setOperationalOptions(combined);
         } catch (err) {
-            console.error("Error loading operational formulas:", err);
+            console.error("Error loading operational options:", err);
         }
     }, [tenantId]);
 
     useEffect(() => {
-        loadOperationalFormulas();
-    }, [loadOperationalFormulas]);
+        loadOperationalOptions();
+    }, [loadOperationalOptions]);
 
     useEffect(() => {
         // Ordena inicial
@@ -664,27 +689,27 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
                                             )}
-                                            {isOperational && operationalFormulas.length > 0 && (
+                                            {isOperational && operationalOptions.length > 0 && (
                                                 <SearchableSelect 
                                                     value={line.operationalFormulaId || ''} 
-                                                    options={operationalFormulas.map(f => ({
+                                                    options={operationalOptions.map(f => ({
                                                         id: f.id,
                                                         name: `${f.codigo} - ${f.nome}`,
-                                                        suffix: f.unidadeMedida
+                                                        suffix: f.tipo === 'indicator' ? '📊 Indicador' : '🔢 Fórmula'
                                                     }))} 
                                                     onChange={(val) => {
                                                         handleUpdateLine(line.id, 'operationalFormulaId', val);
-                                                        const formula = operationalFormulas.find(f => f.id === val);
-                                                        if (formula) {
-                                                            handleUpdateLine(line.id, 'name', formula.nome);
+                                                        const option = operationalOptions.find(f => f.id === val);
+                                                        if (option) {
+                                                            handleUpdateLine(line.id, 'name', option.nome);
                                                         }
                                                     }}
-                                                    placeholder="Selecionar fórmula operacional..."
+                                                    placeholder="Selecionar indicador ou fórmula..."
                                                     className="w-full text-xs"
                                                 />
                                             )}
-                                            {isOperational && operationalFormulas.length === 0 && (
-                                                <span className="text-xs text-slate-400 italic">Nenhuma fórmula disponível</span>
+                                            {isOperational && operationalOptions.length === 0 && (
+                                                <span className="text-xs text-slate-400 italic">Nenhum indicador ou fórmula disponível</span>
                                             )}
                                             {!isAnalytical && !isFormula && !isOperational && line.type === 'total' && (
                                                 // AUMENTADO mr-6 para mr-12 para dar mais espaço
