@@ -220,6 +220,54 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
     setFormData({ ...formData, expressao: currentExpressao + `DRE[${codigo}]` })
   }
 
+  const insertOperator = (op: string) => {
+    const currentExpressao = formData.expressao || ""
+    setFormData({ ...formData, expressao: currentExpressao + op })
+  }
+
+  const parseFormulaTokens = (expr: string) => {
+    if (!expr) return []
+    const tokens: { type: "ope" | "dre" | "form" | "operator" | "text"; value: string; code?: string; name?: string }[] = []
+    const regex = /(OPE\[([^\]]+)\]|DRE\[([^\]]+)\]|FORM\[([^\]]+)\]|[\+\-\*\/\(\)])/g
+    let lastIndex = 0
+    let m: RegExpExecArray | null
+    while ((m = regex.exec(expr)) !== null) {
+      const currentMatch = m
+      if (currentMatch.index > lastIndex) {
+        const textBetween = expr.substring(lastIndex, currentMatch.index).trim()
+        if (textBetween) {
+          tokens.push({ type: "text", value: textBetween })
+        }
+      }
+      if (currentMatch[2]) {
+        const code = currentMatch[2]
+        const ind = indicators.find(i => i.codigo === code)
+        tokens.push({ type: "ope", value: currentMatch[0], code: code, name: ind?.nome })
+      } else if (currentMatch[3]) {
+        const code = currentMatch[3]
+        const line = reportLines.find(l => {
+          const lineCode = l.code || l.name.toUpperCase().replace(/\s+/g, "_").substring(0, 20)
+          return lineCode === code
+        })
+        tokens.push({ type: "dre", value: currentMatch[0], code: code, name: line?.name })
+      } else if (currentMatch[4]) {
+        const code = currentMatch[4]
+        const f = formulas.find(f => f.codigo === code)
+        tokens.push({ type: "form", value: currentMatch[0], code: code, name: f?.nome })
+      } else if (["+", "-", "*", "/", "(", ")"].includes(currentMatch[0])) {
+        tokens.push({ type: "operator", value: currentMatch[0] })
+      }
+      lastIndex = regex.lastIndex
+    }
+    if (lastIndex < expr.length) {
+      const remaining = expr.substring(lastIndex).trim()
+      if (remaining) {
+        tokens.push({ type: "text", value: remaining })
+      }
+    }
+    return tokens
+  }
+
   const getReportTypeName = (reportId: string) => {
     const template = reportTemplates.find(t => t.id === reportId)
     return template?.name || template?.type || "Relatório"
@@ -369,14 +417,106 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
                   className={`${inputClasses} font-mono`}
                 />
               </div>
+              
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-xs text-slate-500">Operadores:</span>
+                <div className="flex gap-1">
+                  {[
+                    { op: "+", label: "+", title: "Soma" },
+                    { op: "-", label: "−", title: "Subtração" },
+                    { op: "*", label: "×", title: "Multiplicação" },
+                    { op: "/", label: "÷", title: "Divisão" },
+                    { op: "(", label: "(", title: "Abre parênteses" },
+                    { op: ")", label: ")", title: "Fecha parênteses" },
+                  ].map(({ op, label, title }) => (
+                    <button
+                      key={op}
+                      type="button"
+                      onClick={() => insertOperator(op)}
+                      className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg border border-slate-200 transition text-lg"
+                      title={title}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, expressao: "" })}
+                  className="ml-2 text-xs text-red-500 hover:text-red-700 transition"
+                  title="Limpar fórmula"
+                >
+                  Limpar
+                </button>
+              </div>
+
+              {formData.expressao && parseFormulaTokens(formData.expressao).length > 0 && (
+                <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-xs text-slate-500 mb-2">Visualização da fórmula:</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {parseFormulaTokens(formData.expressao).map((token, idx) => {
+                      if (token.type === "ope") {
+                        return (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium border border-blue-200"
+                            title={token.name || token.code}
+                          >
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            {token.name || token.code}
+                          </span>
+                        )
+                      }
+                      if (token.type === "dre") {
+                        return (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium border border-emerald-200"
+                            title={token.name || token.code}
+                          >
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            {token.name || token.code}
+                          </span>
+                        )
+                      }
+                      if (token.type === "form") {
+                        return (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium border border-purple-200"
+                            title={token.name || token.code}
+                          >
+                            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            {token.name || token.code}
+                          </span>
+                        )
+                      }
+                      if (token.type === "operator") {
+                        const opSymbols: Record<string, string> = { "+": "+", "-": "−", "*": "×", "/": "÷", "(": "(", ")": ")" }
+                        return (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center justify-center w-6 h-6 bg-slate-200 text-slate-700 rounded-full text-sm font-bold"
+                          >
+                            {opSymbols[token.value] || token.value}
+                          </span>
+                        )
+                      }
+                      return (
+                        <span key={idx} className="text-xs text-slate-600 font-mono">
+                          {token.value}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-2 p-3 bg-slate-50 rounded-lg">
-                <p className="text-xs text-slate-600 mb-2">
-                  <strong>Sintaxe:</strong> Use <code className="bg-slate-200 px-1 rounded">OPE[CODIGO]</code> para indicadores operacionais, 
-                  <code className="bg-slate-200 px-1 rounded ml-1">DRE[CODIGO]</code> para linhas de relatório (DRE, Balanço) e 
-                  <code className="bg-slate-200 px-1 rounded ml-1">FORM[CODIGO]</code> para outras fórmulas.
-                </p>
-                <p className="text-xs text-slate-500">
-                  Operadores: <code>+</code> soma, <code>-</code> subtração, <code>*</code> multiplicação, <code>/</code> divisão, <code>( )</code> parênteses
+                <p className="text-xs text-slate-600">
+                  <strong>Sintaxe:</strong> Use <code className="bg-blue-100 text-blue-700 px-1 rounded">OPE[CODIGO]</code> para indicadores operacionais, 
+                  <code className="bg-emerald-100 text-emerald-700 px-1 rounded ml-1">DRE[CODIGO]</code> para linhas de relatório e 
+                  <code className="bg-purple-100 text-purple-700 px-1 rounded ml-1">FORM[CODIGO]</code> para outras fórmulas.
                 </p>
               </div>
             </div>
