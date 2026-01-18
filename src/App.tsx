@@ -978,6 +978,7 @@ const App: React.FC = () => {
               lines={reportLines.filter((l) => l.reportId === currentReportId)}
               dreAccounts={dreAccounts}
               balanceSheetAccounts={balanceSheetAccounts}
+              tenantId={effectiveTenantId || user.tenantId}
               onNavigateBack={() => handleNavigate("REPORT_TEMPLATES")}
               onSaveStructure={async (d) => {
                 await saveCadastroTenant("report_lines", d, effectiveTenantId || user.tenantId)

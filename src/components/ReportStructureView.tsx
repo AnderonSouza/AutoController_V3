@@ -1,14 +1,23 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ReportTemplate, ReportLine, DreAccount, BalanceSheetAccount } from '../types';
 import StyledSelect from './StyledSelect';
 import SearchableSelect from './SearchableSelect';
 import { generateUUID } from '../utils/helpers';
+import { getCadastroTenant } from '../utils/db';
+
+interface OperationalFormulaOption {
+    id: string;
+    codigo: string;
+    nome: string;
+    unidadeMedida?: string;
+}
 
 interface ReportStructureViewProps {
     reportTemplate: ReportTemplate;
     lines: ReportLine[];
     dreAccounts: DreAccount[];
     balanceSheetAccounts: BalanceSheetAccount[]; 
+    tenantId?: string;
     onSaveStructure: (lines: ReportLine[]) => Promise<void>;
     onDeleteLine: (id: string) => Promise<void>;
     onNavigateBack: () => void;
@@ -148,6 +157,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     lines: initialLines, 
     dreAccounts, 
     balanceSheetAccounts,
+    tenantId,
     onSaveStructure,
     onDeleteLine,
     onNavigateBack 
@@ -155,12 +165,35 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     const [lines, setLines] = useState<ReportLine[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    const [operationalFormulas, setOperationalFormulas] = useState<OperationalFormulaOption[]>([]);
     
     // Modals
     const [lineToDelete, setLineToDelete] = useState<ReportLine | null>(null);
     const [editingFormulaId, setEditingFormulaId] = useState<string | null>(null);
 
     const listContainerRef = useRef<HTMLDivElement>(null);
+
+    const loadOperationalFormulas = useCallback(async () => {
+        if (!tenantId) return;
+        try {
+            const data = await getCadastroTenant("operational_formulas", tenantId);
+            const mapped: OperationalFormulaOption[] = (data || [])
+                .filter((row: any) => row.ativo !== false)
+                .map((row: any) => ({
+                    id: row.id,
+                    codigo: row.codigo,
+                    nome: row.nome,
+                    unidadeMedida: row.unidade_medida
+                }));
+            setOperationalFormulas(mapped);
+        } catch (err) {
+            console.error("Error loading operational formulas:", err);
+        }
+    }, [tenantId]);
+
+    useEffect(() => {
+        loadOperationalFormulas();
+    }, [loadOperationalFormulas]);
 
     useEffect(() => {
         // Ordena inicial
@@ -186,7 +219,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     const usedAccountIds = useMemo(() => {
         const usedIds = new Set<string>();
         lines.forEach(line => {
-            if (line.type === 'account' && line.dreAccountId) {
+            if (line.type === 'data_bucket' && line.dreAccountId) {
                 usedIds.add(line.dreAccountId);
             }
         });
@@ -485,6 +518,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                         {flatList.map((line) => {
                             const isAnalytical = line.type === 'data_bucket';
                             const isFormula = line.type === 'formula';
+                            const isOperational = line.type === 'operational';
                             const canNest = line.type === 'total' || line.type === 'header';
                             
                             const linkedAccount = isAnalytical && line.dreAccountId 
@@ -555,6 +589,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                 <option value="total">Totalizador</option>
                                                 <option value="data_bucket">Conta Analítica</option>
                                                 <option value="formula">Fórmula</option>
+                                                <option value="operational">Operacional</option>
                                             </StyledSelect>
                                         </div>
 
@@ -629,7 +664,29 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
                                             )}
-                                            {!isAnalytical && !isFormula && line.type === 'total' && (
+                                            {isOperational && operationalFormulas.length > 0 && (
+                                                <SearchableSelect 
+                                                    value={line.operationalFormulaId || ''} 
+                                                    options={operationalFormulas.map(f => ({
+                                                        id: f.id,
+                                                        name: `${f.codigo} - ${f.nome}`,
+                                                        suffix: f.unidadeMedida
+                                                    }))} 
+                                                    onChange={(val) => {
+                                                        handleUpdateLine(line.id, 'operationalFormulaId', val);
+                                                        const formula = operationalFormulas.find(f => f.id === val);
+                                                        if (formula) {
+                                                            handleUpdateLine(line.id, 'name', formula.nome);
+                                                        }
+                                                    }}
+                                                    placeholder="Selecionar fórmula operacional..."
+                                                    className="w-full text-xs"
+                                                />
+                                            )}
+                                            {isOperational && operationalFormulas.length === 0 && (
+                                                <span className="text-xs text-slate-400 italic">Nenhuma fórmula disponível</span>
+                                            )}
+                                            {!isAnalytical && !isFormula && !isOperational && line.type === 'total' && (
                                                 // AUMENTADO mr-6 para mr-12 para dar mais espaço
                                                 <div className="flex items-center justify-end h-8 mr-12"> 
                                                     <label className="flex items-center cursor-pointer select-none bg-slate-50 px-2 py-1 rounded border border-slate-100">

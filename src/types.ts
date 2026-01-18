@@ -247,12 +247,16 @@ export interface ReportLine {
   name: string
   code?: string
   order: number
-  type: "header" | "data_bucket" | "total" | "formula"
+  type: "header" | "data_bucket" | "total" | "formula" | "operational"
   sign: 1 | -1
   dreAccountId?: string
   balanceAccountId?: string
   formula?: string
+  operationalFormulaId?: string
+  sourceAccounts?: string[]
   style?: any
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface TrialBalanceEntry {
