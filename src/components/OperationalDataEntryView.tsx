@@ -433,6 +433,18 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     return acc
   }, {} as Record<string, OperationalIndicator[]>)
 
+  // Auto-expand categories when searching
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const categoriesToExpand = Object.keys(groupedByCategoria)
+      const newExpanded: Record<string, boolean> = {}
+      categoriesToExpand.forEach(cat => {
+        newExpanded[cat] = true
+      })
+      setExpandedCategories(prev => ({ ...prev, ...newExpanded }))
+    }
+  }, [searchTerm, filteredIndicators.length])
+
   const toggleCategory = (cat: string) => {
     setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))
   }
@@ -580,9 +592,9 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         </div>
       </div>
 
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-card)]">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-card)]">
+        <div className="overflow-x-auto" style={{ maxWidth: '100%' }}>
+          <table className="text-sm border-collapse min-w-[1400px]">
             <thead>
               <tr className="bg-[var(--color-primary)]">
                 <th className="text-left py-3 px-4 font-semibold text-[var(--color-on-primary)] sticky left-0 min-w-[280px] bg-[var(--color-primary)]">
