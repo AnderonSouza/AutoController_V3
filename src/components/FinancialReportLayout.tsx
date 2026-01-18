@@ -110,21 +110,28 @@ export default function FinancialReportLayout({
 
     const rows: React.JSX.Element[] = []
 
+    const rowStyle: React.CSSProperties = account.isTotal
+      ? { backgroundColor: "var(--color-table-total-bg, #f5f3ff)" }
+      : account.isSubTotal
+        ? { backgroundColor: "var(--color-table-subtotal-bg, #f8fafc)" }
+        : {}
+
     rows.push(
       <tr
         key={account.id}
+        style={rowStyle}
         className={cn(
-          "border-b border-slate-100 hover:bg-slate-50 transition-colors",
-          account.isTotal && "bg-blue-50 font-bold",
-          account.isSubTotal && "bg-slate-50 font-semibold"
+          "border-b border-slate-100 hover:brightness-95 transition-colors",
+          account.isTotal && "font-bold",
+          account.isSubTotal && "font-semibold"
         )}
       >
         <td 
           className={cn(
-            "py-2 px-3 sticky left-0 bg-inherit",
+            "py-2 px-3 sticky left-0",
             hasChildren && "cursor-pointer"
           )}
-          style={{ paddingLeft: `${12 + level * 20}px` }}
+          style={{ paddingLeft: `${12 + level * 20}px`, backgroundColor: "inherit" }}
           onClick={() => hasChildren && toggleRow(account.id)}
         >
           <div className="flex items-center gap-2">
@@ -142,10 +149,10 @@ export default function FinancialReportLayout({
             </td>
           )
         })}
-        <td className={cn(
-          "py-2 px-3 text-right font-semibold tabular-nums whitespace-nowrap",
-          account.isTotal ? "bg-blue-100" : "bg-slate-100"
-        )}>
+        <td 
+          className="py-2 px-3 text-right font-semibold tabular-nums whitespace-nowrap"
+          style={{ backgroundColor: account.isTotal ? "var(--color-table-total-bg, #ede9fe)" : "var(--color-table-subtotal-bg, #f1f5f9)" }}
+        >
           {total !== 0 ? formatCurrency(total) : "-"}
         </td>
       </tr>
