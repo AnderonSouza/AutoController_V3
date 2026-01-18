@@ -99,13 +99,12 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
       }))
 
       const mappedLines: ReportLine[] = (linesData || [])
-        .filter((row: any) => row.codigo || row.code)
         .map((row: any) => ({
           id: row.id,
           reportId: row.relatorio_id || row.report_id,
           parentId: row.pai_id || row.parent_id,
           name: row.nome || row.name,
-          code: row.codigo || row.code,
+          code: row.codigo || row.code || "",
           order: row.ordem || row.order,
           type: row.tipo || row.type,
           sign: row.sinal || row.sign,
@@ -113,6 +112,9 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
           balanceAccountId: row.conta_balanco_id,
           formula: row.formula,
         }))
+
+      console.log("[OperationalFormulasView] Report lines loaded:", mappedLines.length, mappedLines.slice(0, 3))
+      console.log("[OperationalFormulasView] Report templates loaded:", mappedTemplates.length)
 
       setFormulas(mappedFormulas)
       setIndicators(mappedIndicators)
@@ -255,7 +257,6 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
   })
 
   const filteredReportLines = reportLines.filter(line => {
-    if (!line.code) return false
     if (selectedReportType !== "all" && line.reportId !== selectedReportType) return false
     if (reportLineSearch) {
       const term = reportLineSearch.toLowerCase()
@@ -473,20 +474,23 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
                     </select>
                   </div>
                   <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                    {filteredReportLines.slice(0, 50).map(line => (
-                      <button
-                        key={line.id}
-                        type="button"
-                        onClick={() => insertReportLineCode(line.code!)}
-                        className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded hover:bg-emerald-200 transition flex items-center gap-1"
-                        title={`${line.name} (${getReportTypeName(line.reportId)})`}
-                      >
-                        <span className="font-mono">{line.code}</span>
-                        <span className="text-emerald-500 text-[10px] max-w-[100px] truncate">
-                          {line.name}
-                        </span>
-                      </button>
-                    ))}
+                    {filteredReportLines.slice(0, 50).map(line => {
+                      const lineCode = line.code || line.name.toUpperCase().replace(/\s+/g, "_").substring(0, 20)
+                      return (
+                        <button
+                          key={line.id}
+                          type="button"
+                          onClick={() => insertReportLineCode(lineCode)}
+                          className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1.5 rounded hover:bg-emerald-200 transition flex items-center gap-1.5 text-left"
+                          title={`${line.name} (${getReportTypeName(line.reportId)})`}
+                        >
+                          <span className="font-mono font-medium">{lineCode}</span>
+                          <span className="text-emerald-500 max-w-[120px] truncate">
+                            {line.name}
+                          </span>
+                        </button>
+                      )
+                    })}
                     {filteredReportLines.length === 0 && (
                       <span className="text-xs text-slate-400">Nenhuma linha encontrada</span>
                     )}
