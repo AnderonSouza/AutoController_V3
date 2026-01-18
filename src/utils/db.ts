@@ -925,17 +925,59 @@ export const bulkSaveSaldosMensais = async (entries: MonthlyBalanceEntry[], tena
         organizacao_id: tenantId,
       }
     })
-    .filter(Boolean) // Remove null entries
+    .filter(Boolean) as Array<{
+      empresa_id: string;
+      conta_contabil_id: string;
+      ano: number;
+      mes: string;
+      valor: number;
+      organizacao_id: string;
+    }>
 
   if (enrichedEntries.length === 0) {
     console.warn("[v0-db] No valid entries to save after account mapping")
     return
   }
 
-  console.log("[v0-db] Saving", enrichedEntries.length, "saldos_mensais entries")
+  console.log("[v0-db] Saving", enrichedEntries.length, "saldos_mensais entries (with upsert)")
 
+  // UPSERT strategy: Delete existing records for the same combinations, then insert new ones
+  // Group entries by empresa_id + ano + mes to optimize deletions
+  const uniqueCombinations = new Map<string, { empresa_id: string; ano: number; mes: string }>()
+  enrichedEntries.forEach(entry => {
+    const key = `${entry.empresa_id}-${entry.ano}-${entry.mes}`
+    if (!uniqueCombinations.has(key)) {
+      uniqueCombinations.set(key, {
+        empresa_id: entry.empresa_id,
+        ano: entry.ano,
+        mes: entry.mes
+      })
+    }
+  })
+
+  console.log("[v0-db] Deleting existing records for", uniqueCombinations.size, "empresa/ano/mes combinations before upsert")
+
+  // Delete existing records for each unique combination
+  for (const combo of uniqueCombinations.values()) {
+    const { error: deleteError } = await supabase
+      .from("saldos_mensais")
+      .delete()
+      .eq("organizacao_id", tenantId)
+      .eq("empresa_id", combo.empresa_id)
+      .eq("ano", combo.ano)
+      .eq("mes", combo.mes)
+    
+    if (deleteError) {
+      console.error("[v0-db] Error deleting existing saldos_mensais:", deleteError)
+      throw deleteError
+    }
+  }
+
+  // Now insert all new entries
   const { error } = await supabase.from("saldos_mensais").insert(enrichedEntries)
   if (error) throw error
+
+  console.log("[v0-db] Successfully saved", enrichedEntries.length, "saldos_mensais entries")
 }
 
 export const getSaldosMensais = async (
