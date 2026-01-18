@@ -407,7 +407,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                   containerClassName="w-full"
-                  className="h-10"
+                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
                 >
                   {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
                 </StyledSelect>
@@ -418,10 +418,10 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   value={selectedBrandId}
                   onChange={(e) => {
                     setSelectedBrandId(e.target.value)
-                    setSelectedCompanyId("") // Reset company when brand changes
+                    setSelectedCompanyId("")
                   }}
                   containerClassName="w-full"
-                  className="h-10"
+                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
                 >
                   {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </StyledSelect>
@@ -432,7 +432,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   value={selectedCompanyId}
                   onChange={(e) => setSelectedCompanyId(e.target.value)}
                   containerClassName="w-full"
-                  className="h-10"
+                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
                 >
                   <option value="">Todas as lojas</option>
                   {filteredCompanies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
@@ -444,7 +444,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
                   containerClassName="w-full"
-                  className="h-10"
+                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
                 >
                   {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </StyledSelect>
