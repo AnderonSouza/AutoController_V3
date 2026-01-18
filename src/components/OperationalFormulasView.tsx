@@ -34,8 +34,11 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [indicatorSearch, setIndicatorSearch] = useState("")
+  const [formulaSearch, setFormulaSearch] = useState("")
   const [reportLineSearch, setReportLineSearch] = useState("")
   const [selectedReportType, setSelectedReportType] = useState<string>("all")
+  const [selectedIndicatorCategory, setSelectedIndicatorCategory] = useState<string>("all")
 
   const [formData, setFormData] = useState<Partial<FormulaRow>>({
     codigo: "",
@@ -223,6 +226,34 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
     return template?.name || template?.type || "Relatório"
   }
 
+  const indicatorCategories = [...new Set(indicators.map(i => i.categoria).filter(Boolean))]
+
+  const filteredIndicators = indicators.filter(ind => {
+    if (selectedIndicatorCategory !== "all" && ind.categoria !== selectedIndicatorCategory) return false
+    if (indicatorSearch) {
+      const term = indicatorSearch.toLowerCase()
+      return (
+        ind.nome.toLowerCase().includes(term) ||
+        ind.codigo.toLowerCase().includes(term) ||
+        (ind.descricao && ind.descricao.toLowerCase().includes(term))
+      )
+    }
+    return true
+  })
+
+  const availableFormulas = formulas.filter(f => f.id !== editingId)
+  const filteredAvailableFormulas = availableFormulas.filter(f => {
+    if (formulaSearch) {
+      const term = formulaSearch.toLowerCase()
+      return (
+        f.nome.toLowerCase().includes(term) ||
+        f.codigo.toLowerCase().includes(term) ||
+        (f.descricao && f.descricao.toLowerCase().includes(term))
+      )
+    }
+    return true
+  })
+
   const filteredReportLines = reportLines.filter(line => {
     if (!line.code) return false
     if (selectedReportType !== "all" && line.reportId !== selectedReportType) return false
@@ -356,21 +387,56 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   <span className="inline-flex items-center gap-1">
-                    Indicadores Operacionais <span className="text-xs text-slate-400">(clique para inserir)</span>
+                    Indicadores Operacionais <span className="text-xs text-slate-400">(clique para inserir na fórmula)</span>
                   </span>
                 </label>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-blue-50 rounded-lg border border-blue-100">
-                  {indicators.map(ind => (
-                    <button
-                      key={ind.id}
-                      type="button"
-                      onClick={() => insertIndicatorCode(ind.codigo)}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition"
-                      title={ind.nome}
-                    >
-                      {ind.codigo}
-                    </button>
-                  ))}
+                <div className="bg-blue-50 rounded-lg border border-blue-100 p-3">
+                  <div className="flex gap-2 mb-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nome ou código..."
+                        value={indicatorSearch}
+                        onChange={(e) => setIndicatorSearch(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 rounded py-1.5 pl-7 pr-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    {indicatorCategories.length > 0 && (
+                      <select
+                        value={selectedIndicatorCategory}
+                        onChange={(e) => setSelectedIndicatorCategory(e.target.value)}
+                        className="text-xs bg-white border border-slate-200 rounded py-1.5 px-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="all">Todas categorias</option>
+                        {indicatorCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                    {filteredIndicators.slice(0, 50).map(ind => (
+                      <button
+                        key={ind.id}
+                        type="button"
+                        onClick={() => insertIndicatorCode(ind.codigo)}
+                        className="text-xs bg-blue-100 text-blue-700 px-2 py-1.5 rounded hover:bg-blue-200 transition flex items-center gap-1.5 text-left"
+                        title={ind.descricao || ind.nome}
+                      >
+                        <span className="font-mono font-medium">{ind.codigo}</span>
+                        <span className="text-blue-500 max-w-[150px] truncate">{ind.nome}</span>
+                      </button>
+                    ))}
+                    {filteredIndicators.length === 0 && (
+                      <span className="text-xs text-slate-400">Nenhum indicador encontrado</span>
+                    )}
+                    {filteredIndicators.length > 50 && (
+                      <span className="text-xs text-slate-400">
+                        Mostrando 50 de {filteredIndicators.length}. Use a busca para filtrar.
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -434,25 +500,47 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
               </div>
             )}
 
-            {formulas.filter(f => f.id !== editingId).length > 0 && (
+            {availableFormulas.length > 0 && (
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-2">
                   <span className="inline-flex items-center gap-1">
-                    Outras Fórmulas <span className="text-xs text-slate-400">(clique para inserir)</span>
+                    <Calculator className="w-4 h-4" />
+                    Outras Fórmulas <span className="text-xs text-slate-400">(clique para inserir na fórmula)</span>
                   </span>
                 </label>
-                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-purple-50 rounded-lg border border-purple-100">
-                  {formulas.filter(f => f.id !== editingId).map(f => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => insertFormulaCode(f.codigo)}
-                      className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition"
-                      title={f.nome}
-                    >
-                      {f.codigo}
-                    </button>
-                  ))}
+                <div className="bg-purple-50 rounded-lg border border-purple-100 p-3">
+                  <div className="relative mb-2">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar fórmula..."
+                      value={formulaSearch}
+                      onChange={(e) => setFormulaSearch(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 rounded py-1.5 pl-7 pr-2 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    {filteredAvailableFormulas.slice(0, 30).map(f => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => insertFormulaCode(f.codigo)}
+                        className="text-xs bg-purple-100 text-purple-700 px-2 py-1.5 rounded hover:bg-purple-200 transition flex items-center gap-1.5 text-left"
+                        title={f.descricao || f.nome}
+                      >
+                        <span className="font-mono font-medium">{f.codigo}</span>
+                        <span className="text-purple-500 max-w-[120px] truncate">{f.nome}</span>
+                      </button>
+                    ))}
+                    {filteredAvailableFormulas.length === 0 && (
+                      <span className="text-xs text-slate-400">Nenhuma fórmula encontrada</span>
+                    )}
+                    {filteredAvailableFormulas.length > 30 && (
+                      <span className="text-xs text-slate-400">
+                        Mostrando 30 de {filteredAvailableFormulas.length}. Use a busca para filtrar.
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
