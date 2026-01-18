@@ -591,6 +591,7 @@ const App: React.FC = () => {
   const getPageTitle = (view: View): string => {
     const viewTitles: Record<string, string> = {
       DRE: "DRE",
+      BALANCE_SHEET: "Balanço Patrimonial",
       CASH_FLOW: "Fluxo de Caixa",
       RAZAO_CONTABIL: "Razão Contábil",
       ECONOMIC_GROUPS: "Organizações",

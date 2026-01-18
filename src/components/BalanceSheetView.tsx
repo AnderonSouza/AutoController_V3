@@ -116,8 +116,8 @@ export default function BalanceSheetView({
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden p-4">
-      <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden p-2">
+      <div className="flex-grow flex flex-col bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
         <Toolbar
           storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
           currentStore={currentStore}
