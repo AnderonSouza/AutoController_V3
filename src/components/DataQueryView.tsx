@@ -534,8 +534,8 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   }
 
   return (
-    <div className="page-container">
-      <div className="content-card">
+    <div className="flex flex-col h-full overflow-hidden p-0">
+      <div className="flex-grow flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden">
         <div className="card-header">
           <div className="flex items-center gap-4">
             {onNavigateBack && (
