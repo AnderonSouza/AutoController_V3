@@ -260,20 +260,20 @@ export default function FinancialReportLayout({
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-slate-100 sticky top-0 z-10">
-                <tr>
-                  <th className="py-3 px-3 text-left font-semibold text-slate-700 sticky left-0 bg-slate-100 min-w-[300px]">
+              <thead className="sticky top-0 z-10 shadow-sm" style={{ backgroundColor: "var(--color-table-header-bg, #f8fafc)", color: "var(--color-table-header-text, #1e293b)" }}>
+                <tr className="text-xs font-bold tracking-wider border-b border-slate-200">
+                  <th className="py-3 px-4 text-left font-semibold sticky left-0 min-w-[300px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" style={{ backgroundColor: "var(--color-table-header-bg, #f8fafc)" }}>
                     Conta
                   </th>
                   {displayMonths.map(month => (
-                    <th key={month} className="py-3 px-3 text-right font-semibold text-slate-700 min-w-[100px]">
+                    <th key={month} className="py-3 px-3 text-right font-semibold min-w-[100px]">
                       {showMonthYear 
                         ? `${(MONTH_ABBREV[month] || month.substring(0, 3)).toUpperCase()}/${selectedYear}`
                         : MONTH_ABBREV[month] || month.substring(0, 3)
                       }
                     </th>
                   ))}
-                  <th className="py-3 px-3 text-right font-semibold text-slate-700 min-w-[120px] bg-slate-200">
+                  <th className="py-3 px-3 text-right font-semibold min-w-[120px]" style={{ backgroundColor: "var(--color-table-header-bg, #e2e8f0)" }}>
                     Total
                   </th>
                 </tr>
