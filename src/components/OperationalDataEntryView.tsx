@@ -401,7 +401,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   placeholder="Selecionar indicadores..."
                 />
               </div>
-              <div className="md:col-span-1">
+              <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
                 <StyledSelect
                   value={selectedYear}
@@ -438,7 +438,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                   {filteredCompanies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
                 </StyledSelect>
               </div>
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Departamento</label>
                 <StyledSelect
                   value={selectedDepartment}
