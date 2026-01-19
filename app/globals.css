@@ -12,12 +12,11 @@
   /* =====================================================
      CORE BRAND COLORS - Cores principais da marca
      ===================================================== */
-  --color-primary: #1e3a5f;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
-  --color-primary-hover: #2d4a6f;        /* Azul escuro hover - Estado de hover em botões e links primários */
-  --color-primary-50: rgba(30, 58, 95, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
-  --color-primary-100: rgba(30, 58, 95, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
+  --color-primary: #236fd1;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
+  --color-primary-hover: #236fd1;        /* Azul escuro hover - Estado de hover em botões e links primários */
+  --color-primary-50: rgb(30, 111, 209, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
+  --color-primary-100: rgb(30, 111, 209, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
   --color-on-primary: #ffffff;           /* Branco - Texto e ícones sobre fundos primários (botões azuis) */
-
   --color-secondary: #f1f5f9;            /* Cinza claro - Fundo de áreas secundárias, filtros, badges */
   --color-secondary-hover: #e2e8f0;      /* Cinza médio - Hover em elementos secundários */
 
@@ -30,8 +29,8 @@
   --color-warning-50: rgba(245, 158, 11, 0.1);  /* Amarelo transparente - Fundo de alertas de aviso */
   --color-error: #ef4444;                /* Vermelho - Erros, valores negativos, exclusões */
   --color-error-50: rgba(239, 68, 68, 0.1);     /* Vermelho transparente - Fundo de alertas de erro */
-  --color-info: #1e3a5f;                 /* Azul claro - Informações, dicas, badges informativos */
-  --color-info-50: rgb(30, 58, 95, 0.1);     /* Azul transparente - Fundo de alertas informativos */
+  --color-info: #1e6fd1;                 /* Azul claro - Informações, dicas, badges informativos */
+  --color-info-50: rgb(30, 111, 209, 0.1);     /* Azul transparente - Fundo de alertas informativos */
 
   /* =====================================================
      NEUTRAL PALETTE - Cores neutras para fundos
@@ -52,15 +51,14 @@
   /* =====================================================
      SIDEBAR - Cores da barra lateral de navegação
      ===================================================== */
-  --color-sidebar-icon-bar: #1e3a5f;     /* Azul escuro - Fundo da barra de ícones da sidebar (coluna estreita com ícones) */
-  --sidebar-icon-bar-width: 88px;        /* Largura da barra de ícones da sidebar (padrão: 88px) */
+  --color-sidebar-icon-bar: #1e6fd1;     /* Azul escuro - Fundo da barra de ícones da sidebar (coluna estreita com ícones) */
   --color-bg-sidebar: #0f172a;           /* Azul muito escuro - Fundo do painel expandido da sidebar */
   --color-sidebar-text: #cbd5e1;         /* Cinza claro - Texto dos itens de menu da sidebar */
   --color-sidebar-section-title: #64748b; /* Cinza médio - Títulos de seções na sidebar */
   --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* Branco transparente - Hover nos itens da sidebar */
-  --color-sidebar-active: rgba(30, 58, 95, 0.15);    /* Azul transparente - Item ativo na sidebar */
+  --color-sidebar-active: rgb(30, 111, 209, 0.15);    /* Azul transparente - Item ativo na sidebar */
   --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* Escuro transparente - Fundo do rodapé da sidebar */
-  --color-learning-center: #b03fcf;              /* Roxo - Fundo do item Central de Aprendizado (estimula aprendizado) */
+  --color-learning-center: #8212f3;              /* Roxo - Fundo do item Central de Aprendizado (estimula aprendizado) */
   
   /* =====================================================
      HEADER - Cores do cabeçalho superior
@@ -79,7 +77,7 @@
   /* =====================================================
      TABLE COLORS - Cores das tabelas de dados
      ===================================================== */
-  --color-table-header-bg: #1e3a5f;      /* Azul - Fundo do cabeçalho das tabelas (DRE, Balanço, Dados Operacionais) */
+  --color-table-header-bg: #1e6fd1;      /* Azul - Fundo do cabeçalho das tabelas (DRE, Balanço, Dados Operacionais) */
   --color-table-header-text: #ffffff;    /* Branco - Texto do cabeçalho das tabelas */
   --color-table-row-bg: #ffffff;         /* Branco - Fundo padrão das linhas da tabela */
   --color-table-row-hover: #f8fafc;      /* Cinza claro - Hover nas linhas da tabela */
