@@ -596,16 +596,14 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
     }
 
     if (dbTable === "mapeamento_contas") {
-      return {
-        id: item.id,
+      const obj: any = {
         conta_contabil_id: item.accountingAccountId || item.conta_contabil_id,
-        conta_dre_id: item.dreAccountId || item.conta_dre_id,
-        dre_account_id: item.dreAccountId || item.dre_account_id,
-        idconta: item.idconta,
-        conta: item.conta,
-        conta_gerencial: item.contasintetica || item.conta_gerencial,
         organizacao_id: tenantId,
       }
+      if (item.id && !item.id.startsWith("new_")) obj.id = item.id
+      if (item.dreAccountId || item.conta_dre_id) obj.conta_dre_id = item.dreAccountId || item.conta_dre_id
+      if (item.balanceAccountId || item.conta_balanco_id) obj.conta_balanco_id = item.balanceAccountId || item.conta_balanco_id
+      return obj
     }
 
     if (dbTable === "benchmarks") {
