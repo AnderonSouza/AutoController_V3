@@ -19,6 +19,59 @@ interface OperationalDataEntryViewProps {
 const CURRENT_YEAR = new Date().getFullYear()
 const AVAILABLE_YEARS = [CURRENT_YEAR + 1, CURRENT_YEAR, CURRENT_YEAR - 1]
 
+const getDecimalPlaces = (unidade: string): number => {
+  switch (unidade) {
+    case 'R$':
+    case '%':
+      return 2
+    case 'Unidades':
+    case 'Quantidade':
+    case 'Litros':
+    case 'Metros':
+    case 'Horas':
+    case 'Dias':
+    default:
+      return 0
+  }
+}
+
+const formatValueByUnit = (value: number | null, unidade: string): string => {
+  if (value === null || value === undefined) return ''
+  const decimals = getDecimalPlaces(unidade)
+  return value.toLocaleString('pt-BR', { 
+    minimumFractionDigits: decimals, 
+    maximumFractionDigits: decimals 
+  })
+}
+
+const parseFormattedValue = (formatted: string): number | null => {
+  if (!formatted || formatted.trim() === '' || formatted === '-') return null
+  const cleaned = formatted.replace(/\./g, '').replace(',', '.')
+  const num = parseFloat(cleaned)
+  return isNaN(num) ? null : num
+}
+
+const formatInputValue = (input: string, unidade: string): string => {
+  const cleaned = input.replace(/[^\d,.-]/g, '')
+  const decimals = getDecimalPlaces(unidade)
+  const onlyDigitsAndSeparator = cleaned.replace(/[^\d,]/g, '')
+  const parts = onlyDigitsAndSeparator.split(',')
+  let intPart = parts[0].replace(/\D/g, '')
+  let decPart = parts[1] || ''
+  if (intPart.length > 1) {
+    intPart = intPart.replace(/^0+/, '') || '0'
+  }
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  if (decimals === 0) {
+    return formattedInt
+  }
+  if (onlyDigitsAndSeparator.includes(',')) {
+    decPart = decPart.slice(0, decimals)
+    return `${formattedInt},${decPart}`
+  }
+  return formattedInt
+}
+
 interface OperationalValueRow {
   id: string
   organizacaoId: string
@@ -177,10 +230,23 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
     return found?.valor ?? null
   }
 
-  const handleValueChange = (indicatorId: string, companyId: string, year: number, month: string, value: string) => {
+  const [formattedInputs, setFormattedInputs] = useState<Record<string, string>>({})
+
+  const handleValueChange = (indicatorId: string, companyId: string, year: number, month: string, value: string, unidade: string) => {
     const key = getValueKey(indicatorId, companyId, year, month)
-    const numValue = value === "" ? null : parseFloat(value)
+    const formatted = formatInputValue(value, unidade)
+    setFormattedInputs(prev => ({ ...prev, [key]: formatted }))
+    const numValue = parseFormattedValue(formatted)
     setPendingChanges(prev => ({ ...prev, [key]: numValue }))
+  }
+
+  const getDisplayValue = (indicatorId: string, companyId: string, year: number, month: string, unidade: string): string => {
+    const key = getValueKey(indicatorId, companyId, year, month)
+    if (formattedInputs.hasOwnProperty(key)) {
+      return formattedInputs[key]
+    }
+    const value = getValue(indicatorId, companyId, year, month)
+    return formatValueByUnit(value, unidade)
   }
 
   const handleSave = async () => {
@@ -224,6 +290,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       }
 
       setPendingChanges({})
+      setFormattedInputs({})
       await loadData()
       alert('Dados salvos com sucesso!')
     } catch (err) {
@@ -237,6 +304,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   const handleCancelChanges = () => {
     if (confirm('Deseja descartar todas as alterações não salvas?')) {
       setPendingChanges({})
+      setFormattedInputs({})
     }
   }
 
@@ -504,14 +572,16 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                       </td>
                       {selectedPeriod.years.sort((a, b) => a - b).map(year => (
                         selectedMonths.map(month => {
-                          const value = getValue(indicator.id, company.id, year, month)
+                          const displayVal = getDisplayValue(indicator.id, company.id, year, month, indicator.unidadeMedida)
+                          const hasValue = displayVal !== ''
                           return (
                             <td key={`${year}-${month}`} className="py-0 px-0">
                               <input
-                                type="number"
-                                value={value ?? ''}
-                                onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
-                                className={`w-full text-center border-0 py-2 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary ${value !== null && value !== undefined && value !== '' ? 'bg-emerald-50 text-emerald-700' : 'bg-white'}`}
+                                type="text"
+                                inputMode="decimal"
+                                value={displayVal}
+                                onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value, indicator.unidadeMedida)}
+                                className={`w-full text-center border-0 py-2 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary ${hasValue ? 'bg-emerald-50 text-emerald-700' : 'bg-white'}`}
                                 placeholder="-"
                               />
                             </td>
