@@ -52,24 +52,21 @@ const parseFormattedValue = (formatted: string): number | null => {
 }
 
 const formatInputValue = (input: string, unidade: string): string => {
-  const cleaned = input.replace(/[^\d,.-]/g, '')
   const decimals = getDecimalPlaces(unidade)
-  const onlyDigitsAndSeparator = cleaned.replace(/[^\d,]/g, '')
-  const parts = onlyDigitsAndSeparator.split(',')
-  let intPart = parts[0].replace(/\D/g, '')
-  let decPart = parts[1] || ''
-  if (intPart.length > 1) {
-    intPart = intPart.replace(/^0+/, '') || '0'
-  }
-  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  if (decimals === 0) {
-    return formattedInt
-  }
-  if (onlyDigitsAndSeparator.includes(',')) {
-    decPart = decPart.slice(0, decimals)
+  const onlyDigits = input.replace(/\D/g, '')
+  
+  if (!onlyDigits) return ''
+  
+  if (decimals > 0) {
+    const padded = onlyDigits.padStart(decimals + 1, '0')
+    const intPart = padded.slice(0, -decimals).replace(/^0+/, '') || '0'
+    const decPart = padded.slice(-decimals)
+    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
     return `${formattedInt},${decPart}`
+  } else {
+    const intPart = onlyDigits.replace(/^0+/, '') || '0'
+    return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   }
-  return formattedInt
 }
 
 interface OperationalValueRow {
