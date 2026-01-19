@@ -341,7 +341,8 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+          style={{ backgroundColor: 'var(--color-primary)' }}
         >
           <Plus className="w-4 h-4" />
           Nova Fórmula
