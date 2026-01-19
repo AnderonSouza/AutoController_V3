@@ -487,6 +487,8 @@ export interface Notification {
 // DADOS OPERACIONAIS (KPIs não-financeiros)
 // ============================================================
 
+export type EscopoIndicador = "empresa" | "marca" | "departamento" | "loja" | "consolidado"
+
 export interface OperationalIndicator {
   id: string
   organizacaoId: string
@@ -496,7 +498,7 @@ export interface OperationalIndicator {
   categoria?: string
   unidadeMedida: string
   natureza: "volume" | "eficiencia" | "qualidade" | "financeiro"
-  escopo: "empresa" | "marca" | "departamento" | "loja" | "consolidado"
+  escopos: EscopoIndicador[]
   permiteMeta: boolean
   ativo: boolean
   ordem: number
