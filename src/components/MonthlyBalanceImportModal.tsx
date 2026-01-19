@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import StyledSelect from './StyledSelect';
+import SearchableSelect from './SearchableSelect';
 import { MonthlyBalanceEntry, Company } from '../types';
 import { CALENDAR_MONTHS } from '../constants';
 import { bulkSaveSaldosMensais, SaldosMensaisImportStats } from '../utils/db';
@@ -63,6 +64,14 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+    
+    const ignoredRowsRef = useRef<Array<{ codigo: string; valor: string; motivo: string }>>([]);
+
+    const sortedCompanyOptions = useMemo(() => {
+        return companies
+            .map(c => ({ id: c.id, name: c.nickname || c.name }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    }, [companies]);
 
     useEffect(() => {
         if (isOpen) {
@@ -87,6 +96,7 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                 deletedRecords: 0,
                 accountErrors: []
             });
+            ignoredRowsRef.current = [];
         }
     }, [isOpen]);
 
@@ -195,12 +205,14 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                 for (const row of chunkRaw) {
                     if (!row || row.length === 0) {
                         cumulativeStats.invalidData++;
+                        ignoredRowsRef.current.push({ codigo: '-', valor: '-', motivo: 'Linha vazia' });
                         continue;
                     }
                     
                     const codigoConta = row[codigoContaIdx];
                     if (!codigoConta) {
                         cumulativeStats.invalidData++;
+                        ignoredRowsRef.current.push({ codigo: '-', valor: '-', motivo: 'Código da conta vazio' });
                         continue;
                     }
 
@@ -208,7 +220,15 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                         if (map.colIdx === -1) continue;
                         
                         let valRaw = row[map.colIdx];
-                        if (valRaw === undefined || valRaw === null) continue;
+                        if (valRaw === undefined || valRaw === null) {
+                            cumulativeStats.zeroValues++;
+                            ignoredRowsRef.current.push({ 
+                                codigo: String(codigoConta), 
+                                valor: 'vazio', 
+                                motivo: `Valor vazio para ${map.month}/${map.year}` 
+                            });
+                            continue;
+                        }
 
                         let val = 0;
                         if (typeof valRaw === 'number') val = valRaw;
@@ -221,6 +241,21 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
 
                         if (isNaN(val)) {
                             cumulativeStats.invalidData++;
+                            ignoredRowsRef.current.push({ 
+                                codigo: String(codigoConta), 
+                                valor: String(valRaw), 
+                                motivo: `Valor inválido para ${map.month}/${map.year}` 
+                            });
+                            continue;
+                        }
+                        
+                        if (val === 0) {
+                            cumulativeStats.zeroValues++;
+                            ignoredRowsRef.current.push({ 
+                                codigo: String(codigoConta), 
+                                valor: '0', 
+                                motivo: `Valor zero para ${map.month}/${map.year}` 
+                            });
                             continue;
                         }
 
@@ -287,7 +322,12 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
             ``,
             `CONTAS NÃO ENCONTRADAS NO PLANO DE CONTAS:`,
             `Código;Quantidade`,
-            ...stats.accountErrors.map(e => `${e.codigo};${e.count}`)
+            ...stats.accountErrors.map(e => `${e.codigo};${e.count}`),
+            ``,
+            `LINHAS IGNORADAS (${ignoredRowsRef.current.length} registros):`,
+            `Código;Valor;Motivo`,
+            ...ignoredRowsRef.current.slice(0, 5000).map(r => `${r.codigo};${r.valor};${r.motivo}`),
+            ...(ignoredRowsRef.current.length > 5000 ? [`... e mais ${ignoredRowsRef.current.length - 5000} registros (limite de exportação)`] : [])
         ];
         
         const blob = new Blob([summaryLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -342,10 +382,13 @@ const MonthlyBalanceImportModal: React.FC<MonthlyBalanceImportModalProps> = ({ i
                                 <div className="grid grid-cols-2 gap-6">
                                     <div>
                                         <label className="text-xs font-bold text-slate-600 uppercase mb-2 block tracking-wide">Empresa Destino</label>
-                                        <StyledSelect value={selectedCompanyId} onChange={e => setSelectedCompanyId(e.target.value)} containerClassName="w-full" className="h-11 pl-4 text-sm font-medium border-slate-300 focus:border-primary">
-                                            <option value="">Selecione a empresa...</option>
-                                            {companies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
-                                        </StyledSelect>
+                                        <SearchableSelect 
+                                            value={selectedCompanyId} 
+                                            onChange={(val) => setSelectedCompanyId(val)} 
+                                            options={sortedCompanyOptions}
+                                            placeholder="Digite para buscar empresa..."
+                                            className="h-11"
+                                        />
                                         <p className="text-xs text-slate-400 mt-1.5">Todos os saldos importados serão atribuídos a esta empresa.</p>
                                     </div>
                                     <div>
