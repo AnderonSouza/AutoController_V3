@@ -433,7 +433,7 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
       }
     }
     if (dbTable === "mapeamento_contas") {
-      // Return basic mapping data - names will be enriched in useAppData hook
+      // Return mapping data with both new and legacy field names for compatibility
       return {
         id: item.id,
         accountingAccountId: item.conta_contabil_id,
@@ -441,6 +441,10 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         balanceAccountId: item.conta_balanco_id,
         economicGroupId: item.organizacao_id,
         createdAt: item.criado_em,
+        // Legacy fields for UI compatibility
+        idconta: item.conta_contabil_id,
+        contaContabilId: item.conta_contabil_id,
+        contaBalancoId: item.conta_balanco_id,
       }
     }
     if (dbTable === "modelos_relatorios") {
@@ -597,12 +601,12 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
 
     if (dbTable === "mapeamento_contas") {
       const obj: any = {
-        conta_contabil_id: item.accountingAccountId || item.conta_contabil_id,
+        conta_contabil_id: item.accountingAccountId || item.idconta || item.conta_contabil_id,
         organizacao_id: tenantId,
       }
       if (item.id && !item.id.startsWith("new_")) obj.id = item.id
       if (item.dreAccountId || item.conta_dre_id) obj.conta_dre_id = item.dreAccountId || item.conta_dre_id
-      if (item.balanceAccountId || item.conta_balanco_id) obj.conta_balanco_id = item.balanceAccountId || item.conta_balanco_id
+      if (item.balanceAccountId || item.contaBalancoId || item.conta_balanco_id) obj.conta_balanco_id = item.balanceAccountId || item.contaBalancoId || item.conta_balanco_id
       return obj
     }
 
