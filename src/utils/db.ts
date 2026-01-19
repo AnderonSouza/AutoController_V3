@@ -635,6 +635,7 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
       if (item.order !== undefined) obj.ordem = item.order
       if (item.reducedCode !== undefined) obj.codigo_reduzido = item.reducedCode
       if (item.naturezaConta !== undefined) obj.natureza_conta = item.naturezaConta
+      if (item.grupoConta !== undefined) obj.grupo_conta = item.grupoConta
       return obj
     }
 

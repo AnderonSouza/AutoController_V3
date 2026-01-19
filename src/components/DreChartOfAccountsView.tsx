@@ -353,8 +353,8 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                         }
                     } else if (grupoConta || naturezaConta) {
                         const current = newAccountsMap.get(dreName)!;
-                        if (grupoConta && !current.grupoConta) current.grupoConta = grupoConta;
-                        if (naturezaConta && !current.naturezaConta) current.naturezaConta = naturezaConta;
+                        if (grupoConta) current.grupoConta = grupoConta;
+                        if (naturezaConta) current.naturezaConta = naturezaConta;
                     }
                     
                     const targetDreAccount = newAccountsMap.get(dreName);
@@ -397,11 +397,14 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
             if (uniqueNewAccounts.length > 0) {
                 const combinedAccounts = [...editableAccounts];
                 uniqueNewAccounts.forEach(newAcc => {
-                    if (!combinedAccounts.find(a => a.id === newAcc.id)) {
+                    const existingIndex = combinedAccounts.findIndex(a => a.id === newAcc.id);
+                    if (existingIndex >= 0) {
+                        combinedAccounts[existingIndex] = newAcc;
+                    } else {
                         combinedAccounts.push(newAcc);
                     }
                 });
-                await onSave(combinedAccounts);
+                await onSave(uniqueNewAccounts);
                 setEditableAccounts(combinedAccounts);
             }
 
