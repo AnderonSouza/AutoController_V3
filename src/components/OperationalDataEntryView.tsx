@@ -361,8 +361,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
 
   return (
     <main className="flex-grow flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-      <div className="m-4 mb-0 bg-white rounded-t-lg border border-b-0 border-slate-200">
-      <div className="px-4 py-3 flex justify-between items-center shrink-0">
+      <div className="mx-2 mt-2 mb-0 bg-white rounded-t-lg border border-b-0 border-slate-200">
+      <div className="px-4 py-2 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           {onNavigateBack && (
             <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
@@ -461,7 +461,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       </div>
       </div>
 
-      <div className="flex-grow mx-4 mb-4 overflow-hidden bg-white">
+      <div className="flex-grow mx-2 mb-2 overflow-hidden bg-white">
         <div className="overflow-auto h-full">
         {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
           <table className="min-w-full border-separate border-spacing-0">
