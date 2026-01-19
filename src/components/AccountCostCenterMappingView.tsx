@@ -81,7 +81,7 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
             return acc;
         }, [] as AccountCostCenterMapping[]);
 
-        setMappedAccounts([...mergedData, ...orphanMappings].sort((a, b) => a.idconta.localeCompare(b.idconta)));
+        setMappedAccounts([...mergedData, ...orphanMappings].sort((a, b) => (a.idconta || '').localeCompare(b.idconta || '')));
 
     }, [chartOfAccounts, mappings, tenantId]);
     
