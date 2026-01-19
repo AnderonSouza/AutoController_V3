@@ -281,7 +281,7 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
                         <table className="min-w-full divide-y divide-slate-100">
                             <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th className="py-4 px-6 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-32 border-b border-slate-200">ID</th>
+                                    <th className="py-4 px-6 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-40 border-b border-slate-200">Código Contábil</th>
                                     <th className="py-4 px-6 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">Conta Contábil</th>
                                     <th className="py-4 px-6 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-1/3 border-b border-slate-200">Destino (Gerencial)</th>
                                     <th className="py-4 px-6 text-center text-xs font-bold text-slate-600 uppercase tracking-wider w-24 border-b border-slate-200">Status</th>
@@ -294,7 +294,7 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
                                         return (
                                             <tr key={mapping.idconta} className={`hover:bg-slate-50 transition-colors ${isUnmapped ? 'bg-orange-50/30' : ''}`}>
                                                 <td className="py-3 px-6 text-xs font-mono text-slate-600 whitespace-nowrap font-bold">
-                                                    {mapping.idconta}
+                                                    {(mapping as any).codigoContabil || '--'}
                                                 </td>
                                                 <td className="py-3 px-6 text-sm text-slate-800 font-medium">
                                                     {mapping.conta}
