@@ -53,6 +53,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
 
   const [anoOrcamento, setAnoOrcamento] = useState(new Date().getFullYear() + 1)
   const [orcamentosGerados, setOrcamentosGerados] = useState<OrcamentoGerado[]>([])
+  const [percentualInputs, setPercentualInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const loadData = async () => {
@@ -641,17 +642,28 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                             <input
                               type="text"
                               inputMode="decimal"
-                              value={regra.percentualCorrecao ? regra.percentualCorrecao.toString().replace('.', ',') : ""}
+                              value={percentualInputs[regra.id!] ?? (regra.percentualCorrecao ? regra.percentualCorrecao.toString().replace('.', ',') : "")}
                               onChange={(e) => {
                                 let val = e.target.value
                                 val = val.replace(/[^0-9,]/g, '')
                                 const parts = val.split(',')
                                 if (parts.length > 2) val = parts[0] + ',' + parts.slice(1).join('')
                                 if (parts[1] && parts[1].length > 2) val = parts[0] + ',' + parts[1].slice(0, 2)
-                                const numVal = parseFloat(val.replace(',', '.')) || 0
-                                const updated = { ...regra, percentualCorrecao: numVal }
-                                saveRegraOrcamento({ ...updated, organizacaoId: tenantId })
-                                setRegras(prev => prev.map(r => r.id === regra.id ? updated : r))
+                                setPercentualInputs(prev => ({ ...prev, [regra.id!]: val }))
+                              }}
+                              onBlur={() => {
+                                const val = percentualInputs[regra.id!]
+                                if (val !== undefined) {
+                                  const numVal = parseFloat(val.replace(',', '.')) || 0
+                                  const updated = { ...regra, percentualCorrecao: numVal }
+                                  saveRegraOrcamento({ ...updated, organizacaoId: tenantId })
+                                  setRegras(prev => prev.map(r => r.id === regra.id ? updated : r))
+                                  setPercentualInputs(prev => {
+                                    const copy = { ...prev }
+                                    delete copy[regra.id!]
+                                    return copy
+                                  })
+                                }
                               }}
                               className={`${inputClasses} pr-10`}
                               placeholder="5,0"
