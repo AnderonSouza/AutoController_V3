@@ -3,6 +3,7 @@ import { DreAccount, FinancialAccount, AccountCostCenterMapping, NaturezaConta }
 import StyledSelect from './StyledSelect';
 import SearchableSelect from './SearchableSelect';
 import FileImportModal, { ImportFieldDefinition } from './FileImportModal';
+import ImportResultModal, { ImportResult, ImportError } from './ImportResultModal';
 import { generateUUID } from '../utils/helpers';
 import { getCadastro, saveCadastroTenant } from '../utils/db';
 
@@ -220,6 +221,7 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
     const [accountToDelete, setAccountToDelete] = useState<DreAccount | null>(null);
     const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
+    const [importResult, setImportResult] = useState<ImportResult | null>(null);
     
     // Ref for scrolling
     const listRef = useRef<HTMLDivElement>(null);
@@ -309,9 +311,12 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
 
             const newMappingsMap = new Map<string, AccountCostCenterMapping>();
             const newAccountsMap = new Map<string, DreAccount>();
-            const errors: string[] = [];
+            const importErrors: ImportError[] = [];
+            const importWarnings: ImportError[] = [];
             
             data.forEach((row, index) => {
+                const excelLine = index + 2;
+                
                 if (row.dre_name) {
                     const dreName = String(row.dre_name).trim();
                     if (!dreName) return;
@@ -321,7 +326,15 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                     const validNaturezas = ['Receita', 'Despesa', 'Custo', 'Outros'];
                     const naturezaConta = naturezaRaw && validNaturezas.includes(naturezaRaw) ? naturezaRaw as NaturezaConta : undefined;
 
-                    // 1. Prepare DRE Account (Deduped)
+                    if (naturezaRaw && !naturezaConta) {
+                        importWarnings.push({
+                            linha: excelLine,
+                            campo: 'Natureza da Conta',
+                            valor: naturezaRaw,
+                            motivo: 'Valor inválido. Use: Receita, Despesa, Custo ou Outros'
+                        });
+                    }
+
                     if (!newAccountsMap.has(dreName)) {
                         const existing = accounts.find(a => a.name === dreName);
                         if (existing) {
@@ -346,7 +359,6 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                     
                     const targetDreAccount = newAccountsMap.get(dreName);
 
-                    // 2. Prepare Mapping
                     if (row.accounting_id && targetDreAccount) {
                         const rawCode = String(row.accounting_id).trim();
                         const normalizedInputCode = normalizeCode(rawCode);
@@ -354,7 +366,12 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                         let accountingId = codeToUuidMap.get(rawCode) || codeToUuidMap.get(normalizedInputCode);
 
                         if (!accountingId) {
-                             errors.push(`Linha ${index + 2}: Conta Contábil "${rawCode}" não encontrada no Plano de Contas.`);
+                            importErrors.push({
+                                linha: excelLine,
+                                campo: 'Conta ID (Contábil)',
+                                valor: rawCode,
+                                motivo: 'Conta não encontrada no Plano de Contas'
+                            });
                         } else {
                             let accountingName = row.accounting_name ? String(row.accounting_name).trim() : '';
                             if (!accountingName) {
@@ -363,7 +380,6 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                             
                             const existingMapping = freshMappings.find(m => m.idconta === accountingId);
 
-                            // Fix: include economicGroupId
                             newMappingsMap.set(accountingId, { 
                                 id: existingMapping?.id || generateUUID(),
                                 idconta: accountingId, 
@@ -377,7 +393,6 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                 }
             });
 
-            // STEP 1: Save ALL unique DRE Accounts
             const uniqueNewAccounts = Array.from(newAccountsMap.values());
             if (uniqueNewAccounts.length > 0) {
                 const combinedAccounts = [...editableAccounts];
@@ -390,21 +405,33 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                 setEditableAccounts(combinedAccounts);
             }
 
-            // STEP 2: Save Mappings
             const uniqueNewMappings = Array.from(newMappingsMap.values());
             if (uniqueNewMappings.length > 0) { 
                 await onSaveMappings(uniqueNewMappings); 
             }
 
-            let msg = `Importação concluída!\n- ${uniqueNewAccounts.length} contas DRE processadas.\n- ${uniqueNewMappings.length} vínculos contábeis criados/atualizados.`;
-            if (errors.length > 0) {
-                msg += `\n\nATENÇÃO: ${errors.length} vínculos falharam porque o ID da conta não foi encontrado (verifique se o Plano de Contas foi importado):\n` + errors.slice(0, 5).join('\n') + (errors.length > 5 ? '\n...' : '');
-            }
-            alert(msg);
+            setImportResult({
+                success: importErrors.length === 0,
+                contasProcessadas: uniqueNewAccounts.length,
+                vinculosCriados: uniqueNewMappings.length,
+                errors: importErrors,
+                warnings: importWarnings
+            });
 
         } catch (error) {
             console.error("Erro na importação:", error);
-            alert("Erro ao processar o arquivo. Verifique se as colunas estão mapeadas corretamente.");
+            setImportResult({
+                success: false,
+                contasProcessadas: 0,
+                vinculosCriados: 0,
+                errors: [{
+                    linha: 0,
+                    campo: 'Geral',
+                    valor: '-',
+                    motivo: 'Erro ao processar arquivo. Verifique se as colunas estão mapeadas corretamente.'
+                }],
+                warnings: []
+            });
         } finally {
             setIsSaving(false);
         }
@@ -688,6 +715,12 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                 onConfirm={confirmDeleteAccount} 
                 itemName={accountToDelete?.name || ''} 
                 isLoading={isSaving} 
+            />
+            
+            <ImportResultModal 
+                isOpen={!!importResult}
+                onClose={() => setImportResult(null)}
+                result={importResult}
             />
         </main>
     );
