@@ -141,13 +141,15 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                 <div className="flex space-x-4">
                     <button 
                         onClick={() => setActiveTab('definitions')}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'definitions' ? 'bg-primary text-on-primary' : 'text-slate-600 hover:bg-slate-100'}`}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'definitions' ? 'text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                        style={activeTab === 'definitions' ? { backgroundColor: 'var(--color-primary)' } : {}}
                     >
                         1. Cadastro de Premissas
                     </button>
                     <button 
                         onClick={() => setActiveTab('formulas')}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'formulas' ? 'bg-primary text-on-primary' : 'text-slate-600 hover:bg-slate-100'}`}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'formulas' ? 'text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                        style={activeTab === 'formulas' ? { backgroundColor: 'var(--color-primary)' } : {}}
                     >
                         2. Criação de Fórmulas
                     </button>
@@ -169,7 +171,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                 <h2 className="text-xl font-bold text-slate-800">Cadastro de Premissas</h2>
                                 <p className="text-sm text-slate-500">Defina as variáveis do seu negócio (ex: Qtde Vendas, Ticket Médio, Taxa Imposto).</p>
                             </div>
-                            <button onClick={handleAddDefinition} className="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:bg-primary-hover shadow-sm">+ Nova Premissa</button>
+                            <button onClick={handleAddDefinition} className="px-4 py-2 text-white text-sm font-semibold rounded-lg shadow-sm hover:opacity-90" style={{ backgroundColor: 'var(--color-primary)' }}>+ Nova Premissa</button>
                         </div>
                         <div className="space-y-4">
                             {editableAssumptions.map((assumption) => (
@@ -191,7 +193,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                             {editableAssumptions.length === 0 && <p className="text-center text-slate-400 py-8">Nenhuma premissa cadastrada.</p>}
                         </div>
                         <div className="mt-6 flex justify-end border-t pt-4">
-                            <button onClick={handleSaveDefinitions} disabled={isSavingDefinitions} className="px-6 py-2 bg-primary text-on-primary font-semibold rounded-lg hover:bg-primary-hover shadow-sm disabled:bg-slate-400">{isSavingDefinitions ? 'Salvando...' : 'Salvar Definições'}</button>
+                            <button onClick={handleSaveDefinitions} disabled={isSavingDefinitions} className="px-6 py-2 text-white font-semibold rounded-lg shadow-sm hover:opacity-90 disabled:bg-slate-400" style={{ backgroundColor: isSavingDefinitions ? undefined : 'var(--color-primary)' }}>{isSavingDefinitions ? 'Salvando...' : 'Salvar Definições'}</button>
                         </div>
                     </div>
                 )}
@@ -204,7 +206,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                 <h2 className="text-xl font-bold text-slate-800">Fórmulas de Cálculo</h2>
                                 <p className="text-sm text-slate-500">Vincule contas do DRE a cálculos baseados em premissas.</p>
                             </div>
-                            <button onClick={handleAddFormula} className="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:bg-primary-hover shadow-sm">+ Nova Fórmula</button>
+                            <button onClick={handleAddFormula} className="px-4 py-2 text-white text-sm font-semibold rounded-lg shadow-sm hover:opacity-90" style={{ backgroundColor: 'var(--color-primary)' }}>+ Nova Fórmula</button>
                         </div>
 
                         <div className="space-y-6">

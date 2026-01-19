@@ -1,0 +1,258 @@
+90Tracking Prevention blocked access to storage for <URL>.
+12The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+12The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+12The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+VM1902:8 [Coframe] Replit Enterprise watcher loaded
+autocontrollerv2:1  The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+autocontrollerv2:1  The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+autocontrollerv2:1  The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+ac9ba3e8ec8cc75b.js:2 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+ac9ba3e8ec8cc75b.js:2 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+ac9ba3e8ec8cc75b.js:2 [LaunchDarkly] LaunchDarkly client initialized
+autocontrollerv2:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+ac9ba3e8ec8cc75b.js:2  [ai-chat] Creating connection with chat proxy enabled
+(anônimo) @ ac9ba3e8ec8cc75b.js:2
+ed1e693c96a75807.js:2  Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'ambient-light-sensor'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'battery'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'execution-while-not-rendered'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'execution-while-out-of-viewport'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'layout-animations'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'legacy-image-formats'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'navigation-override'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'oversized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'publickey-credentials'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'speaker-selection'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'unoptimized-images'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'unsized-media'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Unrecognized feature: 'pointer-lock'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Allow attribute will take precedence over 'allowfullscreen'.
+z @ ed1e693c96a75807.js:2
+ed1e693c96a75807.js:2  Allow attribute will take precedence over 'allowpaymentrequest'.
+z @ ed1e693c96a75807.js:2
+m.stripe.com/6:1   Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'ambient-light-sensor'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'battery'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'execution-while-not-rendered'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'execution-while-out-of-viewport'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'layout-animations'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'legacy-image-formats'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'navigation-override'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'oversized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'publickey-credentials'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'speaker-selection'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'unoptimized-images'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Unrecognized feature: 'unsized-media'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Allow attribute will take precedence over 'allowfullscreen'.
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Allow attribute will take precedence over 'allowpaymentrequest'.
+(índice):1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://www.chromium.org/developers/design-documents/create-amazing-password-forms) %o
+xlslhsdufcbikcnsxrvb.supabase.co/rest/v1/notificacoes?select=*&recipient_id=eq.44963526-524a-493c-a708-2547be9ca8fb&is_read=eq.false:1   Failed to load resource: the server responded with a status of 400 ()
+(índice):1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://www.chromium.org/developers/design-documents/create-amazing-password-forms) %o
+xlslhsdufcbikcnsxrvb.supabase.co/rest/v1/notificacoes?select=*&recipient_id=eq.44963526-524a-493c-a708-2547be9ca8fb&is_read=eq.false:1   Failed to load resource: the server responded with a status of 400 ()
+workspace_iframe.html?initialPath=%2F&id=%3Ar14%3A:32  Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+forward-logs-shared.ts:95 [HMR] connected
+forward-logs-shared.ts:95 [v0] Applying console theme: Object
+forward-logs-shared.ts:95 [v0] Loading tenants from organizacoes table...
+forward-logs-shared.ts:95 [v0] Loading available tenants...
+forward-logs-shared.ts:95 [v0] Tenant auto-select check: Object
+forward-logs-shared.ts:95 [v0] useAppData loadTenantData check: Object
+forward-logs-shared.ts:95 [v0] useAppData skipping load - missing user or tenantId
+forward-logs-shared.ts:95 [v0] Domain detection: Object
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0] User state changed: Object
+forward-logs-shared.ts:95 [Vercel Web Analytics] Debug mode is enabled by default in development. No requests will be sent to the server.
+forward-logs-shared.ts:95 [Vercel Web Analytics] Running queued event pageview Object
+forward-logs-shared.ts:95 [Vercel Web Analytics] [pageview] https://fb50d15a-fdd8-4356-aff0-b10416a31549-00-28hs715tyyo5l.picard.replit.dev/ Object
+forward-logs-shared.ts:95 [v0] Tenants loaded: 2 organizations
+forward-logs-shared.ts:95 [v0] Available tenants query result: Object
+forward-logs-shared.ts:95 [v0] Available tenants mapped: Array(2)
+forward-logs-shared.ts:95 [v0] Tenant auto-select check: Object
+forward-logs-shared.ts:95 [v0] Tenant subdomain detection: Object
+forward-logs-shared.ts:95 [v0] Auto-selecting tenant from URL/localStorage: Object
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0] Tenant auto-select check: Object
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: organizacoes with filter id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0] useAppData loadTenantData check: Object
+forward-logs-shared.ts:95 [v0] useAppData skipping load - missing user or tenantId
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: benchmarks with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0-db] Query result for organizacoes : Object
+forward-logs-shared.ts:95 [v0-db] Query result for benchmarks : Object
+forward-logs-shared.ts:95 [v0] Console config loaded from DB: Object
+forward-logs-shared.ts:95 [v0] Console config mapped: Object
+forward-logs-shared.ts:95 [v0] Applying console theme: Object
+forward-logs-shared.ts:95 [v0] Splash video URL loaded: https://cdn.midjourney.com/video/28e14fd2-d903-4115-b851-a85d56e2c704/0.mp4
+forward-logs-shared.ts:95 [v0] Splash video URL from DB: https://cdn.midjourney.com/video/28e14fd2-d903-4115-b851-a85d56e2c704/0.mp4
+forward-logs-shared.ts:95 [v0] Starting splash timer for 3 seconds
+forward-logs-shared.ts:95 [v0] Applying global theme from console_config: Object
+forward-logs-shared.ts:95 [v0] Applying console theme: Object
+(índice):1 [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://www.chromium.org/developers/design-documents/create-amazing-password-forms) <input class=​"w-full px-4 py-3 border border-gray-300 rounded focus:​outline-none border-l-4" placeholder=​"••••••••" required type=​"password" value=​"851028M1guel@" style=​"border-left-color:​ var(--color-primary)​;​">​
+forward-logs-shared.ts:95 [v0] Login attempt with email: anderson@autocontroller.ai
+forward-logs-shared.ts:95 [v0] Login attempt: Object
+forward-logs-shared.ts:95 [v0] Auth result: Object
+forward-logs-shared.ts:95 [v0] Fetching user profile...
+forward-logs-shared.ts:95 [v0] Profile result: Object
+forward-logs-shared.ts:95 [v0] Setting user: Object
+forward-logs-shared.ts:95 [v0] Login successful, App.tsx will handle navigation
+forward-logs-shared.ts:95 [v0] Activating post-login splash screen
+forward-logs-shared.ts:95 [v0] Tenant auto-select check: Object
+forward-logs-shared.ts:95 [v0] useAppData loadTenantData check: Object
+forward-logs-shared.ts:95 [v0] useAppData starting data load for tenant: 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: usuarios with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: marcas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: empresas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: departamentos with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: modelos_relatorios with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: lancamentos_ajustes with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: plano_contas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: plano_contas_balanco with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: centros_resultado with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: mapeamento_contas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: linhas_relatorio with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: plano_contas_dre with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: premissas_orcamentarias with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: valores_premissas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: saldos_mensais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0] User state changed: Object
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0-db] Query result for premissas_orcamentarias : Object
+forward-logs-shared.ts:95 [v0-db] Query result for departamentos : Object
+forward-logs-shared.ts:95 [v0-db] Query result for empresas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for lancamentos_ajustes : Object
+forward-logs-shared.ts:95 [v0-db] Query result for modelos_relatorios : Object
+forward-logs-shared.ts:95 [v0-db] Query result for linhas_relatorio : Object
+forward-logs-shared.ts:95 [v0-db] Query result for plano_contas_dre : Object
+forward-logs-shared.ts:95 [v0-db] Query result for centros_resultado : Object
+forward-logs-shared.ts:95 [v0-db] Query result for usuarios : Object
+forward-logs-shared.ts:95 [v0-db] Query result for valores_premissas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for plano_contas_balanco : Object
+forward-logs-shared.ts:95 [v0-db] Query result for marcas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for saldos_mensais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for plano_contas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for mapeamento_contas : Object
+forward-logs-shared.ts:95 [v0] Loading DRE data with mappings: Object
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+xlslhsdufcbikcnsxrvb.supabase.co/rest/v1/notificacoes?select=*&recipient_id=eq.44963526-524a-493c-a708-2547be9ca8fb&is_read=eq.false:1   Failed to load resource: the server responded with a status of 400 ()
+forward-logs-shared.ts:95 [v0] Tenant data loading debug: Object
+forward-logs-shared.ts:95 [v0] DRE data loaded: Object
+forward-logs-shared.ts:95 [v0] Post-login splash timer complete
+12injected.js:37  Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+(anônimo) @ injected.js:37
+forward-logs-shared.ts:95 [Fast Refresh] rebuilding
+2injected.js:37  Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+(anônimo) @ injected.js:37
+forward-logs-shared.ts:95 [Fast Refresh] done in 139ms
+injected.js:37  Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+(anônimo) @ injected.js:37
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: formulas_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: modelos_relatorios with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: linhas_relatorio with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: formulas_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: modelos_relatorios with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: linhas_relatorio with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for modelos_relatorios : Object
+forward-logs-shared.ts:95 [v0-db] Query result for linhas_relatorio : Object
+forward-logs-shared.ts:95 [v0-db] Query result for formulas_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for linhas_relatorio : Object
+forward-logs-shared.ts:95 [v0-db] Query result for modelos_relatorios : Object
+forward-logs-shared.ts:95 [v0-db] Query result for formulas_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: valores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: empresas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: marcas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: departamentos with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: valores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: empresas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: marcas with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: departamentos with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] Query result for empresas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for marcas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for departamentos : Object
+forward-logs-shared.ts:95 [v0-db] Query result for valores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for empresas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for valores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for departamentos : Object
+forward-logs-shared.ts:95 [v0-db] Query result for marcas : Object
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] getCadastroTenant called: Object
+forward-logs-shared.ts:95 [v0-db] Querying table: indicadores_operacionais with filter organizacao_id = 2d34f577-049c-46cb-9b4c-99a68134cd86
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+forward-logs-shared.ts:95 [v0-db] Query result for indicadores_operacionais : Object
+2injected.js:37  TypeError: Cannot read properties of undefined (reading 'localeCompare')
+    at ClosingModuleView.tsx:90:67
+    at Array.sort (<anonymous>)
+    at loadBaseData (ClosingModuleView.tsx:90:45)
+(anônimo) @ injected.js:37
