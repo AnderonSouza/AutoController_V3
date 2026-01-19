@@ -12,7 +12,7 @@
   /* =====================================================
      CORE BRAND COLORS - Cores principais da marca
      ===================================================== */
-  --color-primary: #23d16f;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
+  --color-primary: #23d158;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
   --color-primary-hover: #236fd1;        /* Azul escuro hover - Estado de hover em botões e links primários */
   --color-primary-50: rgb(30, 111, 209, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
   --color-primary-100: rgb(30, 111, 209, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
@@ -204,8 +204,8 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -213,7 +213,6 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
