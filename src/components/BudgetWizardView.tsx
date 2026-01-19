@@ -42,7 +42,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
   const [isSaving, setIsSaving] = useState(false)
 
   const [regras, setRegras] = useState<RegraOrcamento[]>([])
-  const [contasDRE, setContasDRE] = useState<{ id: string; nome: string; codigo?: string }[]>([])
+  const [contasDRE, setContasDRE] = useState<{ id: string; nome: string; codigo?: string; grupoDespesa?: string }[]>([])
   const [linhasTotalizadoras, setLinhasTotalizadoras] = useState<{ id: string; nome: string }[]>([])
   const [indices, setIndices] = useState<{ tipo: TipoIndice; valor: number }[]>([])
 
@@ -50,6 +50,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
   const [editingRegra, setEditingRegra] = useState<Partial<RegraOrcamento> | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [showOnlyPending, setShowOnlyPending] = useState(false)
+  const [selectedGrupoDespesa, setSelectedGrupoDespesa] = useState<string>("")
 
   const [anoOrcamento, setAnoOrcamento] = useState(new Date().getFullYear() + 1)
   const [orcamentosGerados, setOrcamentosGerados] = useState<OrcamentoGerado[]>([])
@@ -104,8 +105,20 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     }))
   }, [contasDRE, regras])
 
+  const gruposDespesa = useMemo(() => {
+    const grupos = new Set<string>()
+    contasDRE.forEach(c => {
+      if (c.grupoDespesa) grupos.add(c.grupoDespesa)
+    })
+    return Array.from(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [contasDRE])
+
   const contasFiltradas = useMemo(() => {
     let filtered = contasComStatus
+    
+    if (selectedGrupoDespesa) {
+      filtered = filtered.filter(c => c.grupoDespesa === selectedGrupoDespesa)
+    }
     
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase()
@@ -120,7 +133,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     }
     
     return filtered
-  }, [contasComStatus, searchTerm, showOnlyPending])
+  }, [contasComStatus, searchTerm, showOnlyPending, selectedGrupoDespesa])
 
   const handleAddRegra = (tipoConta: TipoConta) => {
     if (!selectedConta) return
@@ -374,6 +387,19 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                     </button>
                   )}
                 </div>
+                {gruposDespesa.length > 0 && (
+                  <StyledSelect
+                    value={selectedGrupoDespesa}
+                    onChange={(e) => setSelectedGrupoDespesa(e.target.value)}
+                    containerClassName="w-56"
+                    className="py-2.5 text-sm"
+                  >
+                    <option value="">Todos os grupos</option>
+                    {gruposDespesa.map(grupo => (
+                      <option key={grupo} value={grupo}>{grupo}</option>
+                    ))}
+                  </StyledSelect>
+                )}
                 <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer whitespace-nowrap">
                   <input
                     type="checkbox"
