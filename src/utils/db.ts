@@ -1408,9 +1408,10 @@ export const saveRegraOrcamento = async (regra: Partial<RegraOrcamento> & { orga
     if (error) throw error
     return { ...regra, id: data.id } as RegraOrcamento
   } else {
+    const newId = crypto.randomUUID()
     const { data, error } = await supabase
       .from("regras_orcamento")
-      .insert(dbData)
+      .insert({ ...dbData, id: newId })
       .select()
       .single()
 
