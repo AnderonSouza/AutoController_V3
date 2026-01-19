@@ -12,7 +12,7 @@
   /* =====================================================
      CORE BRAND COLORS - Cores principais da marca
      ===================================================== */
-  --color-primary: #236fd1;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
+  --color-primary: #23d16f;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
   --color-primary-hover: #236fd1;        /* Azul escuro hover - Estado de hover em botões e links primários */
   --color-primary-50: rgb(30, 111, 209, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
   --color-primary-100: rgb(30, 111, 209, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
