@@ -52,11 +52,14 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
         // 3. Merge Chart of Accounts with Existing Mappings
         const mergedData: AccountCostCenterMapping[] = analyticalAccounts.map(acc => {
             const existing = existingMap.get(acc.id);
+            // Extract account code for filtering (first digit determines DRE vs Balance)
+            const accountCode = acc.reducedCode || acc.name?.match(/^(\d+)/)?.[1] || '';
             // Fix: include economicGroupId
             return {
                 id: existing?.id || `new_${generateUUID()}`, 
                 idconta: acc.id,
                 conta: acc.name,
+                codigoContabil: accountCode,
                 contasintetica: existing?.contasintetica || '',
                 dreAccountId: existing?.dreAccountId, 
                 economicGroupId: tenantId,
@@ -127,10 +130,10 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
 
     const filteredMappings = useMemo(() => {
         return mappedAccounts.filter(m => {
-            // Filter by Type (Balance vs Result) based on first digit
-            // Assumption: 1=Assets, 2=Liabilities (Balance Sheet). 3+ = Result.
-            if (!m.idconta) return false;
-            const firstDigit = m.idconta.charAt(0);
+            // Filter by Type (Balance vs Result) based on first digit of account code
+            // 1=Assets, 2=Liabilities (Balance Sheet). 3+ = Result (DRE).
+            const accountCode = (m as any).codigoContabil || m.conta || '';
+            const firstDigit = accountCode.charAt(0);
             const isBalanceSheet = firstDigit === '1' || firstDigit === '2';
             
             if (activeTab === 'BALANCE' && !isBalanceSheet) return false;
@@ -154,8 +157,8 @@ const AccountCostCenterMappingView: React.FC<AccountCostCenterMappingViewProps> 
     // Calculate total pending strictly for the current context (Tab)
     const pendingCount = useMemo(() => {
         return mappedAccounts.filter(m => {
-            if (!m.idconta) return false;
-            const firstDigit = m.idconta.charAt(0);
+            const accountCode = (m as any).codigoContabil || m.conta || '';
+            const firstDigit = accountCode.charAt(0);
             const isBalanceSheet = firstDigit === '1' || firstDigit === '2';
             const belongsToTab = activeTab === 'BALANCE' ? isBalanceSheet : !isBalanceSheet;
             return belongsToTab && !m.contasintetica;
