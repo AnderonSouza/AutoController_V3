@@ -1124,27 +1124,38 @@ export const duplicateReportTemplate = async (templateId: string, newName: strin
     .eq("relatorio_id", templateId)
 
   if (!linesError && lines && lines.length > 0) {
+    const linesWithoutHierarchy = lines
+      .filter(line => !line.pai_id)
+      .map(line => {
+        const { id, criado_em, atualizado_em, ...rest } = line
+        return { ...rest, relatorio_id: inserted.id, _original_id: id }
+      })
+
+    const linesWithHierarchy = lines
+      .filter(line => line.pai_id)
+      .map(line => {
+        const { id, criado_em, atualizado_em, ...rest } = line
+        return { ...rest, relatorio_id: inserted.id, _original_id: id, _original_pai_id: line.pai_id }
+      })
+
+    const insertedRoots: any[] = []
+    for (const line of linesWithoutHierarchy) {
+      const { _original_id, ...lineData } = line
+      const { data } = await supabase.from("linhas_relatorio").insert(lineData).select().single()
+      if (data) insertedRoots.push({ ...data, _original_id })
+    }
+
     const idMap = new Map<string, string>()
-    
-    const newLines = lines.map(line => {
-      const newId = crypto.randomUUID()
-      idMap.set(line.id, newId)
-      return {
-        ...line,
-        id: newId,
-        relatorio_id: inserted.id,
-        pai_id: null as string | null,
-      }
-    })
+    insertedRoots.forEach(r => idMap.set(r._original_id, r.id))
 
-    newLines.forEach((line, idx) => {
-      const originalPaiId = lines[idx].pai_id
-      if (originalPaiId && idMap.has(originalPaiId)) {
-        line.pai_id = idMap.get(originalPaiId) || null
+    for (const line of linesWithHierarchy) {
+      const { _original_id, _original_pai_id, ...lineData } = line
+      const newPaiId = idMap.get(_original_pai_id)
+      if (newPaiId) {
+        const { data } = await supabase.from("linhas_relatorio").insert({ ...lineData, pai_id: newPaiId }).select().single()
+        if (data) idMap.set(_original_id, data.id)
       }
-    })
-
-    await supabase.from("linhas_relatorio").insert(newLines)
+    }
   }
 
   return inserted
@@ -1408,10 +1419,9 @@ export const saveRegraOrcamento = async (regra: Partial<RegraOrcamento> & { orga
     if (error) throw error
     return { ...regra, id: data.id } as RegraOrcamento
   } else {
-    const newId = crypto.randomUUID()
     const { data, error } = await supabase
       .from("regras_orcamento")
-      .insert({ ...dbData, id: newId })
+      .insert(dbData)
       .select()
       .single()
 
