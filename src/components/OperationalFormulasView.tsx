@@ -184,8 +184,11 @@ const OperationalFormulasView: React.FC<OperationalFormulasViewProps> = ({ tenan
     if (!confirm("Tem certeza que deseja excluir esta fórmula?")) return
 
     try {
+      console.log("[v0] Deleting formula with id:", id)
       await deleteById("operational_formulas", id)
+      console.log("[v0] Formula deleted successfully, reloading data...")
       await loadData()
+      console.log("[v0] Data reloaded after delete")
     } catch (err) {
       console.error("Erro ao excluir fórmula:", err)
       alert("Erro ao excluir fórmula.")

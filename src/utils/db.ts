@@ -224,7 +224,9 @@ export const saveCadastro = async (table: string, data: any[]): Promise<any[]> =
 
 export const deleteById = async (table: string, id: string): Promise<void> => {
   const dbTable = resolveTableName(table)
-  const { error } = await supabase.from(dbTable).delete().eq("id", id)
+  console.log("[v0-db] deleteById called:", { table, dbTable, id })
+  const { error, count } = await supabase.from(dbTable).delete().eq("id", id)
+  console.log("[v0-db] deleteById result:", { error, count })
   if (error) throw error
 }
 
