@@ -61,7 +61,15 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
 }) => {
   const [user, setUser] = useState<User>(() => {
     const u = JSON.parse(JSON.stringify(initialUser))
-    if (!u.permissions) u.permissions = {}
+    if (!u.permissions) {
+      u.permissions = {}
+    } else if (typeof u.permissions === "string") {
+      try {
+        u.permissions = JSON.parse(u.permissions)
+      } catch {
+        u.permissions = {}
+      }
+    }
     if (!Array.isArray(u.permissions.economicGroups)) u.permissions.economicGroups = []
     if (!Array.isArray(u.permissions.brands)) u.permissions.brands = []
     if (!Array.isArray(u.permissions.stores)) u.permissions.stores = []
