@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { DreAccount, FinancialAccount, AccountCostCenterMapping } from '../types';
+import { DreAccount, FinancialAccount, AccountCostCenterMapping, NaturezaConta } from '../types';
 import StyledSelect from './StyledSelect';
 import SearchableSelect from './SearchableSelect';
 import FileImportModal, { ImportFieldDefinition } from './FileImportModal';
 import { generateUUID } from '../utils/helpers';
-import { getCadastro } from '../utils/db'; // Importação direta para recarga
+import { getCadastro, saveCadastroTenant } from '../utils/db';
+
+const NATUREZAS_CONTA: NaturezaConta[] = ['Receita', 'Despesa', 'Custo', 'Outros'];
 
 interface DreChartOfAccountsViewProps {
   accounts: DreAccount[];
@@ -263,8 +265,8 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
         try {
             // REFRESH DATA FROM DB TO ENSURE WE HAVE LATEST ACCOUNTS
             const [freshAccountingAccounts, freshMappings] = await Promise.all([
-                getCadastro<FinancialAccount>('chart_of_accounts'),
-                getCadastro<AccountCostCenterMapping>('account_cost_center_mapping')
+                getCadastro('chart_of_accounts') as Promise<FinancialAccount[]>,
+                getCadastro('account_cost_center_mapping') as Promise<AccountCostCenterMapping[]>
             ]);
 
             const codeToUuidMap = new Map<string, string>();
@@ -515,6 +517,20 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
     const getLinkedCount = (accountName: string) => propCurrentMappings.filter(m => m.contasintetica?.trim() === accountName?.trim()).length;
     const filteredAccounts = useMemo(() => !searchTerm.trim() ? editableAccounts : editableAccounts.filter(acc => acc.name.toLowerCase().includes(searchTerm.toLowerCase())), [editableAccounts, searchTerm]);
 
+    const handleNaturezaChange = async (accountId: string, natureza: NaturezaConta | '') => {
+        const account = editableAccounts.find(a => a.id === accountId);
+        if (!account) return;
+        
+        const updatedAccount = { ...account, naturezaConta: natureza || undefined };
+        setEditableAccounts(prev => prev.map(a => a.id === accountId ? updatedAccount : a));
+        
+        try {
+            await saveCadastroTenant('plano_contas_dre', [updatedAccount], tenantId);
+        } catch (err) {
+            console.error('Erro ao salvar natureza:', err);
+        }
+    };
+
     // FILTER ACCOUNTING ACCOUNTS FOR MODAL (RESULT ONLY)
     // Filtra apenas contas analíticas (tipo = "A") que começam com 3 (contas de resultado)
     const resultAccountingAccounts = useMemo(() => {
@@ -585,6 +601,22 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                                             )}
                                             {!isEditing && <span className="text-xs text-slate-400 block mt-0.5 font-mono">{account.id.startsWith('new_') ? 'Novo' : `ID: ${account.id.substring(0,8)}...`}</span>}
                                         </div>
+                                        <select
+                                            value={account.naturezaConta || ''}
+                                            onChange={(e) => handleNaturezaChange(account.id, e.target.value as NaturezaConta | '')}
+                                            className={`px-2 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer ${
+                                                account.naturezaConta 
+                                                    ? account.naturezaConta === 'Receita' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                    : account.naturezaConta === 'Despesa' ? 'bg-red-50 text-red-700 border-red-200'
+                                                    : account.naturezaConta === 'Custo' ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                                                    : 'bg-slate-50 text-slate-400 border-slate-200'
+                                            }`}
+                                            title="Natureza da conta"
+                                        >
+                                            <option value="">Natureza...</option>
+                                            {NATUREZAS_CONTA.map(n => <option key={n} value={n}>{n}</option>)}
+                                        </select>
                                         <button onClick={() => openMappingModal(account)} className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${linkedCount > 0 ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-white hover:border-primary hover:text-primary'}`} title="Gerenciar vínculos"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg> {linkedCount > 0 ? `${linkedCount} Vinculada(s)` : 'Vincular'}</button>
                                         <button type="button" onClick={() => handleRemoveAccount(account.id)} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Excluir conta e vínculos"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg></button>
                                     </div>

@@ -338,10 +338,13 @@ export interface BudgetFormula {
   description?: string
 }
 
+export type NaturezaConta = 'Receita' | 'Despesa' | 'Custo' | 'Outros'
+
 export interface DreAccount {
   id: string
   name: string
   economicGroupId: string
+  naturezaConta?: NaturezaConta
 }
 
 export interface Department {

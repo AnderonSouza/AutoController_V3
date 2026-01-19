@@ -431,6 +431,7 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
         order: item.ordem,
         reducedCode: item.codigo_reduzido,
         economicGroupId: item.organizacao_id,
+        naturezaConta: item.natureza_conta,
       }
     }
     if (dbTable === "mapeamento_contas") {
@@ -620,6 +621,19 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
         }
       })
       obj.organizacao_id = tenantId
+      return obj
+    }
+
+    if (dbTable === "plano_contas_dre") {
+      const obj: any = {
+        id: item.id,
+        nome: item.name,
+        organizacao_id: tenantId,
+      }
+      if (item.type !== undefined) obj.tipo = item.type
+      if (item.order !== undefined) obj.ordem = item.order
+      if (item.reducedCode !== undefined) obj.codigo_reduzido = item.reducedCode
+      if (item.naturezaConta !== undefined) obj.natureza_conta = item.naturezaConta
       return obj
     }
 
