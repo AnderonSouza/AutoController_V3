@@ -310,6 +310,7 @@ export interface Benchmark {
   type: "currency" | "percentage" | "number"
   dreAccountId: string
   brandId: string
+  departmentId?: string
   value: number
 }
 

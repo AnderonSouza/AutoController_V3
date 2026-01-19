@@ -1021,6 +1021,7 @@ const App: React.FC = () => {
             }}
             onNavigateBack={() => handleNavigate("COST_CENTERS")}
             brands={brands}
+            departments={departments}
             reportLines={reportLines}
             reportTemplates={reportTemplates}
           />

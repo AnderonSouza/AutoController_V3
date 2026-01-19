@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Benchmark, Brand, ReportLine, ReportTemplate } from '../types';
+import { Benchmark, Brand, Department, ReportLine, ReportTemplate } from '../types';
 import StyledSelect from './StyledSelect';
 import { generateUUID } from '../utils/helpers';
 import { ChevronLeft, Trash2, Plus } from 'lucide-react';
@@ -9,6 +9,7 @@ interface BenchmarkManagementViewProps {
   onSaveBenchmarks: (benchmarks: Benchmark[]) => Promise<void>;
   onNavigateBack: () => void;
   brands: Brand[];
+  departments: Department[];
   reportLines: ReportLine[];
   reportTemplates: ReportTemplate[];
 }
@@ -18,6 +19,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
     onSaveBenchmarks, 
     onNavigateBack,
     brands,
+    departments,
     reportLines,
     reportTemplates
 }) => {
@@ -77,6 +79,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
             type: 'percentage',
             dreAccountId: '',
             brandId: 'all',
+            departmentId: 'all',
             value: 0
         };
         setEditableBenchmarks(prev => [...prev, newBenchmark]);
@@ -130,7 +133,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                     <div className="space-y-4">
                         {editableBenchmarks.map((bench) => (
                             <div key={bench.id} className="list-item !p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                                <div className="lg:col-span-3">
+                                <div className="lg:col-span-2">
                                     <label className="filter-label">Descrição (Indicador)</label>
                                     <input 
                                         type="text" 
@@ -140,7 +143,7 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                         placeholder="Ex: Margem EBITDA Ideal"
                                     />
                                 </div>
-                                <div className="lg:col-span-3">
+                                <div className="lg:col-span-2">
                                     <label className="filter-label">Conta Totalizadora</label>
                                     <StyledSelect 
                                         value={bench.dreAccountId} 
@@ -167,6 +170,19 @@ const BenchmarkManagementView: React.FC<BenchmarkManagementViewProps> = ({
                                         <option value="all">Todas as Marcas</option>
                                         {brands.map(brand => (
                                             <option key={brand.id} value={brand.id}>{brand.name}</option>
+                                        ))}
+                                    </StyledSelect>
+                                </div>
+                                <div className="lg:col-span-2">
+                                    <label className="filter-label">Departamento</label>
+                                    <StyledSelect 
+                                        value={bench.departmentId || 'all'} 
+                                        onChange={(e) => handleFieldChange(bench.id, 'departmentId', e.target.value)}
+                                        containerClassName="w-full"
+                                    >
+                                        <option value="all">Todos os Departamentos</option>
+                                        {departments.map(dept => (
+                                            <option key={dept.id} value={dept.id}>{dept.name}</option>
                                         ))}
                                     </StyledSelect>
                                 </div>
