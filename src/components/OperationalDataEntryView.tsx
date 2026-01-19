@@ -461,57 +461,57 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       </div>
       </div>
 
-      <div className="flex-grow overflow-hidden bg-white rounded-b-lg">
+      <div className="flex-grow overflow-hidden bg-white">
         <div className="overflow-auto h-full">
         {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
-          <table className="min-w-full border-separate border-spacing-0">
-            <thead className="bg-primary sticky top-0 z-30">
-              <tr>
-                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[200px] w-[200px] sticky left-0 bg-primary z-40">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10 shadow-sm" style={{ backgroundColor: "var(--color-table-header-bg, #f8fafc)", color: "var(--color-table-header-text, #1e293b)" }}>
+              <tr className="text-xs font-bold tracking-wider border-b border-slate-200">
+                <th className="py-3 px-4 text-left font-semibold sticky left-0 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" style={{ backgroundColor: "var(--color-table-header-bg, #f8fafc)" }}>
                   Indicador
                 </th>
-                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[180px] w-[180px] sticky left-[200px] bg-primary z-40">
+                <th className="py-3 px-3 text-left font-semibold sticky left-[200px] min-w-[180px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]" style={{ backgroundColor: "var(--color-table-header-bg, #f8fafc)" }}>
                   Loja
                 </th>
                 {(() => {
                   const allCols = selectedPeriod.years.sort((a, b) => a - b).flatMap(year => 
                     selectedMonths.map(month => ({ year, month }))
                   )
-                  return allCols.map((col, idx) => (
-                    <th key={`${col.year}-${col.month}`} className={`p-2 text-center text-xs font-bold text-white uppercase tracking-wider border-b min-w-[85px] ${idx === allCols.length - 1 ? '' : 'border-r border-primary-hover'}`}>
-                      {col.month.slice(0, 3)}/{col.year}
+                  return allCols.map((col) => (
+                    <th key={`${col.year}-${col.month}`} className="py-3 px-3 text-center font-semibold min-w-[100px]">
+                      {col.month.slice(0, 3).toUpperCase()}/{col.year}
                     </th>
                   ))
                 })()}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody>
               {filteredIndicators.map(indicator => (
                 <React.Fragment key={indicator.id}>
                   {displayCompanies.map((company, idx) => (
-                    <tr key={`${indicator.id}-${company.id}`} className="hover:bg-slate-50/50">
+                    <tr key={`${indicator.id}-${company.id}`} className="border-b border-slate-100 hover:brightness-95 transition-colors">
                       {idx === 0 && (
                         <td
                           rowSpan={displayCompanies.length}
-                          className="p-2 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
+                          className="py-2 px-3 sticky left-0 align-top bg-white"
                         >
-                          <div className="font-semibold text-slate-800 text-xs">{indicator.nome}</div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">({indicator.unidadeMedida})</div>
+                          <div className="font-semibold text-slate-800">{indicator.nome}</div>
+                          <div className="text-xs text-slate-400 mt-0.5">({indicator.unidadeMedida})</div>
                         </td>
                       )}
-                      <td className="p-2 text-xs text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
+                      <td className="py-2 px-3 text-slate-700 sticky left-[200px] bg-white">
                         {company.nickname || company.name}
                       </td>
                       {selectedPeriod.years.sort((a, b) => a - b).map(year => (
                         selectedMonths.map(month => {
                           const value = getValue(indicator.id, company.id, year, month)
                           return (
-                            <td key={`${year}-${month}`} className="p-0 border-r border-b">
+                            <td key={`${year}-${month}`} className="py-0 px-0">
                               <input
                                 type="number"
                                 value={value ?? ''}
                                 onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
-                                className={`w-full text-center border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary ${value !== null && value !== undefined && value !== '' ? 'bg-emerald-50 text-emerald-700' : 'bg-white'}`}
+                                className={`w-full text-center border-0 py-2 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary ${value !== null && value !== undefined && value !== '' ? 'bg-emerald-50 text-emerald-700' : 'bg-white'}`}
                                 placeholder="-"
                               />
                             </td>
