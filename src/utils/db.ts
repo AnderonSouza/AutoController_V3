@@ -1568,10 +1568,10 @@ export const fetchHistoricoContas = async (
     }))
 }
 
-export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string; grupoDespesa?: string }[]> => {
+export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string; naturezaConta?: string }[]> => {
   const { data, error } = await supabase
     .from("plano_contas_dre")
-    .select("id, nome, codigo_reduzido, grupo_despesa")
+    .select("id, nome, codigo_reduzido, natureza_conta")
     .eq("organizacao_id", tenantId)
     .order("codigo_reduzido", { ascending: true })
 
@@ -1584,7 +1584,7 @@ export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; no
     id: row.id,
     nome: row.nome,
     codigo: row.codigo_reduzido,
-    grupoDespesa: row.grupo_despesa,
+    naturezaConta: row.natureza_conta,
   }))
 }
 
