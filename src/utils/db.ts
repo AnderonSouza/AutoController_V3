@@ -711,12 +711,10 @@ export const updateExistingUser = async (userData: any, tenantId: string): Promi
     departamento_suporte: userData.supportDepartment,
   }
 
-  // Atualizar senha se fornecida
+  // Nota: Atualização de senha de outros usuários requer service role key
+  // Por segurança, apenas o próprio usuário pode atualizar sua senha via auth.updateUser()
   if (userData.password) {
-    const { error: pwdError } = await supabase.auth.admin.updateUserById(userData.id, { password: userData.password })
-    if (pwdError) {
-      console.error("Erro ao atualizar senha:", pwdError.message)
-    }
+    console.warn("Atualização de senha ignorada - use o fluxo de redefinição de senha")
   }
 
   const { data: savedUser, error: dbError } = await supabase
