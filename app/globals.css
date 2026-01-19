@@ -9,99 +9,125 @@
    ======================================== */
 
 :root {
-  /* === CORE BRAND COLORS === */
-  --color-primary: #1e3a5f;
-  --color-primary-hover: #2d4a6f;
-  --color-primary-50: rgba(30, 58, 95, 0.05);
-  --color-primary-100: rgba(30, 58, 95, 0.1);
-  --color-on-primary: #ffffff;
+  /* =====================================================
+     CORE BRAND COLORS - Cores principais da marca
+     ===================================================== */
+  --color-primary: #1e3a5f;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
+  --color-primary-hover: #2d4a6f;        /* Azul escuro hover - Estado de hover em botões e links primários */
+  --color-primary-50: rgba(30, 58, 95, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
+  --color-primary-100: rgba(30, 58, 95, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
+  --color-on-primary: #ffffff;           /* Branco - Texto e ícones sobre fundos primários (botões azuis) */
 
-  --color-secondary: #f1f5f9;
-  --color-secondary-hover: #e2e8f0;
+  --color-secondary: #f1f5f9;            /* Cinza claro - Fundo de áreas secundárias, filtros, badges */
+  --color-secondary-hover: #e2e8f0;      /* Cinza médio - Hover em elementos secundários */
 
-  /* === SEMANTIC COLORS === */
-  --color-success: #10b981;
-  --color-success-50: rgba(16, 185, 129, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-50: rgba(245, 158, 11, 0.1);
-  --color-error: #ef4444;
-  --color-error-50: rgba(239, 68, 68, 0.1);
-  --color-info: #3b82f6;
-  --color-info-50: rgba(59, 130, 246, 0.1);
+  /* =====================================================
+     SEMANTIC COLORS - Cores com significado específico
+     ===================================================== */
+  --color-success: #10b981;              /* Verde - Sucesso, valores positivos, campos preenchidos */
+  --color-success-50: rgba(16, 185, 129, 0.1);  /* Verde transparente - Fundo de alertas de sucesso */
+  --color-warning: #f59e0b;              /* Amarelo/Laranja - Avisos, alterações pendentes */
+  --color-warning-50: rgba(245, 158, 11, 0.1);  /* Amarelo transparente - Fundo de alertas de aviso */
+  --color-error: #ef4444;                /* Vermelho - Erros, valores negativos, exclusões */
+  --color-error-50: rgba(239, 68, 68, 0.1);     /* Vermelho transparente - Fundo de alertas de erro */
+  --color-info: #3b82f6;                 /* Azul claro - Informações, dicas, badges informativos */
+  --color-info-50: rgba(59, 130, 246, 0.1);     /* Azul transparente - Fundo de alertas informativos */
 
-  /* === NEUTRAL PALETTE === */
-  --color-bg-app: #f8fafc;
-  --color-bg-card: #ffffff;
-  --color-bg-elevated: #ffffff;
-  --color-bg-muted: #f1f5f9;
+  /* =====================================================
+     NEUTRAL PALETTE - Cores neutras para fundos
+     ===================================================== */
+  --color-bg-app: #f8fafc;               /* Cinza muito claro - Fundo principal da aplicação (área de conteúdo) */
+  --color-bg-card: #ffffff;              /* Branco - Fundo de cards, modais, painéis */
+  --color-bg-elevated: #ffffff;          /* Branco - Fundo de elementos elevados (dropdowns, popovers) */
+  --color-bg-muted: #f1f5f9;             /* Cinza claro - Fundo de áreas desabilitadas ou menos importantes */
 
-  /* === TEXT HIERARCHY === */
-  --color-text-main: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
+  /* =====================================================
+     TEXT HIERARCHY - Hierarquia de cores de texto
+     ===================================================== */
+  --color-text-main: #0f172a;            /* Azul escuro - Texto principal (títulos, conteúdo importante) */
+  --color-text-secondary: #475569;       /* Cinza médio - Texto secundário (descrições, labels) */
+  --color-text-muted: #94a3b8;           /* Cinza claro - Texto sutil (placeholders, dicas, metadados) */
+  --color-text-inverse: #ffffff;         /* Branco - Texto sobre fundos escuros (sidebar, botões primários) */
 
-  /* === SIDEBAR === */
-  --color-bg-sidebar: #0f172a;
-  --color-sidebar-text: #cbd5e1;
-  --color-sidebar-section-title: #64748b;
-  --color-sidebar-hover: rgba(255, 255, 255, 0.05);
-  --color-sidebar-active: rgba(30, 58, 95, 0.15);
-  --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);
+  /* =====================================================
+     SIDEBAR - Cores da barra lateral de navegação
+     ===================================================== */
+  --color-bg-sidebar: #0f172a;           /* Azul muito escuro - Fundo principal da sidebar */
+  --color-sidebar-text: #cbd5e1;         /* Cinza claro - Texto dos itens de menu da sidebar */
+  --color-sidebar-section-title: #64748b; /* Cinza médio - Títulos de seções na sidebar */
+  --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* Branco transparente - Hover nos itens da sidebar */
+  --color-sidebar-active: rgba(30, 58, 95, 0.15);    /* Azul transparente - Item ativo na sidebar */
+  --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* Escuro transparente - Fundo do rodapé da sidebar */
 
-  /* === HEADER === */
-  --color-header-bg: #ffffff;
-  --color-header-text: #0f172a;
-  --color-header-border: #e2e8f0;
+  /* =====================================================
+     HEADER - Cores do cabeçalho superior
+     ===================================================== */
+  --color-header-bg: #ffffff;            /* Branco - Fundo do header superior */
+  --color-header-text: #0f172a;          /* Azul escuro - Texto do header (breadcrumb, nome do usuário) */
+  --color-header-border: #e2e8f0;        /* Cinza - Borda inferior do header */
 
-  /* === BORDERS & DIVIDERS === */
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
-  --color-divider: #e2e8f0;
+  /* =====================================================
+     BORDERS & DIVIDERS - Bordas e divisores
+     ===================================================== */
+  --color-border: #e2e8f0;               /* Cinza claro - Bordas de inputs, cards, tabelas */
+  --color-border-light: #f1f5f9;         /* Cinza muito claro - Bordas sutis, divisores leves */
+  --color-divider: #e2e8f0;              /* Cinza claro - Linhas divisórias entre seções */
 
-  /* === TABLE COLORS === */
-  --color-table-header-bg: #3b82f6;
-  --color-table-header-text: #ffffff;
-  --color-table-row-bg: #ffffff;
-  --color-table-row-hover: #f8fafc;
-  --color-table-total-bg: #cbd5e1;
-  --color-table-subtotal-bg: #f1f5f9;
-  --color-table-positive: #059669;
-  --color-table-negative: #dc2626;
-  --color-table-border: #e2e8f0;
+  /* =====================================================
+     TABLE COLORS - Cores das tabelas de dados
+     ===================================================== */
+  --color-table-header-bg: #3b82f6;      /* Azul - Fundo do cabeçalho das tabelas (DRE, Balanço, Dados Operacionais) */
+  --color-table-header-text: #ffffff;    /* Branco - Texto do cabeçalho das tabelas */
+  --color-table-row-bg: #ffffff;         /* Branco - Fundo padrão das linhas da tabela */
+  --color-table-row-hover: #f8fafc;      /* Cinza claro - Hover nas linhas da tabela */
+  --color-table-total-bg: #cbd5e1;       /* Cinza médio - Fundo das linhas de TOTAL nas tabelas */
+  --color-table-subtotal-bg: #f1f5f9;    /* Cinza claro - Fundo das linhas de subtotal nas tabelas */
+  --color-table-positive: #059669;       /* Verde escuro - Valores positivos nas tabelas financeiras */
+  --color-table-negative: #dc2626;       /* Vermelho - Valores negativos nas tabelas financeiras */
+  --color-table-border: #e2e8f0;         /* Cinza claro - Bordas entre células da tabela */
 
-  /* === SHADOWS === */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-  --shadow-dropdown: 0 10px 40px -10px rgb(0 0 0 / 0.15);
+  /* =====================================================
+     SHADOWS - Sombras para elevação visual
+     ===================================================== */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);           /* Sombra pequena - Botões, inputs */
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);    /* Sombra média - Cards, modais pequenos */
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);  /* Sombra grande - Modais, popovers */
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); /* Sombra extra grande - Elementos flutuantes */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);   /* Sombra de card - Cards de conteúdo */
+  --shadow-dropdown: 0 10px 40px -10px rgb(0 0 0 / 0.15);  /* Sombra dropdown - Menus suspensos, selects */
 
-  /* Fonte alterada para Nunito Sans (alternativa ao Proxima Nova) */
-  --font-family: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  /* =====================================================
+     TYPOGRAPHY - Fontes da aplicação
+     ===================================================== */
+  --font-family: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;  /* Fonte principal - Todo o texto da aplicação */
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;  /* Fonte monoespaçada - Código, números tabulares */
 
-  /* === SPACING & RADIUS === */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 9999px;
-  --border-radius: 0.75rem;
+  /* =====================================================
+     SPACING & RADIUS - Espaçamentos e cantos arredondados
+     ===================================================== */
+  --radius-sm: 0.375rem;   /* 6px - Cantos pequenos (inputs, badges) */
+  --radius-md: 0.5rem;     /* 8px - Cantos médios (botões, cards pequenos) */
+  --radius-lg: 0.75rem;    /* 12px - Cantos grandes (cards, modais) */
+  --radius-xl: 1rem;       /* 16px - Cantos extra grandes (cards destacados) */
+  --radius-2xl: 1.5rem;    /* 24px - Cantos muito grandes (cards hero) */
+  --radius-full: 9999px;   /* Circular - Avatares, badges redondos */
+  --border-radius: 0.75rem; /* 12px - Raio padrão da aplicação */
 
-  /* === SCROLLBAR === */
-  --scrollbar-width: 4px;
-  --scrollbar-thumb-color: #d1d5db;
-  --scrollbar-thumb-hover: var(--color-primary);
-  --scrollbar-track: transparent;
-  --scrollbar-thumb-radius: 10px;
+  /* =====================================================
+     SCROLLBAR - Estilo das barras de rolagem
+     ===================================================== */
+  --scrollbar-width: 4px;              /* Largura da barra de rolagem */
+  --scrollbar-thumb-color: #d1d5db;    /* Cinza - Cor do indicador de posição */
+  --scrollbar-thumb-hover: var(--color-primary);  /* Azul - Hover no indicador */
+  --scrollbar-track: transparent;       /* Transparente - Trilha da barra */
+  --scrollbar-thumb-radius: 10px;       /* Cantos arredondados do indicador */
 
-  /* === TRANSITIONS === */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* =====================================================
+     TRANSITIONS - Durações de animações
+     ===================================================== */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);    /* Transição rápida - Hovers, estados */
+  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);  /* Transição normal - Abrir/fechar, expandir */
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);    /* Transição lenta - Modais, animações complexas */
 
   /* === SHADCN TOKENS (Mapped) === */
   --background: var(--color-bg-app);
