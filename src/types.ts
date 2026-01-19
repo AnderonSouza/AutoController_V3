@@ -345,6 +345,7 @@ export interface DreAccount {
   name: string
   economicGroupId: string
   naturezaConta?: NaturezaConta
+  grupoConta?: string
 }
 
 export interface Department {

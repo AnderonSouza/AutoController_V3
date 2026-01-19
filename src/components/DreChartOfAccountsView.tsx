@@ -234,6 +234,8 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
 
     const importFields: ImportFieldDefinition[] = [
         { key: 'dre_name', label: 'Conta Gerencial (DRE)', required: true, description: 'Nome da conta no DRE (Agrupador)' },
+        { key: 'grupo_conta', label: 'Grupo da Conta', required: false, description: 'Grupo para categorização (ex: Receitas Operacionais)' },
+        { key: 'natureza_conta', label: 'Natureza da Conta', required: false, description: 'Natureza: Receita, Despesa, Custo, Outros' },
         { key: 'accounting_id', label: 'Conta ID (Contábil)', required: false, description: 'Código da conta contábil para vínculo (Opcional)' },
         { key: 'accounting_name', label: 'Conta Contábil (Nome)', required: false, description: 'Nome da conta contábil para vínculo (Opcional)' }
     ];
@@ -314,15 +316,32 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                     const dreName = String(row.dre_name).trim();
                     if (!dreName) return;
 
+                    const grupoConta = row.grupo_conta ? String(row.grupo_conta).trim() : undefined;
+                    const naturezaRaw = row.natureza_conta ? String(row.natureza_conta).trim() : undefined;
+                    const validNaturezas = ['Receita', 'Despesa', 'Custo', 'Outros'];
+                    const naturezaConta = naturezaRaw && validNaturezas.includes(naturezaRaw) ? naturezaRaw as NaturezaConta : undefined;
+
                     // 1. Prepare DRE Account (Deduped)
                     if (!newAccountsMap.has(dreName)) {
                         const existing = accounts.find(a => a.name === dreName);
                         if (existing) {
-                            newAccountsMap.set(dreName, existing);
+                            const updated = { ...existing };
+                            if (grupoConta) updated.grupoConta = grupoConta;
+                            if (naturezaConta) updated.naturezaConta = naturezaConta;
+                            newAccountsMap.set(dreName, updated);
                         } else {
-                            // Fix: include economicGroupId
-                            newAccountsMap.set(dreName, { id: generateUUID(), name: dreName, economicGroupId: tenantId });
+                            newAccountsMap.set(dreName, { 
+                                id: generateUUID(), 
+                                name: dreName, 
+                                economicGroupId: tenantId,
+                                grupoConta,
+                                naturezaConta
+                            });
                         }
+                    } else if (grupoConta || naturezaConta) {
+                        const current = newAccountsMap.get(dreName)!;
+                        if (grupoConta && !current.grupoConta) current.grupoConta = grupoConta;
+                        if (naturezaConta && !current.naturezaConta) current.naturezaConta = naturezaConta;
                     }
                     
                     const targetDreAccount = newAccountsMap.get(dreName);
@@ -401,12 +420,19 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
         if (!accountToDelete) return;
         setIsSaving(true);
         try {
-            await onDeleteMappings(accountToDelete.name);
-            await onDeleteAccount(accountToDelete.id);
+            const isNewAccount = accountToDelete.id.startsWith('new_');
+            
+            if (!isNewAccount) {
+                await onDeleteMappings(accountToDelete.name);
+                await onDeleteAccount(accountToDelete.id);
+            }
             
             const updatedList = editableAccounts.filter(a => a.id !== accountToDelete.id);
             setEditableAccounts(updatedList);
-            await onSave(updatedList); 
+            
+            if (!isNewAccount) {
+                await onSave(updatedList); 
+            }
 
             setAccountToDelete(null);
         } catch (error) {
@@ -524,10 +550,28 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
         const updatedAccount = { ...account, naturezaConta: natureza || undefined };
         setEditableAccounts(prev => prev.map(a => a.id === accountId ? updatedAccount : a));
         
+        if (accountId.startsWith('new_')) return;
+        
         try {
             await saveCadastroTenant('plano_contas_dre', [updatedAccount], tenantId);
         } catch (err) {
             console.error('Erro ao salvar natureza:', err);
+        }
+    };
+
+    const handleGrupoChange = async (accountId: string, grupo: string) => {
+        const account = editableAccounts.find(a => a.id === accountId);
+        if (!account) return;
+        
+        const updatedAccount = { ...account, grupoConta: grupo || undefined };
+        setEditableAccounts(prev => prev.map(a => a.id === accountId ? updatedAccount : a));
+        
+        if (accountId.startsWith('new_')) return;
+        
+        try {
+            await saveCadastroTenant('plano_contas_dre', [updatedAccount], tenantId);
+        } catch (err) {
+            console.error('Erro ao salvar grupo:', err);
         }
     };
 
@@ -601,6 +645,14 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                                             )}
                                             {!isEditing && <span className="text-xs text-slate-400 block mt-0.5 font-mono">{account.id.startsWith('new_') ? 'Novo' : `ID: ${account.id.substring(0,8)}...`}</span>}
                                         </div>
+                                        <input
+                                            type="text"
+                                            value={account.grupoConta || ''}
+                                            onChange={(e) => handleGrupoChange(account.id, e.target.value)}
+                                            placeholder="Grupo..."
+                                            className="px-2 py-1.5 text-xs rounded-md border border-slate-200 bg-slate-50 text-slate-600 w-32 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                            title="Grupo da conta (ex: Receitas Operacionais)"
+                                        />
                                         <select
                                             value={account.naturezaConta || ''}
                                             onChange={(e) => handleNaturezaChange(account.id, e.target.value as NaturezaConta | '')}
