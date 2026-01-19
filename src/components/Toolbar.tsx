@@ -54,7 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     hideStoreFilter = false
 }) => {
   const currentYear = new Date().getFullYear();
-  const startYear = 2022;
+  const startYear = 2025;
   const years = Array.from({ length: currentYear - startYear + 2 }, (_, i) => currentYear + 1 - i);
 
   const showViewControls = isBudgetMode !== undefined && onBudgetModeChange && 

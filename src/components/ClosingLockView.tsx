@@ -26,7 +26,7 @@ const ClosingLockView: React.FC<ClosingLockViewProps> = ({ user, economicGroup, 
     // Gera as opções de data (Ex: de 2022 até o ano que vem)
     const periodOptions = useMemo(() => {
         const currentYear = new Date().getFullYear();
-        const startYear = 2022;
+        const startYear = 2025;
         const endYear = currentYear + 1;
         const options: { label: string, value: string }[] = [];
 

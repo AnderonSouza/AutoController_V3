@@ -17,7 +17,7 @@ interface OperationalDataEntryViewProps {
 }
 
 const CURRENT_YEAR = new Date().getFullYear()
-const AVAILABLE_YEARS = [CURRENT_YEAR + 1, CURRENT_YEAR, CURRENT_YEAR - 1, CURRENT_YEAR - 2, CURRENT_YEAR - 3, CURRENT_YEAR - 4]
+const AVAILABLE_YEARS = [CURRENT_YEAR + 1, CURRENT_YEAR, CURRENT_YEAR - 1]
 
 interface OperationalValueRow {
   id: string
