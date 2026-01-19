@@ -610,7 +610,7 @@ const App: React.FC = () => {
         id: "DOCUMENTATION",
         icon: GraduationCap,
         label: "Aprender",
-        containerColor: "#7c3aed",
+        containerColor: "var(--color-learning-center, #7c3aed)",
       },
     ],
     [user?.role, analysisChildren, isOnAdminConsole]

@@ -59,6 +59,7 @@
   --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* Branco transparente - Hover nos itens da sidebar */
   --color-sidebar-active: rgba(30, 58, 95, 0.15);    /* Azul transparente - Item ativo na sidebar */
   --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* Escuro transparente - Fundo do rodapé da sidebar */
+  --color-learning-center: #69f272;              /* Roxo - Fundo do item Central de Aprendizado (estimula aprendizado) */
   
   /* =====================================================
      HEADER - Cores do cabeçalho superior

@@ -202,7 +202,8 @@ export default function UnifiedSidebar({
                   ${hasContainerColor ? "" : (isActive ? "bg-white/15 text-white" : hasActiveChild ? "text-white" : "hover:bg-white/10")}
                 `}
                 style={hasContainerColor ? { 
-                  backgroundColor: isActive ? section.containerColor : `${section.containerColor}99`,
+                  backgroundColor: section.containerColor,
+                  opacity: isActive ? 1 : 0.85,
                   color: 'white'
                 } : undefined}
               >
