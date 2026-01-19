@@ -639,18 +639,24 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                           <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">% Correção</label>
                           <div className="relative">
                             <input
-                              type="number"
-                              step="0.1"
-                              value={regra.percentualCorrecao || ""}
+                              type="text"
+                              inputMode="decimal"
+                              value={regra.percentualCorrecao ? regra.percentualCorrecao.toString().replace('.', ',') : ""}
                               onChange={(e) => {
-                                const updated = { ...regra, percentualCorrecao: parseFloat(e.target.value) || 0 }
+                                let val = e.target.value
+                                val = val.replace(/[^0-9,]/g, '')
+                                const parts = val.split(',')
+                                if (parts.length > 2) val = parts[0] + ',' + parts.slice(1).join('')
+                                if (parts[1] && parts[1].length > 2) val = parts[0] + ',' + parts[1].slice(0, 2)
+                                const numVal = parseFloat(val.replace(',', '.')) || 0
+                                const updated = { ...regra, percentualCorrecao: numVal }
                                 saveRegraOrcamento({ ...updated, organizacaoId: tenantId })
                                 setRegras(prev => prev.map(r => r.id === regra.id ? updated : r))
                               }}
-                              className={inputClasses}
-                              placeholder="5.0"
+                              className={`${inputClasses} pr-10`}
+                              placeholder="5,0"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">%</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">%</span>
                           </div>
                         </div>
                       </div>
