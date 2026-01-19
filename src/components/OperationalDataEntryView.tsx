@@ -360,207 +360,196 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   }
 
   return (
-    <main className="flex-grow flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-      <div className="max-w-full mx-auto w-full flex flex-col h-full p-6 lg:p-8">
-        {onNavigateBack && (
-          <button onClick={onNavigateBack} className="mb-6 text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center self-start shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Voltar
-          </button>
-        )}
-
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col overflow-hidden flex-grow">
-          <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">Dados Operacionais</h1>
-              <p className="text-sm text-slate-500 mt-1">Insira os valores dos indicadores operacionais para cada loja.</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleExportTemplate}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
-              >
-                <Download className="h-4 w-4" />
-                Planilha Modelo
-              </button>
-              <label className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover transition-colors shadow-sm cursor-pointer">
-                <Upload className="h-4 w-4" />
-                Importar
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImportFile}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-              <div className="md:col-span-2">
-                <MultiSelectDropdown
-                  label="Indicadores"
-                  options={indicatorOptions}
-                  selectedValues={selectedIndicatorIds}
-                  onChange={setSelectedIndicatorIds}
-                  className="w-full"
-                  placeholder="Selecionar indicadores..."
-                />
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Período</label>
-                <PeriodSelector
-                  selectedPeriod={selectedPeriod}
-                  onPeriodChange={setSelectedPeriod}
-                  availableYears={AVAILABLE_YEARS}
-                  className="h-[42px] py-2.5 pl-4 pr-3 text-sm"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
-                <StyledSelect
-                  value={selectedBrandId}
-                  onChange={(e) => {
-                    setSelectedBrandId(e.target.value)
-                    setSelectedCompanyId("")
-                  }}
-                  containerClassName="w-full"
-                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
-                >
-                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </StyledSelect>
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Empresa/Loja</label>
-                <StyledSelect
-                  value={selectedCompanyId}
-                  onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  containerClassName="w-full"
-                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
-                >
-                  <option value="">Todas as lojas</option>
-                  {filteredCompanies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
-                </StyledSelect>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">Departamento</label>
-                <StyledSelect
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  containerClassName="w-full"
-                  className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
-                >
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </StyledSelect>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-grow overflow-auto bg-white">
-            {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
-              <table className="min-w-full border-separate border-spacing-0">
-                <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
-                  <tr>
-                    <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
-                      Indicador
-                    </th>
-                    <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[180px] w-[180px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                      Loja
-                    </th>
-                    {selectedPeriod.years.sort((a, b) => a - b).map(year => (
-                      selectedMonths.map(month => (
-                        <th key={`${year}-${month}`} className="p-0 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[85px]">
-                          {month.slice(0, 3)}/{year}
-                        </th>
-                      ))
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {filteredIndicators.map(indicator => (
-                    <React.Fragment key={indicator.id}>
-                      {displayCompanies.map((company, idx) => (
-                        <tr key={`${indicator.id}-${company.id}`} className="hover:bg-slate-50/50">
-                          {idx === 0 && (
-                            <td
-                              rowSpan={displayCompanies.length}
-                              className="p-2 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
-                            >
-                              <div className="font-semibold text-slate-800 text-xs">{indicator.nome}</div>
-                              <div className="text-[10px] text-slate-400 mt-0.5">({indicator.unidadeMedida})</div>
-                            </td>
-                          )}
-                          <td className="p-2 text-xs text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
-                            {company.nickname || company.name}
-                          </td>
-                          {selectedPeriod.years.sort((a, b) => a - b).map(year => (
-                            selectedMonths.map(month => {
-                              const value = getValue(indicator.id, company.id, year, month)
-                              return (
-                                <td key={`${year}-${month}`} className="p-0 border-r border-b">
-                                  <input
-                                    type="number"
-                                    value={value ?? ''}
-                                    onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
-                                    className="w-full text-center bg-slate-50 border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
-                                    placeholder="-"
-                                  />
-                                </td>
-                              )
-                            })
-                          ))}
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-sm font-medium">Selecione indicadores, marca e departamento para visualizar os dados.</p>
-              </div>
-            )}
-          </div>
-
-          {hasPendingChanges && (
-            <div className="px-6 py-4 bg-amber-50 border-t border-amber-200 flex justify-between items-center shrink-0">
-              <span className="text-sm text-amber-700 font-medium">
-                Você tem {Object.keys(pendingChanges).length} alteração(ões) não salva(s).
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCancelChanges}
-                  className="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
-                >
-                  Descartar
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50"
-                >
-                  {saving ? 'Salvando...' : 'Salvar Alterações'}
-                </button>
-              </div>
-            </div>
+    <main className="flex-grow flex flex-col h-full overflow-hidden relative bg-white">
+      <div className="px-4 py-3 border-b border-slate-200 flex justify-between items-center bg-white shrink-0">
+        <div className="flex items-center gap-4">
+          {onNavigateBack && (
+            <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              Voltar
+            </button>
           )}
+          <div>
+            <h1 className="text-lg font-bold text-slate-800">Dados Operacionais</h1>
+            <p className="text-xs text-slate-500">Insira os valores dos indicadores operacionais para cada loja.</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportTemplate}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Planilha Modelo
+          </button>
+          <label className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover transition-colors cursor-pointer">
+            <Upload className="h-4 w-4" />
+            Importar
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+          </label>
         </div>
       </div>
 
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleImportFile}
-        accept=".xlsx,.xls"
-        className="hidden"
-      />
+      <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div className="md:col-span-2">
+            <MultiSelectDropdown
+              label="Indicadores"
+              options={indicatorOptions}
+              selectedValues={selectedIndicatorIds}
+              onChange={setSelectedIndicatorIds}
+              className="w-full"
+              placeholder="Selecionar indicadores..."
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Período</label>
+            <PeriodSelector
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+              availableYears={AVAILABLE_YEARS}
+              className="h-[42px] py-2.5 pl-4 pr-3 text-sm"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
+            <StyledSelect
+              value={selectedBrandId}
+              onChange={(e) => {
+                setSelectedBrandId(e.target.value)
+                setSelectedCompanyId("")
+              }}
+              containerClassName="w-full"
+              className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
+            >
+              {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </StyledSelect>
+          </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Empresa/Loja</label>
+            <StyledSelect
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(e.target.value)}
+              containerClassName="w-full"
+              className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
+            >
+              <option value="">Todas as lojas</option>
+              {filteredCompanies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
+            </StyledSelect>
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-slate-500 mb-1">Departamento</label>
+            <StyledSelect
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              containerClassName="w-full"
+              className="h-[42px] py-2.5 pl-4 pr-10 text-sm"
+            >
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </StyledSelect>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-grow overflow-auto bg-white">
+        {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
+          <table className="min-w-full border-separate border-spacing-0">
+            <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
+              <tr>
+                <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                  Indicador
+                </th>
+                <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[180px] w-[180px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  Loja
+                </th>
+                {selectedPeriod.years.sort((a, b) => a - b).map(year => (
+                  selectedMonths.map(month => (
+                    <th key={`${year}-${month}`} className="p-0 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[85px]">
+                      {month.slice(0, 3)}/{year}
+                    </th>
+                  ))
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {filteredIndicators.map(indicator => (
+                <React.Fragment key={indicator.id}>
+                  {displayCompanies.map((company, idx) => (
+                    <tr key={`${indicator.id}-${company.id}`} className="hover:bg-slate-50/50">
+                      {idx === 0 && (
+                        <td
+                          rowSpan={displayCompanies.length}
+                          className="p-2 text-sm font-medium text-slate-800 border-r border-b bg-white sticky left-0 z-20 align-top"
+                        >
+                          <div className="font-semibold text-slate-800 text-xs">{indicator.nome}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">({indicator.unidadeMedida})</div>
+                        </td>
+                      )}
+                      <td className="p-2 text-xs text-slate-700 border-r border-b bg-white sticky left-[200px] z-20">
+                        {company.nickname || company.name}
+                      </td>
+                      {selectedPeriod.years.sort((a, b) => a - b).map(year => (
+                        selectedMonths.map(month => {
+                          const value = getValue(indicator.id, company.id, year, month)
+                          return (
+                            <td key={`${year}-${month}`} className="p-0 border-r border-b">
+                              <input
+                                type="number"
+                                value={value ?? ''}
+                                onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
+                                className="w-full text-center bg-slate-50 border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
+                                placeholder="-"
+                              />
+                            </td>
+                          )
+                        })
+                      ))}
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-sm font-medium">Selecione indicadores, marca e departamento para visualizar os dados.</p>
+          </div>
+        )}
+      </div>
+
+      {hasPendingChanges && (
+        <div className="px-4 py-3 bg-amber-50 border-t border-amber-200 flex justify-between items-center shrink-0">
+          <span className="text-sm text-amber-700 font-medium">
+            Você tem {Object.keys(pendingChanges).length} alteração(ões) não salva(s).
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={handleCancelChanges}
+              className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+            >
+              Descartar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover disabled:opacity-50"
+            >
+              {saving ? 'Salvando...' : 'Salvar Alterações'}
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
