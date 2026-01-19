@@ -467,7 +467,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           <table className="min-w-full border-separate border-spacing-0">
             <thead className="bg-primary sticky top-0 z-30">
               <tr>
-                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[200px] w-[200px] sticky left-0 bg-primary z-40 rounded-tl-lg">
+                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[200px] w-[200px] sticky left-0 bg-primary z-40">
                   Indicador
                 </th>
                 <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[180px] w-[180px] sticky left-[200px] bg-primary z-40">
@@ -478,7 +478,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                     selectedMonths.map(month => ({ year, month }))
                   )
                   return allCols.map((col, idx) => (
-                    <th key={`${col.year}-${col.month}`} className={`p-2 text-center text-xs font-bold text-white uppercase tracking-wider border-b min-w-[85px] ${idx === allCols.length - 1 ? 'rounded-tr-lg' : 'border-r border-primary-hover'}`}>
+                    <th key={`${col.year}-${col.month}`} className={`p-2 text-center text-xs font-bold text-white uppercase tracking-wider border-b min-w-[85px] ${idx === allCols.length - 1 ? '' : 'border-r border-primary-hover'}`}>
                       {col.month.slice(0, 3)}/{col.year}
                     </th>
                   ))
