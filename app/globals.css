@@ -242,7 +242,7 @@
 /* === CUSTOM UTILITY CLASSES === */
 @layer utilities {
   .bg-primary {
-    background-color: var(--color-primary);
+    background-color: var(--color-primary) !important;
   }
   .bg-primary-50 {
     background-color: color-mix(in srgb, var(--color-primary) 10%, white 90%);
