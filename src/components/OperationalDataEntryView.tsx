@@ -76,7 +76,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
           categoria: row.categoria,
           unidadeMedida: row.unidade_medida,
           natureza: row.natureza,
-          escopo: row.escopo,
+          escopos: row.escopos || (row.escopo ? [row.escopo] : ["departamento"]),
           permiteMeta: row.permite_meta,
           ativo: row.ativo,
           ordem: row.ordem,
