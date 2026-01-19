@@ -88,6 +88,12 @@
   --color-table-border: #e2e8f0;         /* Cinza claro - Bordas entre células da tabela */
 
   /* =====================================================
+     TABS - Cores das abas de navegação
+     ===================================================== */
+  --color-tab-active: #236fd1;           /* Azul - Fundo da aba ativa (VEÍCULOS NOVOS, etc) */
+  --color-tab-active-hover: #1e5bb8;     /* Azul escuro - Hover na aba ativa */
+
+  /* =====================================================
      SHADOWS - Sombras para elevação visual
      ===================================================== */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);           /* Sombra pequena - Botões, inputs */
@@ -205,6 +211,7 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -213,6 +220,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 

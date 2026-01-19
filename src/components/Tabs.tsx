@@ -35,7 +35,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, setActiveTab }) => {
                 relative flex-shrink-0 px-6 py-2.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 rounded-t-lg
                 ${
                   isActive
-                    ? "bg-[var(--color-primary)] text-white shadow-md z-10"
+                    ? "bg-[var(--color-tab-active)] text-white shadow-md z-10"
                     : "bg-[var(--color-bg-muted)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-text-secondary)]"
                 }
               `}
