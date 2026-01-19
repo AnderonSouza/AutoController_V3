@@ -6,6 +6,10 @@ import type {
   TicketStatus,
   Notification,
   MonthlyBalanceEntry,
+  RegraOrcamento,
+  IndiceEconomico,
+  TipoConta,
+  TipoIndice,
 } from "../types"
 
 const TABLE_MAPPING: Record<string, string> = {
@@ -1319,4 +1323,224 @@ export const deleteEntriesInBatches = async (options: BatchDeleteOptions): Promi
     reportProgress()
     return { success: false, deletedCount: progress.deleted, error: err.message }
   }
+}
+
+// ============================================================
+// REGRAS DE ORÇAMENTO AUTOMATIZADO
+// ============================================================
+
+export const fetchRegrasOrcamento = async (tenantId: string): Promise<RegraOrcamento[]> => {
+  const { data, error } = await supabase
+    .from("regras_orcamento")
+    .select(`
+      *,
+      plano_contas_dre!conta_dre_id(nome),
+      linhas_relatorio!linha_referencia_id(nome)
+    `)
+    .eq("organizacao_id", tenantId)
+    .eq("ativo", true)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("[db] fetchRegrasOrcamento error:", error)
+    throw error
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    organizacaoId: row.organizacao_id,
+    contaDreId: row.conta_dre_id,
+    contaDreNome: row.plano_contas_dre?.nome || "",
+    tipoConta: row.tipo_conta as TipoConta,
+    periodoBaseMeses: row.periodo_base_meses || 6,
+    indiceCorrecao: row.indice_correcao as TipoIndice | undefined,
+    percentualCorrecao: row.percentual_correcao,
+    linhaReferenciaId: row.linha_referencia_id,
+    linhaReferenciaNome: row.linhas_relatorio?.nome || "",
+    percentualSobreLinha: row.percentual_sobre_linha,
+    usarPercentualHistorico: row.usar_percentual_historico ?? true,
+    departamentoId: row.departamento_id,
+    empresaId: row.empresa_id,
+    ativo: row.ativo,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }))
+}
+
+export const saveRegraOrcamento = async (regra: Partial<RegraOrcamento> & { organizacaoId: string }): Promise<RegraOrcamento> => {
+  const dbData: any = {
+    organizacao_id: regra.organizacaoId,
+    conta_dre_id: regra.contaDreId,
+    tipo_conta: regra.tipoConta,
+    periodo_base_meses: regra.periodoBaseMeses || 6,
+    indice_correcao: regra.indiceCorrecao,
+    percentual_correcao: regra.percentualCorrecao,
+    linha_referencia_id: regra.linhaReferenciaId || null,
+    percentual_sobre_linha: regra.percentualSobreLinha,
+    usar_percentual_historico: regra.usarPercentualHistorico ?? true,
+    departamento_id: regra.departamentoId || null,
+    empresa_id: regra.empresaId || null,
+    ativo: regra.ativo ?? true,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (regra.id) {
+    const { data, error } = await supabase
+      .from("regras_orcamento")
+      .update(dbData)
+      .eq("id", regra.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return { ...regra, id: data.id } as RegraOrcamento
+  } else {
+    const { data, error } = await supabase
+      .from("regras_orcamento")
+      .insert(dbData)
+      .select()
+      .single()
+
+    if (error) throw error
+    return { ...regra, id: data.id } as RegraOrcamento
+  }
+}
+
+export const deleteRegraOrcamento = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from("regras_orcamento")
+    .delete()
+    .eq("id", id)
+
+  if (error) throw error
+}
+
+export const fetchIndicesEconomicos = async (tenantId: string, tipo?: TipoIndice): Promise<IndiceEconomico[]> => {
+  let query = supabase
+    .from("indices_economicos")
+    .select("*")
+    .eq("organizacao_id", tenantId)
+    .order("ano", { ascending: false })
+    .order("mes", { ascending: false })
+
+  if (tipo) {
+    query = query.eq("tipo", tipo)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error("[db] fetchIndicesEconomicos error:", error)
+    throw error
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    organizacaoId: row.organizacao_id,
+    tipo: row.tipo as TipoIndice,
+    ano: row.ano,
+    mes: row.mes,
+    valor: parseFloat(row.valor) || 0,
+    createdAt: row.created_at,
+  }))
+}
+
+export const saveIndiceEconomico = async (indice: Partial<IndiceEconomico> & { organizacaoId: string }): Promise<IndiceEconomico> => {
+  const dbData = {
+    organizacao_id: indice.organizacaoId,
+    tipo: indice.tipo,
+    ano: indice.ano,
+    mes: indice.mes,
+    valor: indice.valor,
+  }
+
+  if (indice.id) {
+    const { data, error } = await supabase
+      .from("indices_economicos")
+      .update(dbData)
+      .eq("id", indice.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return { ...indice, id: data.id } as IndiceEconomico
+  } else {
+    const { data, error } = await supabase
+      .from("indices_economicos")
+      .insert(dbData)
+      .select()
+      .single()
+
+    if (error) throw error
+    return { ...indice, id: data.id } as IndiceEconomico
+  }
+}
+
+export const fetchHistoricoContas = async (
+  tenantId: string,
+  contaDreId: string,
+  periodoMeses: number
+): Promise<{ ano: number; mes: string; valor: number }[]> => {
+  const hoje = new Date()
+  const dataInicio = new Date(hoje.getFullYear(), hoje.getMonth() - periodoMeses, 1)
+  
+  const { data, error } = await supabase
+    .from("saldos_mensais")
+    .select("ano, mes, valor")
+    .eq("organizacao_id", tenantId)
+    .eq("conta_contabil_id", contaDreId)
+    .gte("ano", dataInicio.getFullYear())
+    .order("ano", { ascending: false })
+    .order("mes", { ascending: false })
+    .limit(periodoMeses)
+
+  if (error) {
+    console.error("[db] fetchHistoricoContas error:", error)
+    return []
+  }
+
+  return (data || []).map((row: any) => ({
+    ano: row.ano,
+    mes: row.mes,
+    valor: parseFloat(row.valor) || 0,
+  }))
+}
+
+export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string }[]> => {
+  const { data, error } = await supabase
+    .from("plano_contas_dre")
+    .select("id, nome, codigo")
+    .eq("organizacao_id", tenantId)
+    .order("codigo", { ascending: true })
+
+  if (error) {
+    console.error("[db] fetchContasDRE error:", error)
+    return []
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    nome: row.nome,
+    codigo: row.codigo,
+  }))
+}
+
+export const fetchLinhasTotalizadoras = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string }[]> => {
+  const { data, error } = await supabase
+    .from("linhas_relatorio")
+    .select("id, nome, codigo")
+    .eq("organizacao_id", tenantId)
+    .in("tipo", ["total", "formula"])
+    .order("ordem", { ascending: true })
+
+  if (error) {
+    console.error("[db] fetchLinhasTotalizadoras error:", error)
+    return []
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    nome: row.nome,
+    codigo: row.codigo,
+  }))
 }

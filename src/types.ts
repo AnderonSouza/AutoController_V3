@@ -555,3 +555,63 @@ export interface OperationalReportLineMapping {
   ordem: number
   ativo: boolean
 }
+
+// ============================================================
+// ORÇAMENTO AUTOMATIZADO
+// ============================================================
+
+export type TipoConta = "fixa" | "variavel" | "manual"
+export type TipoIndice = "IPCA" | "IGP-M" | "SELIC" | "PERCENTUAL" | "CUSTOM"
+
+export interface RegraOrcamento {
+  id: string
+  organizacaoId: string
+  contaDreId: string
+  contaDreNome?: string
+  tipoConta: TipoConta
+  
+  // Despesas Fixas
+  periodoBaseMeses: number
+  indiceCorrecao?: TipoIndice
+  percentualCorrecao?: number
+  
+  // Despesas Variáveis
+  linhaReferenciaId?: string
+  linhaReferenciaNome?: string
+  percentualSobreLinha?: number
+  usarPercentualHistorico: boolean
+  
+  // Escopo
+  departamentoId?: string
+  empresaId?: string
+  
+  ativo: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface IndiceEconomico {
+  id: string
+  organizacaoId: string
+  tipo: TipoIndice
+  ano: number
+  mes: string
+  valor: number
+  createdAt?: string
+}
+
+export interface OrcamentoGerado {
+  contaDreId: string
+  contaDreNome: string
+  tipoConta: TipoConta
+  ano: number
+  mes: string
+  valorCalculado: number
+  baseCalculo: string
+  detalhes: {
+    mediaHistorica?: number
+    indiceCorrecao?: number
+    percentualAplicado?: number
+    valorReferencia?: number
+  }
+}
