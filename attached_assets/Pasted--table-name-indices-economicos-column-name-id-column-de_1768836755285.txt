@@ -1,0 +1,218 @@
+[
+  {
+    "table_name": "indices_economicos",
+    "column_name": "id",
+    "column_default": null,
+    "status": "✗ SEM default"
+  },
+  {
+    "table_name": "plano_contas_balanco",
+    "column_name": "id",
+    "column_default": null,
+    "status": "✗ SEM default"
+  },
+  {
+    "table_name": "usuarios",
+    "column_name": "id",
+    "column_default": null,
+    "status": "✗ SEM default"
+  },
+  {
+    "table_name": "anexos_fechamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "benchmarks",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "centros_resultado",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "chamados",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "ciclos_fechamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "comentarios_fechamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "console_config",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "departamentos",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "empresas",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "formulas_calculo",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "formulas_operacionais",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "formulas_operacionais_dependencias",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "indicadores_operacionais",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "lancamentos_ajustes",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "lancamentos_contabeis",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "linhas_relatorio",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "mapeamento_contas",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "marcas",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "mensagens_chamado",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "modelos_relatorios",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "modelos_tarefas_fechamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "notificacoes",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "orcamento",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "organizacoes",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "plano_contas",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "plano_contas_dre",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "premissas_orcamentarias",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "regras_orcamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "relatorio_linhas_operacionais",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "saldos_mensais",
+    "column_name": "id",
+    "column_default": "uuid_generate_v4()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "tarefas_fechamento",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "valores_operacionais",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  },
+  {
+    "table_name": "valores_premissas",
+    "column_name": "id",
+    "column_default": "gen_random_uuid()",
+    "status": "✓ UUID automático"
+  }
+]
