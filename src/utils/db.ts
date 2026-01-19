@@ -1481,29 +1481,65 @@ export const fetchHistoricoContas = async (
   contaDreId: string,
   periodoMeses: number
 ): Promise<{ ano: number; mes: string; valor: number }[]> => {
+  const { data: mappings, error: mappingsError } = await supabase
+    .from("mapeamento_contas")
+    .select("conta_contabil_id")
+    .eq("organizacao_id", tenantId)
+    .eq("conta_dre_id", contaDreId)
+
+  if (mappingsError) {
+    console.error("[db] fetchHistoricoContas mappings error:", mappingsError)
+    return []
+  }
+
+  const contaContabilIds = (mappings || [])
+    .map(m => m.conta_contabil_id)
+    .filter(Boolean)
+
+  if (contaContabilIds.length === 0) {
+    console.log("[db] fetchHistoricoContas: No accounting accounts mapped to DRE account", { contaDreId })
+    return []
+  }
+
   const hoje = new Date()
-  const dataInicio = new Date(hoje.getFullYear(), hoje.getMonth() - periodoMeses, 1)
+  const anoAtual = hoje.getFullYear()
+  const mesAtual = hoje.getMonth()
+  const anoInicio = mesAtual < periodoMeses ? anoAtual - 1 : anoAtual
   
   const { data, error } = await supabase
     .from("saldos_mensais")
     .select("ano, mes, valor")
     .eq("organizacao_id", tenantId)
-    .eq("conta_contabil_id", contaDreId)
-    .gte("ano", dataInicio.getFullYear())
+    .in("conta_contabil_id", contaContabilIds)
+    .gte("ano", anoInicio)
     .order("ano", { ascending: false })
-    .order("mes", { ascending: false })
-    .limit(periodoMeses)
+    .limit(periodoMeses * contaContabilIds.length * 2)
 
   if (error) {
     console.error("[db] fetchHistoricoContas error:", error)
     return []
   }
 
-  return (data || []).map((row: any) => ({
-    ano: row.ano,
-    mes: row.mes,
-    valor: parseFloat(row.valor) || 0,
-  }))
+  const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+                     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+  
+  const totaisPorMes = new Map<string, { ano: number; mesNum: number; valor: number }>()
+  for (const row of data || []) {
+    const mesNum = typeof row.mes === 'number' ? row.mes : mesesNomes.indexOf(row.mes) + 1
+    const chave = `${row.ano}-${String(mesNum).padStart(2, '0')}`
+    const atual = totaisPorMes.get(chave) || { ano: row.ano, mesNum, valor: 0 }
+    atual.valor += Math.abs(parseFloat(row.valor) || 0)
+    totaisPorMes.set(chave, atual)
+  }
+
+  return Array.from(totaisPorMes.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .slice(0, periodoMeses)
+    .map(([, v]) => ({
+      ano: v.ano,
+      mes: mesesNomes[v.mesNum - 1] || String(v.mesNum),
+      valor: v.valor,
+    }))
 }
 
 export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string }[]> => {
@@ -1543,4 +1579,98 @@ export const fetchLinhasTotalizadoras = async (tenantId: string): Promise<{ id: 
     nome: row.nome,
     codigo: row.codigo,
   }))
+}
+
+export const fetchTotalLinhaDRE = async (
+  tenantId: string,
+  linhaReferenciaId: string,
+  periodoMeses: number
+): Promise<number> => {
+  const { data, error } = await supabase
+    .from("linhas_relatorio")
+    .select("conta_dre_id, contas_origem")
+    .eq("id", linhaReferenciaId)
+    .single()
+
+  if (error || !data) {
+    console.error("[db] fetchTotalLinhaDRE error:", error)
+    return 0
+  }
+
+  const dreAccountIds: string[] = []
+  if (data.conta_dre_id) dreAccountIds.push(data.conta_dre_id)
+  if (data.contas_origem && Array.isArray(data.contas_origem)) {
+    dreAccountIds.push(...data.contas_origem)
+  }
+
+  if (dreAccountIds.length === 0) return 0
+
+  const { data: mappings, error: mappingsError } = await supabase
+    .from("mapeamento_contas")
+    .select("conta_contabil_id")
+    .eq("organizacao_id", tenantId)
+    .in("conta_dre_id", dreAccountIds)
+
+  if (mappingsError) {
+    console.error("[db] fetchTotalLinhaDRE mappings error:", mappingsError)
+    return 0
+  }
+
+  const contaContabilIds = (mappings || [])
+    .map(m => m.conta_contabil_id)
+    .filter(Boolean)
+
+  if (contaContabilIds.length === 0) {
+    console.log("[db] fetchTotalLinhaDRE: No accounting accounts mapped to DRE accounts", { dreAccountIds })
+    return 0
+  }
+
+  const hoje = new Date()
+  const anoAtual = hoje.getFullYear()
+  const mesAtual = hoje.getMonth()
+  
+  const anoInicio = mesAtual < periodoMeses ? anoAtual - 1 : anoAtual
+
+  const { data: saldos, error: saldosError } = await supabase
+    .from("saldos_mensais")
+    .select("ano, mes, valor")
+    .eq("organizacao_id", tenantId)
+    .in("conta_contabil_id", contaContabilIds)
+    .gte("ano", anoInicio)
+    .order("ano", { ascending: false })
+    .order("mes", { ascending: false })
+    .limit(periodoMeses * contaContabilIds.length * 2)
+
+  if (saldosError) {
+    console.error("[db] fetchTotalLinhaDRE saldos error:", saldosError)
+    return 0
+  }
+
+  if (!saldos || saldos.length === 0) {
+    console.log("[db] fetchTotalLinhaDRE: No balances found", { contaContabilIds: contaContabilIds.slice(0, 5) })
+    return 0
+  }
+
+  const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+                     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+  
+  const totaisPorMes = new Map<string, number>()
+  for (const saldo of saldos) {
+    const mesNum = typeof saldo.mes === 'number' ? saldo.mes : mesesNomes.indexOf(saldo.mes) + 1
+    const chave = `${saldo.ano}-${String(mesNum).padStart(2, '0')}`
+    const valorAtual = totaisPorMes.get(chave) || 0
+    totaisPorMes.set(chave, valorAtual + Math.abs(parseFloat(saldo.valor) || 0))
+  }
+
+  const mesesOrdenados = Array.from(totaisPorMes.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .slice(0, periodoMeses)
+
+  const totalAcumulado = mesesOrdenados.reduce((acc, [, valor]) => acc + valor, 0)
+  const mesesComDados = mesesOrdenados.length
+  const mediaMensal = mesesComDados > 0 ? totalAcumulado / mesesComDados : 0
+
+  console.log("[db] fetchTotalLinhaDRE result:", { linhaReferenciaId, mediaMensal, mesesComDados, totalAcumulado })
+
+  return mediaMensal
 }

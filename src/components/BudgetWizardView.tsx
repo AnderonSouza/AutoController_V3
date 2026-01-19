@@ -9,6 +9,8 @@ import {
   fetchContasDRE,
   fetchLinhasTotalizadoras,
   fetchIndicesEconomicos,
+  fetchHistoricoContas,
+  fetchTotalLinhaDRE,
 } from "../utils/db"
 import StyledSelect from "./StyledSelect"
 
@@ -144,32 +146,89 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     }
   }
 
-  const handleGerarOrcamento = () => {
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [historicosCache, setHistoricosCache] = useState<Record<string, number>>({})
+
+  const handleGerarOrcamento = async () => {
+    setIsGenerating(true)
     const orcamentos: OrcamentoGerado[] = []
+    const historicosFetched: Record<string, number> = {}
+    const totaisLinhaFetched: Record<string, number> = {}
 
-    regras.forEach(regra => {
-      MESES.forEach((mes, idx) => {
-        let valorCalculado = 0
-        let baseCalculo = ""
-        const detalhes: OrcamentoGerado["detalhes"] = {}
-
+    try {
+      for (const regra of regras) {
+        let mediaHistorica = 0
+        let valorReferenciaLinha = 0
+        
         if (regra.tipoConta === "fixa") {
-          const mediaHistorica = 25000
-          const indiceCorrecao = regra.percentualCorrecao || 5
-          valorCalculado = mediaHistorica * (1 + indiceCorrecao / 100)
-          baseCalculo = `Média ${regra.periodoBaseMeses}m + ${indiceCorrecao}%`
-          detalhes.mediaHistorica = mediaHistorica
-          detalhes.indiceCorrecao = indiceCorrecao
-        } else if (regra.tipoConta === "variavel") {
-          const valorReferencia = 500000
-          const percentual = regra.percentualSobreLinha || 2.5
-          valorCalculado = valorReferencia * (percentual / 100)
-          baseCalculo = `${percentual}% s/ ${regra.linhaReferenciaNome || "Receita"}`
-          detalhes.percentualAplicado = percentual
-          detalhes.valorReferencia = valorReferencia
+          const cacheKey = `fixa_${regra.contaDreId}_${regra.periodoBaseMeses}`
+          if (historicosFetched[cacheKey] !== undefined) {
+            mediaHistorica = historicosFetched[cacheKey]
+          } else {
+            try {
+              const historico = await fetchHistoricoContas(tenantId, regra.contaDreId, regra.periodoBaseMeses)
+              if (historico.length > 0) {
+                const soma = historico.reduce((acc, h) => acc + Math.abs(h.valor), 0)
+                mediaHistorica = soma / historico.length
+              }
+              historicosFetched[cacheKey] = mediaHistorica
+            } catch (err) {
+              console.error("Erro ao buscar histórico:", err)
+              mediaHistorica = 0
+            }
+          }
+        } else if (regra.tipoConta === "variavel" && regra.linhaReferenciaId) {
+          const cacheKey = `variavel_${regra.linhaReferenciaId}`
+          if (totaisLinhaFetched[cacheKey] !== undefined) {
+            valorReferenciaLinha = totaisLinhaFetched[cacheKey]
+          } else {
+            try {
+              valorReferenciaLinha = await fetchTotalLinhaDRE(tenantId, regra.linhaReferenciaId, 12)
+              totaisLinhaFetched[cacheKey] = valorReferenciaLinha
+            } catch (err) {
+              console.error("Erro ao buscar total linha:", err)
+              valorReferenciaLinha = 0
+            }
+          }
         }
 
-        if (valorCalculado > 0) {
+        for (const mes of MESES) {
+          let valorCalculado = 0
+          let baseCalculo = ""
+          const detalhes: OrcamentoGerado["detalhes"] = {}
+
+          if (regra.tipoConta === "fixa") {
+            const indiceCorrecao = regra.percentualCorrecao || 0
+            
+            if (mediaHistorica > 0) {
+              valorCalculado = mediaHistorica * (1 + indiceCorrecao / 100)
+              baseCalculo = `Média ${regra.periodoBaseMeses}m (${formatCurrency(mediaHistorica)}) + ${indiceCorrecao}%`
+            } else {
+              valorCalculado = 0
+              baseCalculo = `Sem histórico disponível`
+            }
+            detalhes.mediaHistorica = mediaHistorica
+            detalhes.indiceCorrecao = indiceCorrecao
+          } else if (regra.tipoConta === "variavel") {
+            const percentual = regra.percentualSobreLinha || 0
+            
+            if (percentual > 0 && valorReferenciaLinha > 0) {
+              valorCalculado = valorReferenciaLinha * (percentual / 100)
+              baseCalculo = `${percentual}% s/ ${regra.linhaReferenciaNome || "Base"} (${formatCurrency(valorReferenciaLinha)}/mês)`
+            } else if (percentual > 0) {
+              baseCalculo = `${percentual}% s/ ${regra.linhaReferenciaNome || "Base"} (sem dados)`
+              valorCalculado = 0
+            } else {
+              baseCalculo = `Percentual não definido`
+              valorCalculado = 0
+            }
+            detalhes.percentualAplicado = percentual
+            detalhes.valorReferencia = valorReferenciaLinha
+          } else if (regra.tipoConta === "manual") {
+            baseCalculo = "Entrada manual (preencher na tabela)"
+            valorCalculado = 0
+          }
+
           orcamentos.push({
             contaDreId: regra.contaDreId,
             contaDreNome: regra.contaDreNome || "",
@@ -181,10 +240,16 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
             detalhes,
           })
         }
-      })
-    })
+      }
 
-    setOrcamentosGerados(orcamentos)
+      setHistoricosCache(historicosFetched)
+      setOrcamentosGerados(orcamentos)
+    } catch (err) {
+      console.error("Erro ao gerar orçamento:", err)
+      alert("Erro ao gerar orçamento. Verifique os dados.")
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const steps: { key: WizardStep; label: string; number: number }[] = [
@@ -565,14 +630,15 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                 Voltar
               </button>
               <button
-                onClick={() => {
-                  handleGerarOrcamento()
+                onClick={async () => {
                   setCurrentStep("gerar")
+                  await handleGerarOrcamento()
                 }}
-                className="px-6 py-2.5 text-white font-semibold rounded-lg shadow-md hover:opacity-90 transition flex items-center gap-2"
+                disabled={isGenerating}
+                className="px-6 py-2.5 text-white font-semibold rounded-lg shadow-md hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50"
                 style={{ backgroundColor: "var(--color-primary)" }}
               >
-                Próximo: Gerar Orçamento
+                {isGenerating ? "Calculando..." : "Próximo: Gerar Orçamento"}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -603,12 +669,20 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                 </StyledSelect>
                 <button
                   onClick={handleGerarOrcamento}
-                  className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 hover:bg-slate-50 transition flex items-center gap-2"
+                  disabled={isGenerating}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 hover:bg-slate-50 transition flex items-center gap-2 disabled:opacity-50"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Recalcular
+                  {isGenerating ? (
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  )}
+                  {isGenerating ? "Calculando..." : "Recalcular"}
                 </button>
               </div>
             </div>

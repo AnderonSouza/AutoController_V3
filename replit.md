@@ -6,6 +6,7 @@ AutoController is a comprehensive financial management and analysis system built
 
 - **DRE (Income Statement) Analysis** - Importing, managing, and analyzing accounting data
 - **Budget Management** - Tracking actual vs budgeted performance across departments
+- **Automated Budget Wizard** - 3-step wizard (Classify → Configure → Generate) for automated budget generation based on historical data
 - **Multi-tenant Architecture** - Supporting multiple economic groups with data isolation
 - **Report Generation** - Custom financial report templates and structures
 - **Cost Center Management** - Mapping accounts to cost centers and departments

@@ -33,6 +33,7 @@ import {
   Gauge,
   Headphones,
   GraduationCap,
+  Sparkles,
 } from "lucide-react"
 
 import { TenantProvider } from "./context/TenantContext"
@@ -74,6 +75,7 @@ import Tabs from "./components/Tabs"
 import BudgetAssumptionsView from "./components/BudgetAssumptionsView"
 import BudgetValuesView from "./components/BudgetValuesView"
 import BudgetView from "./components/BudgetView"
+import BudgetWizardView from "./components/BudgetWizardView"
 import OrganizationalStructureView from "./components/OrganizationalStructureView"
 import ParametrosApuracaoView from "./components/ParametrosApuracaoView"
 import BalanceSheetView from "./components/BalanceSheetView"
@@ -544,6 +546,7 @@ const App: React.FC = () => {
         label: "Orçamento",
         children: [
           { id: "BUDGET_PLANNING", icon: Target, label: "Painel Orçamentário" },
+          { id: "BUDGET_WIZARD", icon: Sparkles, label: "Assistente de Orçamento" },
           { id: "BUDGET_ASSUMPTIONS", icon: FileText, label: "Premissas" },
           { id: "BUDGET_IMPORT", icon: Database, label: "Dados do Orçamento" },
         ],
@@ -654,6 +657,7 @@ const App: React.FC = () => {
       SUPPORT: "Suporte",
       SuperAdmin: "Gestão do Sistema",
       BUDGET_PLANNING: "Painel Orçamentário",
+      BUDGET_WIZARD: "Assistente de Orçamento",
       BUDGET_ASSUMPTIONS: "Premissas",
       BUDGET_IMPORT: "Dados do Orçamento",
       QUERIES: "Auditoria Contábil",
@@ -1104,6 +1108,13 @@ const App: React.FC = () => {
             availableBrands={brands}
             availableCompanies={companies}
             availableDepartments={departments.map(d => d.name)}
+          />
+        )
+      case "BUDGET_WIZARD":
+        return (
+          <BudgetWizardView
+            tenantId={effectiveTenantId || user.tenantId}
+            onNavigateBack={() => handleNavigate("BUDGET_PLANNING")}
           />
         )
       default:
