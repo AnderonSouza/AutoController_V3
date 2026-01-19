@@ -511,7 +511,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
                                 type="number"
                                 value={value ?? ''}
                                 onChange={(e) => handleValueChange(indicator.id, company.id, year, month, e.target.value)}
-                                className="w-full text-center bg-slate-50 border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
+                                className={`w-full text-center border-0 py-1.5 px-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary ${value !== null && value !== undefined && value !== '' ? 'bg-emerald-50 text-emerald-700' : 'bg-white'}`}
                                 placeholder="-"
                               />
                             </td>
