@@ -10,18 +10,32 @@
 
 :root {
   /* =====================================================
-     CORE BRAND COLORS - Cores principais da marca
+     CORES CONTROLADAS PELO CONSOLE (console.autocontroller.ai)
+     Estas cores são SOBRESCRITAS em runtime pelo JavaScript
+     baseado nas configurações do tenant no banco de dados.
+     Os valores aqui são apenas FALLBACKS caso o console não carregue.
      ===================================================== */
-  --color-primary: #c73c1a;              /* Azul escuro principal - Botões, links, header de tabelas, sidebar ícone ativo */
-  --color-primary-hover: #0E3C5C;        /* Azul escuro hover - Estado de hover em botões e links primários */
+  --color-primary: #1e3a5f;              /* [CONSOLE] Cor principal - Botões, links, ícone ativo sidebar */
+  --color-primary-hover: #2a4a72;        /* [CONSOLE] Calculado automaticamente (primary + 15% claridade) */
+  --color-on-primary: #ffffff;           /* [CONSOLE] Calculado automaticamente (contraste com primary) */
+  --color-bg-app: #f8fafc;               /* [CONSOLE] backgroundColor - Fundo da aplicação */
+  --color-accent: #0891b2;               /* [CONSOLE] accentColor - Links, badges, seleções */
+  --color-bg-sidebar: #1e3a5f;           /* [CONSOLE] Usa primaryColor - Fundo do painel sidebar */
+  --color-sidebar-text: #ffffff;         /* [CONSOLE] Calculado automaticamente (contraste com primary) */
+  --color-sidebar-text-hover: #e2e8f0;   /* [CONSOLE] Calculado automaticamente */
+  --color-sidebar-text-muted: rgba(255, 255, 255, 0.7); /* [CONSOLE] Calculado automaticamente */
+  
+  /* =====================================================
+     CORES FIXAS NO CSS (não controladas pelo Console)
+     Altere estas cores diretamente aqui no globals.css
+     ===================================================== */
   --color-primary-50: rgb(14, 60, 92, 0.05);   /* Azul transparente 5% - Fundo sutil para seleções e hovers leves */
   --color-primary-100: rgb(14, 60, 92, 0.1);   /* Azul transparente 10% - Fundo para estados ativos e selecionados */
-  --color-on-primary: #ffffff;           /* Branco - Texto e ícones sobre fundos primários (botões azuis) */
   --color-secondary: #f1f5f9;            /* Cinza claro - Fundo de áreas secundárias, filtros, badges */
   --color-secondary-hover: #e2e8f0;      /* Cinza médio - Hover em elementos secundários */
 
   /* =====================================================
-     SEMANTIC COLORS - Cores com significado específico
+     SEMANTIC COLORS - Cores com significado específico (FIXAS)
      ===================================================== */
   --color-success: #10b981;              /* Verde - Sucesso, valores positivos, campos preenchidos */
   --color-success-50: rgba(16, 185, 129, 0.1);  /* Verde transparente - Fundo de alertas de sucesso */
@@ -33,15 +47,15 @@
   --color-info-50: rgb(14, 60, 92, 0.1);     /* Azul transparente - Fundo de alertas informativos */
 
   /* =====================================================
-     NEUTRAL PALETTE - Cores neutras para fundos
+     NEUTRAL PALETTE - Cores neutras para fundos (FIXAS)
+     Nota: --color-bg-app é controlada pelo Console
      ===================================================== */
-  --color-bg-app: #f8fafc;               /* Cinza muito claro - Fundo principal da aplicação (área de conteúdo) */
   --color-bg-card: #ffffff;              /* Branco - Fundo de cards, modais, painéis */
   --color-bg-elevated: #ffffff;          /* Branco - Fundo de elementos elevados (dropdowns, popovers) */
   --color-bg-muted: #f1f5f9;             /* Cinza claro - Fundo de áreas desabilitadas ou menos importantes */
 
   /* =====================================================
-     TEXT HIERARCHY - Hierarquia de cores de texto
+     TEXT HIERARCHY - Hierarquia de cores de texto (FIXAS)
      ===================================================== */
   --color-text-main: #0f172a;            /* Azul escuro - Texto principal (títulos, conteúdo importante) */
   --color-text-secondary: #475569;       /* Cinza médio - Texto secundário (descrições, labels) */
@@ -50,15 +64,14 @@
 
   /* =====================================================
      SIDEBAR - Cores da barra lateral de navegação
+     Nota: Algumas são controladas pelo Console, outras são fixas
      ===================================================== */
-  --color-sidebar-icon-bar: #0E3C5C;     /* Azul escuro - Fundo da barra de ícones da sidebar (coluna estreita com ícones) */
-  --color-bg-sidebar: #0f172a;           /* Azul muito escuro - Fundo do painel expandido da sidebar */
-  --color-sidebar-text: #cbd5e1;         /* Cinza claro - Texto dos itens de menu da sidebar */
-  --color-sidebar-section-title: #64748b; /* Cinza médio - Títulos de seções na sidebar */
-  --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* Branco transparente - Hover nos itens da sidebar */
-  --color-sidebar-active: rgb(14, 60, 92, 0.15);    /* Azul transparente - Item ativo na sidebar */
-  --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* Escuro transparente - Fundo do rodapé da sidebar */
-  --color-learning-center: #8212f3;              /* Roxo - Fundo do item Central de Aprendizado (estimula aprendizado) */
+  --color-sidebar-icon-bar: #0E3C5C;     /* [FIXA] Azul escuro - Fundo da barra de ícones da sidebar */
+  --color-sidebar-section-title: #64748b; /* [FIXA] Cinza médio - Títulos de seções na sidebar */
+  --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* [FIXA] Branco transparente - Hover nos itens da sidebar */
+  --color-sidebar-active: rgb(14, 60, 92, 0.15);    /* [FIXA] Azul transparente - Item ativo na sidebar */
+  --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* [FIXA] Escuro transparente - Fundo do rodapé da sidebar */
+  --color-learning-center: #8212f3;              /* [FIXA] Roxo - Fundo do item Central de Aprendizado */
   
   /* =====================================================
      HEADER - Cores do cabeçalho superior
@@ -242,7 +255,7 @@
 /* === CUSTOM UTILITY CLASSES === */
 @layer utilities {
   .bg-primary {
-    background-color: var(--color-primary) !important;
+    background-color: var(--color-primary);
   }
   .bg-primary-50 {
     background-color: color-mix(in srgb, var(--color-primary) 10%, white 90%);
