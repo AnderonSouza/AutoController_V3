@@ -38,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **UnifiedSidebar** component (`src/components/UnifiedSidebar.tsx`) with two modes:
   - `mode="sections"`: Hierarchical navigation with expandable sections (tenant dashboard)
   - `mode="flat"`: Single-level navigation without children (admin console)
-- Icon bar: 72px width, dark blue background (`#1e3a5f`)
+- Icon bar: 88px width, dark blue background (`#1e3a5f`)
 - Expandable panel: 224px width, white background
 - Key props: `iconBarColor`, `panelTitle`, `showHomeButton`, `primaryColor`, `secondaryColor`, `containerColor` (per-item custom background)
 - Special items at bottom: Support (headphones icon) and Learning Center (purple background `#7c3aed` - stimulates learning)

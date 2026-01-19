@@ -149,7 +149,7 @@ export default function UnifiedSidebar({
   return (
     <div className="flex h-full">
       <aside 
-        className="w-[72px] flex flex-col items-center flex-shrink-0"
+        className="w-[88px] flex flex-col items-center flex-shrink-0"
         style={{ 
           backgroundColor: iconBarColor || 'var(--color-sidebar-icon-bar, #1e3a5f)',
           color: 'var(--color-sidebar-text, #e2e8f0)'
@@ -181,7 +181,7 @@ export default function UnifiedSidebar({
             `}
           >
             <Home size={22} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-medium">Início</span>
+            <span className="text-[11px] font-medium">Início</span>
           </button>
         )}
 
@@ -216,7 +216,7 @@ export default function UnifiedSidebar({
                 <div className="group-hover:scale-110 transition-transform">
                   <Icon size={22} strokeWidth={1.5} />
                 </div>
-                <span className="text-[10px] font-medium text-center px-1 leading-tight max-w-full truncate">
+                <span className="text-[11px] font-medium text-center px-1.5 leading-tight max-w-full">
                   {section.label}
                 </span>
                 {section.badge !== undefined && section.badge > 0 && (
@@ -239,7 +239,7 @@ export default function UnifiedSidebar({
             style={{ color: 'var(--color-sidebar-text, #cbd5e1)' }}
           >
             <LogOut size={20} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] font-medium">Sair</span>
+            <span className="text-[11px] font-medium">Sair</span>
           </button>
         </div>
       </aside>
