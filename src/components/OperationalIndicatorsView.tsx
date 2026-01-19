@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Plus, Trash2, Edit2, Save, X, Search, Filter } from 'lucide-react'
-import type { OperationalIndicator } from '../types'
+import type { OperationalIndicator, EscopoIndicador } from '../types'
 import { getCadastroTenant, saveCadastroTenant, deleteById } from '../utils/db'
 import { generateUUID } from '../utils/helpers'
 
@@ -40,7 +40,7 @@ const NATUREZAS: { value: OperationalIndicator["natureza"]; label: string }[] = 
   { value: "financeiro", label: "Financeiro" }
 ]
 
-const ESCOPOS: { value: OperationalIndicator["escopo"]; label: string }[] = [
+const ESCOPOS: { value: EscopoIndicador; label: string }[] = [
   { value: "departamento", label: "Departamento" },
   { value: "loja", label: "Loja" },
   { value: "marca", label: "Marca" },
@@ -63,7 +63,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
     categoria: "Comercial",
     unidadeMedida: "Unidades",
     natureza: "volume",
-    escopo: "departamento",
+    escopos: ["departamento"],
     permiteMeta: true,
     ativo: true,
     ordem: 0
@@ -83,7 +83,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
         categoria: row.categoria,
         unidadeMedida: row.unidade_medida,
         natureza: row.natureza,
-        escopo: row.escopo,
+        escopos: row.escopos || (row.escopo ? [row.escopo] : ["departamento"]),
         permiteMeta: row.permite_meta,
         ativo: row.ativo,
         ordem: row.ordem,
@@ -135,7 +135,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
         categoria: formData.categoria,
         unidade_medida: formData.unidadeMedida,
         natureza: formData.natureza,
-        escopo: formData.escopo,
+        escopos: formData.escopos || ["departamento"],
         permite_meta: formData.permiteMeta,
         ativo: formData.ativo,
         ordem: formData.ordem || 0
@@ -161,7 +161,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
       categoria: indicator.categoria,
       unidadeMedida: indicator.unidadeMedida,
       natureza: indicator.natureza,
-      escopo: indicator.escopo,
+      escopos: indicator.escopos || ["departamento"],
       permiteMeta: indicator.permiteMeta,
       ativo: indicator.ativo,
       ordem: indicator.ordem
@@ -189,13 +189,24 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
       categoria: "Comercial",
       unidadeMedida: "Unidades",
       natureza: "volume",
-      escopo: "departamento",
+      escopos: ["departamento"],
       permiteMeta: true,
       ativo: true,
       ordem: 0
     })
     setEditingId(null)
     setShowAddForm(false)
+  }
+
+  const toggleEscopo = (escopo: EscopoIndicador) => {
+    const current = formData.escopos || []
+    if (current.includes(escopo)) {
+      if (current.length > 1) {
+        setFormData({ ...formData, escopos: current.filter(e => e !== escopo) })
+      }
+    } else {
+      setFormData({ ...formData, escopos: [...current, escopo] })
+    }
   }
 
   const filteredIndicators = indicators.filter(ind => {
@@ -355,16 +366,20 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Escopo</label>
-              <select
-                value={formData.escopo || "marca"}
-                onChange={(e) => setFormData({ ...formData, escopo: e.target.value as OperationalIndicator["escopo"] })}
-                className={selectClasses}
-              >
+              <label className="block text-sm font-medium text-slate-700 mb-1">Escopos (selecione um ou mais)</label>
+              <div className="flex flex-wrap gap-3 mt-2">
                 {ESCOPOS.map(e => (
-                  <option key={e.value} value={e.value}>{e.label}</option>
+                  <label key={e.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(formData.escopos || []).includes(e.value)}
+                      onChange={() => toggleEscopo(e.value)}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-slate-700">{e.label}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div>
@@ -452,7 +467,7 @@ const OperationalIndicatorsView: React.FC<OperationalIndicatorsViewProps> = ({ t
                       </div>
                       <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
                         <span>Unidade: {indicator.unidadeMedida}</span>
-                        <span>Escopo: {indicator.escopo}</span>
+                        <span>Escopos: {(indicator.escopos || []).join(", ")}</span>
                         <span>Natureza: {indicator.natureza}</span>
                       </div>
                     </div>
