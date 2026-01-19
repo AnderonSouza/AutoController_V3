@@ -1332,31 +1332,44 @@ export const deleteEntriesInBatches = async (options: BatchDeleteOptions): Promi
 export const fetchRegrasOrcamento = async (tenantId: string): Promise<RegraOrcamento[]> => {
   const { data, error } = await supabase
     .from("regras_orcamento")
-    .select(`
-      *,
-      plano_contas_dre!conta_dre_id(nome),
-      linhas_relatorio!linha_referencia_id(nome)
-    `)
+    .select("*")
     .eq("organizacao_id", tenantId)
     .eq("ativo", true)
     .order("created_at", { ascending: false })
 
   if (error) {
     console.error("[db] fetchRegrasOrcamento error:", error)
-    throw error
+    return []
   }
 
-  return (data || []).map((row: any) => ({
+  if (!data || data.length === 0) return []
+
+  const contaDreIds = [...new Set(data.map(r => r.conta_dre_id).filter(Boolean))]
+  const linhaIds = [...new Set(data.map(r => r.linha_referencia_id).filter(Boolean))]
+
+  const [contasResult, linhasResult] = await Promise.all([
+    contaDreIds.length > 0 
+      ? supabase.from("plano_contas_dre").select("id, nome").in("id", contaDreIds)
+      : Promise.resolve({ data: [], error: null }),
+    linhaIds.length > 0
+      ? supabase.from("linhas_relatorio").select("id, nome").in("id", linhaIds)
+      : Promise.resolve({ data: [], error: null }),
+  ])
+
+  const contasMap = new Map((contasResult.data || []).map((c: any) => [c.id, c.nome]))
+  const linhasMap = new Map((linhasResult.data || []).map((l: any) => [l.id, l.nome]))
+
+  return data.map((row: any) => ({
     id: row.id,
     organizacaoId: row.organizacao_id,
     contaDreId: row.conta_dre_id,
-    contaDreNome: row.plano_contas_dre?.nome || "",
+    contaDreNome: contasMap.get(row.conta_dre_id) || "",
     tipoConta: row.tipo_conta as TipoConta,
     periodoBaseMeses: row.periodo_base_meses || 6,
     indiceCorrecao: row.indice_correcao as TipoIndice | undefined,
     percentualCorrecao: row.percentual_correcao,
     linhaReferenciaId: row.linha_referencia_id,
-    linhaReferenciaNome: row.linhas_relatorio?.nome || "",
+    linhaReferenciaNome: linhasMap.get(row.linha_referencia_id) || "",
     percentualSobreLinha: row.percentual_sobre_linha,
     usarPercentualHistorico: row.usar_percentual_historico ?? true,
     departamentoId: row.departamento_id,
@@ -1545,9 +1558,9 @@ export const fetchHistoricoContas = async (
 export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; nome: string; codigo?: string }[]> => {
   const { data, error } = await supabase
     .from("plano_contas_dre")
-    .select("id, nome, codigo")
+    .select("id, nome, codigo_reduzido")
     .eq("organizacao_id", tenantId)
-    .order("codigo", { ascending: true })
+    .order("codigo_reduzido", { ascending: true })
 
   if (error) {
     console.error("[db] fetchContasDRE error:", error)
@@ -1557,7 +1570,7 @@ export const fetchContasDRE = async (tenantId: string): Promise<{ id: string; no
   return (data || []).map((row: any) => ({
     id: row.id,
     nome: row.nome,
-    codigo: row.codigo,
+    codigo: row.codigo_reduzido,
   }))
 }
 
