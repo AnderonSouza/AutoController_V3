@@ -13,6 +13,9 @@ AutoController is a comprehensive financial management and analysis system built
 
 The application is designed for controllers and financial managers to perform period closing, generate management reports, and analyze business performance across multiple companies and brands within an economic group.
 
+- **Support System** - Ticket-based support for IT and Controller teams (`SupportView.tsx`)
+- **Learning Center** - Documentation and guides hub with searchable articles (`DocumentationView.tsx`)
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -37,7 +40,8 @@ Preferred communication style: Simple, everyday language.
   - `mode="flat"`: Single-level navigation without children (admin console)
 - Icon bar: 72px width, dark blue background (`#1e3a5f`)
 - Expandable panel: 224px width, white background
-- Key props: `iconBarColor`, `panelTitle`, `showHomeButton`, `primaryColor`, `secondaryColor`
+- Key props: `iconBarColor`, `panelTitle`, `showHomeButton`, `primaryColor`, `secondaryColor`, `containerColor` (per-item custom background)
+- Special items at bottom: Support (headphones icon) and Learning Center (purple background `#7c3aed` - stimulates learning)
 
 ### State Management
 - React useState/useEffect hooks for local state

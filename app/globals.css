@@ -30,8 +30,8 @@
   --color-warning-50: rgba(245, 158, 11, 0.1);  /* Amarelo transparente - Fundo de alertas de aviso */
   --color-error: #ef4444;                /* Vermelho - Erros, valores negativos, exclusões */
   --color-error-50: rgba(239, 68, 68, 0.1);     /* Vermelho transparente - Fundo de alertas de erro */
-  --color-info: #3b82f6;                 /* Azul claro - Informações, dicas, badges informativos */
-  --color-info-50: rgba(59, 130, 246, 0.1);     /* Azul transparente - Fundo de alertas informativos */
+  --color-info: #1e3a5f;                 /* Azul claro - Informações, dicas, badges informativos */
+  --color-info-50: rgb(30, 58, 95, 0.1);     /* Azul transparente - Fundo de alertas informativos */
 
   /* =====================================================
      NEUTRAL PALETTE - Cores neutras para fundos
@@ -59,6 +59,7 @@
   --color-sidebar-hover: rgba(255, 255, 255, 0.05);  /* Branco transparente - Hover nos itens da sidebar */
   --color-sidebar-active: rgba(30, 58, 95, 0.15);    /* Azul transparente - Item ativo na sidebar */
   --color-sidebar-footer-bg: rgba(30, 41, 59, 0.5);  /* Escuro transparente - Fundo do rodapé da sidebar */
+  --color-learning-center: #7c3aed;              /* Roxo - Fundo do item Central de Aprendizado (estimula aprendizado) */
 
   /* =====================================================
      HEADER - Cores do cabeçalho superior
@@ -77,7 +78,7 @@
   /* =====================================================
      TABLE COLORS - Cores das tabelas de dados
      ===================================================== */
-  --color-table-header-bg: #3b82f6;      /* Azul - Fundo do cabeçalho das tabelas (DRE, Balanço, Dados Operacionais) */
+  --color-table-header-bg: #1e3a5f;      /* Azul - Fundo do cabeçalho das tabelas (DRE, Balanço, Dados Operacionais) */
   --color-table-header-text: #ffffff;    /* Branco - Texto do cabeçalho das tabelas */
   --color-table-row-bg: #ffffff;         /* Branco - Fundo padrão das linhas da tabela */
   --color-table-row-hover: #f8fafc;      /* Cinza claro - Hover nas linhas da tabela */

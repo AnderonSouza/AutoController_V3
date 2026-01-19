@@ -17,6 +17,7 @@ export interface SidebarItem {
   badge?: number
   children?: SidebarItem[]
   roles?: string[]
+  containerColor?: string
 }
 
 export type SidebarMode = "sections" | "flat"
@@ -189,6 +190,7 @@ export default function UnifiedSidebar({
             const isActive = isFlat ? activeView === section.id : activeSection === section.id
             const hasActiveChild = !isFlat && section.children?.some(child => child.id === activeView)
             const Icon = section.icon
+            const hasContainerColor = !!section.containerColor
             
             return (
               <button
@@ -197,10 +199,14 @@ export default function UnifiedSidebar({
                 className={`
                   w-full py-3 flex flex-col items-center gap-1
                   transition-all duration-200 group relative
-                  ${isActive ? "bg-white/15 text-white" : hasActiveChild ? "text-white" : "hover:bg-white/10"}
+                  ${hasContainerColor ? "" : (isActive ? "bg-white/15 text-white" : hasActiveChild ? "text-white" : "hover:bg-white/10")}
                 `}
+                style={hasContainerColor ? { 
+                  backgroundColor: isActive ? section.containerColor : `${section.containerColor}99`,
+                  color: 'white'
+                } : undefined}
               >
-                {isActive && (
+                {isActive && !hasContainerColor && (
                   <div 
                     className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r"
                     style={{ backgroundColor: primaryColor }}

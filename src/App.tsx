@@ -31,6 +31,8 @@ import {
   Shield,
   Activity,
   Gauge,
+  Headphones,
+  GraduationCap,
 } from "lucide-react"
 
 import { TenantProvider } from "./context/TenantContext"
@@ -599,6 +601,17 @@ const App: React.FC = () => {
       ...(user?.role === "SUPER_ADMIN" && isOnAdminConsole
         ? [{ id: "SuperAdmin", icon: Shield, label: "Gestão" }]
         : []),
+      {
+        id: "SUPPORT",
+        icon: Headphones,
+        label: "Suporte",
+      },
+      {
+        id: "DOCUMENTATION",
+        icon: GraduationCap,
+        label: "Aprender",
+        containerColor: "#7c3aed",
+      },
     ],
     [user?.role, analysisChildren, isOnAdminConsole]
   )
@@ -644,6 +657,9 @@ const App: React.FC = () => {
       BUDGET_ASSUMPTIONS: "Premissas",
       BUDGET_IMPORT: "Dados do Orçamento",
       QUERIES: "Auditoria Contábil",
+      OPERATIONAL_INDICATORS: "Indicadores Operacionais",
+      OPERATIONAL_DATA_ENTRY: "Preenchimento de Dados",
+      OPERATIONAL_FORMULAS: "Fórmulas Operacionais",
     }
     return viewTitles[view] || view
   }
