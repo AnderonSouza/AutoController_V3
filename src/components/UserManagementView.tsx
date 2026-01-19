@@ -24,6 +24,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({
     setEditingUser({
       id: `new_${Date.now()}`, name: '', email: '', password: '', role: 'Analista',
       status: 'ativo',
+      tenantId: economicGroups.length > 0 ? economicGroups[0].id : '',
       permissions: { 
         economicGroups: [], 
         brands: [], 
@@ -51,6 +52,8 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({
   const handleDelete = async (userId: string) => { await onDeleteUser(userId); handleCloseModal(); };
 
   const roleColors: Record<User['role'], string> = {
+    SUPER_ADMIN: 'text-purple-800 bg-purple-100',
+    ADMIN: 'text-emerald-800 bg-emerald-100',
     Administrador: 'text-emerald-800 bg-emerald-100',
     Gestor: 'text-sky-800 bg-sky-100',
     Analista: 'text-indigo-800 bg-indigo-100',

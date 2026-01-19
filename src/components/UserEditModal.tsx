@@ -83,6 +83,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("")
   const [activeTab, setActiveTab] = useState<"profile_scope" | "permissions">("profile_scope")
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteConfirmStep, setDeleteConfirmStep] = useState<0 | 1 | 2>(0)
   const [error, setError] = useState<string | null>(null)
 
   const isNewUser = initialUser.id.startsWith("new_")
@@ -125,6 +127,33 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
       const newPermissions = { ...prev.permissions, [level]: selectedIds }
       return { ...prev, permissions: newPermissions }
     })
+  }
+
+  const handleDeleteClick = async () => {
+    if (deleteConfirmStep === 0) {
+      setDeleteConfirmStep(1)
+      return
+    }
+    if (deleteConfirmStep === 1) {
+      setDeleteConfirmStep(2)
+      return
+    }
+    if (deleteConfirmStep === 2) {
+      setIsDeleting(true)
+      setError(null)
+      try {
+        await onDelete(user.id)
+      } catch (err: any) {
+        setError(err.message || "Erro ao excluir usuário")
+        setDeleteConfirmStep(0)
+      } finally {
+        setIsDeleting(false)
+      }
+    }
+  }
+
+  const cancelDelete = () => {
+    setDeleteConfirmStep(0)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -475,21 +504,73 @@ const UserEditModal: React.FC<UserEditModalProps> = ({
               </div>
             )}
           </div>
-          <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-700"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving || (password && (!isPasswordValid || !passwordsMatch))}
-              className="px-10 py-2 bg-primary text-white text-sm font-bold rounded-xl shadow-lg hover:brightness-110 transform active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? "Salvando..." : "Salvar Usuário"}
-            </button>
+          <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-between shrink-0">
+            <div>
+              {!isNewUser && (
+                deleteConfirmStep === 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleDeleteClick}
+                    className="px-4 py-2 text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    Excluir Usuário
+                  </button>
+                ) : deleteConfirmStep === 1 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-amber-600 font-medium">Tem certeza?</span>
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    >
+                      Sim, excluir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelDelete}
+                      className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-red-600 font-bold">Última confirmação!</span>
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      disabled={isDeleting}
+                      className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {isDeleting ? "Excluindo..." : "Confirmar exclusão"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelDelete}
+                      className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                )
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-700"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving || (!!password && (!isPasswordValid || !passwordsMatch))}
+                className="px-10 py-2 bg-primary text-white text-sm font-bold rounded-xl shadow-lg hover:brightness-110 transform active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? "Salvando..." : "Salvar Usuário"}
+              </button>
+            </div>
           </div>
         </form>
       </div>
