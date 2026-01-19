@@ -461,7 +461,7 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
       </div>
       </div>
 
-      <div className="flex-grow mx-4 mb-4 rounded-lg border border-slate-200 overflow-hidden bg-white">
+      <div className="flex-grow mx-4 mb-4 overflow-hidden bg-white">
         <div className="overflow-auto h-full">
         {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
           <table className="min-w-full border-separate border-spacing-0">
