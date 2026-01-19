@@ -150,7 +150,7 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
         splashVideoUrl: data.splash_video_url,
         companyName: data.company_name || "",
         tagline: data.tagline || "",
-        primaryColor: data.primary_color || "#1e3a5f",
+        primaryColor: data.primary_color || "var(--color-sidebar-icon-bar)",
         backgroundColor: data.background_color || "#f8fafc",
         accentColor: data.accent_color || "#000000",
       })

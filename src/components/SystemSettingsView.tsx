@@ -658,7 +658,7 @@ export default function SystemSettingsView({
                     <img src={consoleConfig.logoUrl} alt="Logo" className="h-10 w-10 object-contain" />
                   ) : (
                     <div className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm">
-                      <span className="text-[#1e3a5f] text-sm font-bold">AC</span>
+                      <span className="text-[var(--color-sidebar-icon-bar)] text-sm font-bold">AC</span>
                     </div>
                   )}
                   <span className="text-gray-900 font-bold text-base">{consoleConfig?.companyName || "AutoController"}</span>
@@ -684,7 +684,7 @@ export default function SystemSettingsView({
                       {/* Logo da organização */}
                       {editableGroup.logo && (
                         <div className="mb-6 text-center">
-                          <div className="inline-flex items-center justify-center p-5 rounded-xl bg-[#1e3a5f] transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer">
+                          <div className="inline-flex items-center justify-center p-5 rounded-xl bg-[var(--color-sidebar-icon-bar)] transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer">
                             <img 
                               src={editableGroup.logoDark || editableGroup.logo} 
                               alt={editableGroup.name}
@@ -712,7 +712,7 @@ export default function SystemSettingsView({
                           <label className="text-xs font-medium text-slate-700 mb-1 block">Senha</label>
                           <div className="h-10 bg-slate-100 rounded-lg border border-slate-200"></div>
                         </div>
-                        <div className="h-10 bg-[#1e3a5f] rounded-lg"></div>
+                        <div className="h-10 bg-[var(--color-sidebar-icon-bar)] rounded-lg"></div>
                       </div>
                     </div>
                   </div>
@@ -741,7 +741,7 @@ export default function SystemSettingsView({
                     />
                   ) : (
                     <div className="text-center text-slate-400">
-                      <div className="w-16 h-16 mx-auto bg-[#1e3a5f] rounded-xl flex items-center justify-center text-white text-2xl font-bold mb-3">
+                      <div className="w-16 h-16 mx-auto bg-[var(--color-sidebar-icon-bar)] rounded-xl flex items-center justify-center text-white text-2xl font-bold mb-3">
                         AC
                       </div>
                       <p className="text-sm font-medium text-slate-600">AutoController</p>

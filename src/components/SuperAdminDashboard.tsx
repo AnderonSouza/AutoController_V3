@@ -1636,7 +1636,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ currentUser, 
         mode="sections"
         panelTitle={themeConfig.companyName}
         showHomeButton={false}
-        iconBarColor="#1e3a5f"
+        iconBarColor="var(--color-sidebar-icon-bar)"
       />
 
       {/* Main Content Area */}

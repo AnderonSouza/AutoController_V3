@@ -54,7 +54,7 @@ export default function UnifiedSidebar({
   mode = "sections",
   panelTitle,
   showHomeButton = true,
-  iconBarColor = "#1e3a5f",
+  iconBarColor,
 }: UnifiedSidebarProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
@@ -150,7 +150,7 @@ export default function UnifiedSidebar({
       <aside 
         className="w-[72px] flex flex-col items-center flex-shrink-0"
         style={{ 
-          backgroundColor: `var(--color-bg-sidebar, ${iconBarColor})`,
+          backgroundColor: iconBarColor || 'var(--color-sidebar-icon-bar, #1e3a5f)',
           color: 'var(--color-sidebar-text, #e2e8f0)'
         }}
       >
