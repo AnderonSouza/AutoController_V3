@@ -463,21 +463,24 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
         <div className="overflow-auto h-full">
         {displayCompanies.length > 0 && filteredIndicators.length > 0 ? (
           <table className="min-w-full border-separate border-spacing-0">
-            <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
+            <thead className="bg-primary sticky top-0 z-30">
               <tr>
-                <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[200px] w-[200px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[200px] w-[200px] sticky left-0 bg-primary z-40 rounded-tl-lg">
                   Indicador
                 </th>
-                <th className="p-2 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[180px] w-[180px] sticky left-[200px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                <th className="p-2 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-primary-hover min-w-[180px] w-[180px] sticky left-[200px] bg-primary z-40">
                   Loja
                 </th>
-                {selectedPeriod.years.sort((a, b) => a - b).map(year => (
-                  selectedMonths.map(month => (
-                    <th key={`${year}-${month}`} className="p-0 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[85px]">
-                      {month.slice(0, 3)}/{year}
+                {(() => {
+                  const allCols = selectedPeriod.years.sort((a, b) => a - b).flatMap(year => 
+                    selectedMonths.map(month => ({ year, month }))
+                  )
+                  return allCols.map((col, idx) => (
+                    <th key={`${col.year}-${col.month}`} className={`p-2 text-center text-xs font-bold text-white uppercase tracking-wider border-b min-w-[85px] ${idx === allCols.length - 1 ? 'rounded-tr-lg' : 'border-r border-primary-hover'}`}>
+                      {col.month.slice(0, 3)}/{col.year}
                     </th>
                   ))
-                ))}
+                })()}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
