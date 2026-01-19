@@ -42,7 +42,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
   const [isSaving, setIsSaving] = useState(false)
 
   const [regras, setRegras] = useState<RegraOrcamento[]>([])
-  const [contasDRE, setContasDRE] = useState<{ id: string; nome: string; codigo?: string; naturezaConta?: string }[]>([])
+  const [contasDRE, setContasDRE] = useState<{ id: string; nome: string; codigo?: string; naturezaConta?: string; grupoConta?: string }[]>([])
   const [linhasTotalizadoras, setLinhasTotalizadoras] = useState<{ id: string; nome: string }[]>([])
   const [indices, setIndices] = useState<{ tipo: TipoIndice; valor: number }[]>([])
 
@@ -51,6 +51,8 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
   const [searchTerm, setSearchTerm] = useState("")
   const [showOnlyPending, setShowOnlyPending] = useState(false)
   const [selectedNaturezaConta, setSelectedNaturezaConta] = useState<string>("")
+  const [selectedGrupos, setSelectedGrupos] = useState<Set<string>>(new Set())
+  const [showGrupoFilter, setShowGrupoFilter] = useState(false)
 
   const [anoOrcamento, setAnoOrcamento] = useState(new Date().getFullYear() + 1)
   const [orcamentosGerados, setOrcamentosGerados] = useState<OrcamentoGerado[]>([])
@@ -105,6 +107,26 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     }))
   }, [contasDRE, regras])
 
+  const gruposDisponiveis = useMemo(() => {
+    const grupos = new Set<string>()
+    contasDRE.forEach(c => {
+      if (c.grupoConta) grupos.add(c.grupoConta)
+    })
+    return Array.from(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [contasDRE])
+
+  const toggleGrupo = (grupo: string) => {
+    setSelectedGrupos(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(grupo)) {
+        newSet.delete(grupo)
+      } else {
+        newSet.add(grupo)
+      }
+      return newSet
+    })
+  }
+
   const naturezasDisponiveis = useMemo(() => {
     const naturezas = new Set<string>()
     contasDRE.forEach(c => {
@@ -118,6 +140,10 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     
     if (selectedNaturezaConta) {
       filtered = filtered.filter(c => c.naturezaConta === selectedNaturezaConta)
+    }
+
+    if (selectedGrupos.size > 0) {
+      filtered = filtered.filter(c => c.grupoConta && selectedGrupos.has(c.grupoConta))
     }
     
     if (searchTerm.trim()) {
@@ -133,7 +159,7 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
     }
     
     return filtered
-  }, [contasComStatus, searchTerm, showOnlyPending, selectedNaturezaConta])
+  }, [contasComStatus, searchTerm, showOnlyPending, selectedNaturezaConta, selectedGrupos])
 
   const handleAddRegra = (tipoConta: TipoConta) => {
     if (!selectedConta) return
@@ -409,7 +435,61 @@ const BudgetWizardView: React.FC<BudgetWizardViewProps> = ({
                   />
                   Apenas pendentes
                 </label>
+                {gruposDisponiveis.length > 0 && (
+                  <button
+                    onClick={() => setShowGrupoFilter(!showGrupoFilter)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border transition ${
+                      selectedGrupos.size > 0 
+                        ? "bg-primary/10 border-primary text-primary" 
+                        : "border-slate-300 text-slate-600 hover:border-slate-400"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Grupos {selectedGrupos.size > 0 && `(${selectedGrupos.size})`}
+                    <svg className={`w-3 h-3 transition-transform ${showGrupoFilter ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                )}
               </div>
+              
+              {showGrupoFilter && gruposDisponiveis.length > 0 && (
+                <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-slate-600">Filtrar por grupo:</span>
+                    {selectedGrupos.size > 0 && (
+                      <button
+                        onClick={() => setSelectedGrupos(new Set())}
+                        className="text-xs text-slate-500 hover:text-slate-700"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {gruposDisponiveis.map(grupo => (
+                      <label
+                        key={grupo}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs cursor-pointer transition ${
+                          selectedGrupos.has(grupo)
+                            ? "bg-primary text-white"
+                            : "bg-white border border-slate-300 text-slate-600 hover:border-slate-400"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedGrupos.has(grupo)}
+                          onChange={() => toggleGrupo(grupo)}
+                          className="sr-only"
+                        />
+                        {grupo}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 mb-3 text-xs text-slate-500">
                 <span className="flex items-center gap-1">
