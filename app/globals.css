@@ -86,11 +86,7 @@
   --color-table-positive: #059669;       /* Verde escuro - Valores positivos nas tabelas financeiras */
   --color-table-negative: #dc2626;       /* Vermelho - Valores negativos nas tabelas financeiras */
   --color-table-border: #e2e8f0;         /* Cinza claro - Bordas entre células da tabela */
-
-  /* =====================================================
-     TABS - Cores das abas de navegação
-     ===================================================== */
-  --color-tab-active: #236fd1;           /* Azul - Fundo da aba ativa (VEÍCULOS NOVOS, etc) */
+  --color-tab-active: #236fd1;           /* Azul - Fundo da aba ativa */
   --color-tab-active-hover: #1e5bb8;     /* Azul escuro - Hover na aba ativa */
 
   /* =====================================================
