@@ -883,8 +883,8 @@ export const getAuditStats = async (year: number, month: string) => {
   return data
 }
 
-// Load aggregated data for DRE reports using saldos_mensais (monthly balances) for better performance
-// This is much faster than loading individual lancamentos_contabeis
+// Load aggregated data for DRE reports using lancamentos_contabeis (accounting entries)
+// This is required because we need centro_resultado_id for department-level analysis
 export const getDreAggregatedData = async (
   years: number[],
   tenantId: string,
@@ -901,41 +901,60 @@ export const getDreAggregatedData = async (
   })
 
   const allData: any[] = []
+  const pageSize = 50000
 
-  // Use saldos_mensais (monthly balances) instead of lancamentos_contabeis for performance
-  // saldos_mensais already contains aggregated values per company/account/month
   for (const year of years) {
-    const { data, error } = await supabase
-      .from("saldos_mensais")
-      .select("conta_contabil_id, empresa_id, ano, mes, valor")
-      .eq("organizacao_id", tenantId)
-      .eq("ano", year)
+    let page = 0
+    let hasMore = true
 
-    if (error) {
-      console.error("Error loading monthly balances for DRE:", error)
-      continue
-    }
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from("lancamentos_contabeis")
+        .select("conta_contabil_id, empresa_id, centro_resultado_id, ano, mes, valor, natureza")
+        .eq("organizacao_id", tenantId)
+        .eq("ano", year)
+        .range(page * pageSize, (page + 1) * pageSize - 1)
 
-    if (data && data.length > 0) {
-      // Map to DRE accounts
-      data.forEach(balance => {
-        const dreAccountId = contaToDreMap.get(balance.conta_contabil_id)
-        if (dreAccountId) {
-          allData.push({
-            dreAccountId,
-            year: balance.ano,
-            month: balance.mes,
-            valor: balance.valor || 0,
-            natureza: 'D', // Monthly balances are already net values
-            companyId: balance.empresa_id,
-            costCenterId: '' // saldos_mensais doesn't have cost center - handled at report level
-          })
+      if (error) {
+        console.error("Error loading DRE data:", error)
+        break
+      }
+
+      if (data && data.length > 0) {
+        // Map to DRE accounts
+        data.forEach(entry => {
+          const dreAccountId = contaToDreMap.get(entry.conta_contabil_id)
+          if (dreAccountId) {
+            allData.push({
+              dreAccountId,
+              year: entry.ano,
+              month: entry.mes,
+              valor: entry.valor || 0,
+              natureza: entry.natureza,
+              companyId: entry.empresa_id,
+              costCenterId: entry.centro_resultado_id
+            })
+          }
+        })
+        
+        if (data.length < pageSize) {
+          hasMore = false
+        } else {
+          page++
         }
-      })
+      } else {
+        hasMore = false
+      }
+
+      // Safety limit
+      if (allData.length >= 1000000) {
+        console.warn("DRE data safety limit reached")
+        hasMore = false
+      }
     }
   }
 
-  console.log("[v0-db] DRE data loaded from saldos_mensais:", { count: allData.length, years })
+  console.log("[v0-db] DRE data loaded from lancamentos_contabeis:", { count: allData.length, years })
   return allData
 }
 
