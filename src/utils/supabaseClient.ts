@@ -76,6 +76,32 @@ if (!supabaseUrl || !supabaseAnonKey) {
       headers: { "x-app-version": "2.0.5" },
     },
   })
+  
+  // Adiciona listener para tratar erros de autenticação automaticamente
+  if (typeof window !== "undefined") {
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED") {
+        console.log("[auth] Token refreshed successfully")
+      }
+      if (event === "SIGNED_OUT") {
+        console.log("[auth] User signed out")
+      }
+    })
+    
+    // Verifica a sessão inicial e limpa se inválida
+    client.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.warn("[auth] Session error, clearing invalid session:", error.message)
+        // Limpa tokens inválidos do localStorage
+        if (error.message?.includes("refresh_token") || error.message?.includes("Refresh Token")) {
+          console.log("[auth] Clearing invalid refresh token from storage")
+          client.auth.signOut().catch(() => {})
+        }
+      }
+    }).catch((err) => {
+      console.error("[auth] Error checking session:", err)
+    })
+  }
   } catch (error) {
     console.error("Erro FATAL ao inicializar Supabase:", error)
     client = createMockClient()
