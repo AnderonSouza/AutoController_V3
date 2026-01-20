@@ -87,7 +87,7 @@ const ClosingModuleView: React.FC<ClosingModuleViewProps> = ({ user, users = [],
                     loadTasksForPeriod(active.id);
                 }
             }
-            if (dData) setDepartments(dData.sort((a, b) => a.name.localeCompare(b.name)));
+            if (dData) setDepartments(dData.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
             if (tData) setTemplates(tData);
         } catch (e) { console.error(e); } finally { setIsLoading(false); }
     };
@@ -105,7 +105,7 @@ const ClosingModuleView: React.FC<ClosingModuleViewProps> = ({ user, users = [],
         if (!newDeptName.trim()) return;
         const result = await saveCadastro('departments', [{ id: `new_${Date.now()}`, name: newDeptName }]);
         if (result.length > 0) {
-            setDepartments(prev => [...prev, result[0]].sort((a, b) => a.name.localeCompare(b.name)));
+            setDepartments(prev => [...prev, result[0]].sort((a, b) => (a.name || '').localeCompare(b.name || '')));
             setNewDeptName('');
         }
     };
