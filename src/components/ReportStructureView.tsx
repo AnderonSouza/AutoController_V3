@@ -692,11 +692,22 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                             {isOperational && operationalOptions.length > 0 && (
                                                 <SearchableSelect 
                                                     value={line.operationalFormulaId || ''} 
-                                                    options={operationalOptions.map(f => ({
-                                                        id: f.id,
-                                                        name: `${f.codigo} - ${f.nome}`,
-                                                        suffix: f.tipo === 'indicator' ? '📊 Indicador' : '🔢 Fórmula'
-                                                    }))} 
+                                                    options={operationalOptions
+                                                        .sort((a, b) => {
+                                                            // Sort by type first, then by name
+                                                            if (a.tipo !== b.tipo) {
+                                                                return a.tipo === 'indicator' ? -1 : 1;
+                                                            }
+                                                            return (a.nome || '').localeCompare(b.nome || '');
+                                                        })
+                                                        .map(f => ({
+                                                            id: f.id,
+                                                            name: f.nome || f.codigo,
+                                                            description: f.codigo ? `Código: ${f.codigo}` : undefined,
+                                                            suffix: f.tipo === 'indicator' ? 'Indicador' : 'Fórmula',
+                                                            group: f.tipo === 'indicator' ? 'Indicadores' : 'Fórmulas Operacionais'
+                                                        }))
+                                                    } 
                                                     onChange={(val) => {
                                                         handleUpdateLine(line.id, 'operationalFormulaId', val);
                                                         const option = operationalOptions.find(f => f.id === val);
@@ -704,8 +715,9 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                             handleUpdateLine(line.id, 'name', option.nome);
                                                         }
                                                     }}
-                                                    placeholder="Selecionar indicador ou fórmula..."
+                                                    placeholder="Selecionar indicador..."
                                                     className="w-full text-xs"
+                                                    size="md"
                                                 />
                                             )}
                                             {isOperational && operationalOptions.length === 0 && (
