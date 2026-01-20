@@ -925,13 +925,38 @@ const App: React.FC = () => {
             }}
             onSaveMappings={async (d) => {
               await saveCadastroTenant("account_cost_center_mapping", d, effectiveTenantId || user.tenantId)
+              setMappings(prev => {
+                const updatedIds = new Set(d.map((m: any) => m.idconta))
+                const kept = prev.filter(m => !updatedIds.has(m.idconta))
+                return [...kept, ...d]
+              })
             }}
             onDeleteAccount={async (id) => {
               await deleteById("plano_contas_dre", id)
             }}
-            onDeleteMappings={async () => {}}
-            onUnmapAccounts={async () => {}}
-            onRename={async () => {}}
+            onDeleteMappings={async (dreAccountName: string) => {
+              const mappingsToDelete = mappings.filter(m => m.contasintetica?.trim() === dreAccountName.trim())
+              for (const m of mappingsToDelete) {
+                await deleteById("account_cost_center_mapping", m.id)
+              }
+              setMappings(prev => prev.filter(m => m.contasintetica?.trim() !== dreAccountName.trim()))
+            }}
+            onUnmapAccounts={async (ids: string[]) => {
+              const mappingsToDelete = mappings.filter(m => ids.includes(m.idconta))
+              for (const m of mappingsToDelete) {
+                await deleteById("account_cost_center_mapping", m.id)
+              }
+              setMappings(prev => prev.filter(m => !ids.includes(m.idconta)))
+            }}
+            onRename={async (oldName: string, newName: string) => {
+              const affectedMappings = mappings.filter(m => m.contasintetica?.trim() === oldName.trim())
+              for (const m of affectedMappings) {
+                await saveCadastroTenant("account_cost_center_mapping", [{ ...m, contasintetica: newName }], effectiveTenantId || user.tenantId)
+              }
+              setMappings(prev => prev.map(m => 
+                m.contasintetica?.trim() === oldName.trim() ? { ...m, contasintetica: newName } : m
+              ))
+            }}
             onUploadClick={() => {}}
             tenantId={effectiveTenantId || user.tenantId}
           />
