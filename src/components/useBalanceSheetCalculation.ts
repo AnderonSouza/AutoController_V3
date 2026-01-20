@@ -51,7 +51,8 @@ export const useBalanceSheetCalculation = () => {
             if (!balanceAccountId) return
 
             reportLines.forEach(line => {
-                if (line.type === 'data_bucket' && line.balanceAccountId === balanceAccountId) {
+                // Use dreAccountId since linhas_relatorio stores balance account IDs in conta_dre_id column
+                if (line.type === 'data_bucket' && line.dreAccountId === balanceAccountId) {
                     const acc = lineMap.get(line.id);
                     const entryMonth = balance.mes?.toUpperCase() || '';
                     const monthKey = MONTHS.find(m => m.toUpperCase() === entryMonth) || balance.mes;
