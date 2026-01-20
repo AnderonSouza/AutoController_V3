@@ -610,7 +610,10 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
       }
       if (item.id && !item.id.startsWith("new_")) obj.id = item.id
       if (item.dreAccountId || item.conta_dre_id) obj.conta_dre_id = item.dreAccountId || item.conta_dre_id
-      if (item.balanceAccountId || item.contaBalancoId || item.conta_balanco_id) obj.conta_balanco_id = item.balanceAccountId || item.contaBalancoId || item.conta_balanco_id
+      // Balance account ID - ensure it's properly captured from all possible sources
+      const balanceId = item.balanceAccountId || item.contaBalancoId || item.conta_balanco_id
+      if (balanceId) obj.conta_balanco_id = balanceId
+      console.log("[v0-db] Mapping object for mapeamento_contas:", obj)
       return obj
     }
 

@@ -360,6 +360,7 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
     const handleSaveMappings = async (selectedAccountingIds: string[]) => {
         if (!targetAccountForMapping) return;
         const accountName = targetAccountForMapping.name;
+        const accountId = targetAccountForMapping.id; // Use the ID, not just the name
         const newMappingsForAccount: AccountCostCenterMapping[] = selectedAccountingIds.map(id => {
             const acc = accountingAccounts.find(a => a.id === id);
             const existing = currentMappings.find(m => m.idconta === id);
@@ -368,10 +369,15 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
                 id: existing?.id || generateUUID(),
                 idconta: id, 
                 conta: acc?.name || 'Desconhecida', 
-                contasintetica: accountName 
+                contasintetica: accountName,
+                // CRITICAL: Include balance account ID for database persistence
+                balanceAccountId: accountId
             };
         });
-        const currentMappedIds = currentMappings.filter(m => m.contasintetica?.trim() === accountName.trim()).map(m => m.idconta);
+        // Filter by balanceAccountId (ID) instead of contasintetica (name) for more reliable matching
+        const currentMappedIds = currentMappings.filter(m => 
+            m.balanceAccountId === accountId || m.contasintetica?.trim() === accountName.trim()
+        ).map(m => m.idconta);
         const idsToUnmap = currentMappedIds.filter(id => !selectedAccountingIds.includes(id));
         
         setIsSaving(true);
@@ -422,7 +428,12 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
         }
     };
 
-    const getLinkedCount = (accountName: string) => currentMappings.filter(m => m.contasintetica?.trim() === accountName?.trim()).length;
+    const getLinkedCount = (account: BalanceSheetAccount) => {
+        // Match by balanceAccountId (ID) first, fallback to contasintetica (name) for backwards compatibility
+        return currentMappings.filter(m => 
+            m.balanceAccountId === account.id || m.contasintetica?.trim() === account.name?.trim()
+        ).length;
+    };
     const filteredAccounts = useMemo(() => !searchTerm.trim() ? editableAccounts : editableAccounts.filter(acc => acc.name.toLowerCase().includes(searchTerm.toLowerCase())), [editableAccounts, searchTerm]);
 
     // FILTER ACCOUNTING ACCOUNTS FOR MODAL (BALANCE SHEET ONLY)
@@ -459,7 +470,7 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
                     <div className="flex-grow overflow-y-auto p-6 bg-slate-50/50 pb-24" ref={listRef}>
                         <div className="space-y-3">
                             {filteredAccounts.map((account) => {
-                                const linkedCount = getLinkedCount(account.name);
+                                const linkedCount = getLinkedCount(account);
                                 const isEditing = editingAccountId === account.id;
                                 return (
                                    <div key={account.id} className="relative flex items-center gap-3 group bg-white p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:shadow-sm transition-all">
@@ -488,7 +499,7 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
                     </div>
                 </div>
             </div>
-            {mappingModalOpen && targetAccountForMapping && <MappingModal bsAccount={targetAccountForMapping} allAccountingAccounts={balanceSheetAccountingAccounts} initialSelectedIds={currentMappings.filter(m => m.contasintetica?.trim() === targetAccountForMapping.name.trim()).map(m => m.idconta)} onClose={() => setMappingModalOpen(false)} onSave={handleSaveMappings} />}
+            {mappingModalOpen && targetAccountForMapping && <MappingModal bsAccount={targetAccountForMapping} allAccountingAccounts={balanceSheetAccountingAccounts} initialSelectedIds={currentMappings.filter(m => m.balanceAccountId === targetAccountForMapping.id || m.contasintetica?.trim() === targetAccountForMapping.name.trim()).map(m => m.idconta)} onClose={() => setMappingModalOpen(false)} onSave={handleSaveMappings} />}
             <FileImportModal title="Importar Mapeamento Patrimonial" isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} onImport={handleImportData} fields={importFields} />
             
             <DeleteConfirmationModal 

@@ -842,7 +842,12 @@ const App: React.FC = () => {
             }}
             onSaveMappings={async (d) => {
               await saveCadastroTenant("account_cost_center_mapping", d, effectiveTenantId || user.tenantId)
-              setMappings(d)
+              // Merge new mappings with existing ones, replacing by idconta
+              setMappings(prev => {
+                const updatedIds = new Set(d.map((m: any) => m.idconta))
+                const kept = prev.filter(m => !updatedIds.has(m.idconta))
+                return [...kept, ...d]
+              })
             }}
             onDeleteAccount={async (id) => {
               await deleteById("plano_contas_balanco", id)
