@@ -97,7 +97,7 @@ export default function UnifiedLayout({
           searchResults={searchResults}
         />
 
-        <main className="flex-1 overflow-y-auto p-6" style={{ backgroundColor: 'var(--color-bg-app)' }}>
+        <main className="flex-1 overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: primaryColor }} />
