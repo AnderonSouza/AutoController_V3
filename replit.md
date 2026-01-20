@@ -79,14 +79,15 @@ All data/editor views follow the full-screen white background pattern:
 - Role-based access control (admin, user roles per tenant)
 
 ### Data Architecture for Reports
-- **Financial Reports (DRE, Balanço Patrimonial)** use `lancamentos_contabeis` (accounting entries)
+- **DRE (Income Statement)** uses `lancamentos_contabeis` (accounting entries)
   - Required for department-level analysis via `centro_resultado_id`
   - Paginated loading with 50,000 records per page
   - Function: `getDreAggregatedData()` in `src/utils/db.ts`
-- **Monthly Balances** (`saldos_mensais`) - Pre-aggregated data for quick overview
-  - Does NOT contain cost center information
-  - Used for budget wizard historical data loading
-- **Razão Contábil / Auditoria Contábil** use `lancamentos_contabeis`
+- **Balanço Patrimonial / Fluxo de Caixa** uses `saldos_mensais` (monthly balances)
+  - Pre-aggregated data for better performance
+  - No department view needed - only brand and consolidated views
+  - Data passed via `monthlyBalances` prop from `useAppData`
+- **Razão Contábil / Auditoria Contábil** uses `lancamentos_contabeis`
   - Individual transaction-level data for detailed ledger queries
 
 ### Data Import/Export
