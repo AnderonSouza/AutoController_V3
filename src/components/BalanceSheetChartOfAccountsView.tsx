@@ -271,9 +271,12 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
                 if (row.bs_name) {
                     const bsName = String(row.bs_name).trim();
                     
-                    // 1. Create Balance Sheet Account (Identifier by Name)
+                    // 1. Create Balance Sheet Account with UUID
                     if (bsName && !newAccountsMap.has(bsName)) {
-                        newAccountsMap.set(bsName, { id: bsName, name: bsName });
+                        // Check if account already exists
+                        const existingAccount = editableAccounts.find(a => a.name.trim().toLowerCase() === bsName.toLowerCase());
+                        const accountId = existingAccount?.id || generateUUID();
+                        newAccountsMap.set(bsName, { id: accountId, name: bsName });
                     }
 
                     // 2. Prepare Mappings
