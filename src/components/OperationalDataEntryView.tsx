@@ -425,8 +425,8 @@ const OperationalDataEntryView: React.FC<OperationalDataEntryViewProps> = ({ ten
   }
 
   return (
-    <main className="flex-grow flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-      <div className="bg-white rounded-t-lg border border-b-0 border-slate-200">
+    <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+      <div className="bg-white">
       <div className="px-6 py-3 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           {onNavigateBack && (

@@ -534,8 +534,8 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden p-0">
-      <div className="flex-grow flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden">
+    <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+      <div className="w-full flex flex-col h-full">
         <div className="card-header">
           <div className="flex items-center gap-4">
             {onNavigateBack && (
@@ -1056,7 +1056,7 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 
