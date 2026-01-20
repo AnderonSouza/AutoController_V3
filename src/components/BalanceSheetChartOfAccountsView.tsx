@@ -402,10 +402,19 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
         if (trimmed && trimmed !== oldName) {
             setIsSaving(true);
             try { 
-                // 1. Update Local State Immediately to prevent UI revert
-                const updatedList = editableAccounts.map(a => 
-                    a.id === editingAccountId ? { ...a, name: trimmed, id: trimmed } : a
-                );
+                // 1. Update Local State - keep existing UUID or generate new one if temporary
+                const updatedList = editableAccounts.map(a => {
+                    if (a.id === editingAccountId) {
+                        // If ID starts with "new_" or is a name (not UUID), generate UUID
+                        const needsNewId = a.id.startsWith('new_') || !a.id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+                        return { 
+                            ...a, 
+                            name: trimmed, 
+                            id: needsNewId ? generateUUID() : a.id 
+                        };
+                    }
+                    return a;
+                });
                 setEditableAccounts(updatedList);
 
                 // 2. Persist new account list (Upsert)
