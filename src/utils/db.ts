@@ -652,53 +652,86 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
 }
 
 export const createNewUser = async (userData: any, tenantId: string): Promise<any> => {
+  const normalizedEmail = userData.email.toLowerCase().trim()
+  
   // Verificar se o email já existe na tabela usuarios
   const { data: existingUser } = await supabase
     .from("usuarios")
     .select("id, email")
-    .eq("email", userData.email.toLowerCase().trim())
+    .eq("email", normalizedEmail)
     .maybeSingle()
 
   if (existingUser) {
     throw new Error("Este email já está cadastrado no sistema")
   }
 
+  let userId: string | null = null
+
   // 1. Tentar criar usuário no Supabase Auth usando admin.createUser
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: userData.email.toLowerCase().trim(),
+    email: normalizedEmail,
     password: userData.password,
     email_confirm: true,
   })
 
-  let userId: string
-
   if (authError) {
-    // Se não tiver permissão de admin ou outro erro, tenta signup normal
-    console.log("[db] Admin createUser falhou, tentando signUp:", authError.message)
+    console.log("[db] Admin createUser falhou:", authError.message)
     
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: userData.email.toLowerCase().trim(),
-      password: userData.password,
-      options: {
-        data: {
-          name: userData.name,
+    // Se o email já existe no Auth, tentar fazer login para obter o ID
+    if (authError.message.includes("already been registered") || 
+        authError.message.includes("already exists") ||
+        authError.message.includes("User already registered")) {
+      console.log("[db] Email já existe no Auth, tentando obter ID via signIn...")
+      
+      // Tenta fazer login com a senha fornecida para obter o ID
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: userData.password,
+      })
+      
+      if (signInData?.user) {
+        userId = signInData.user.id
+        console.log("[db] ID do usuário obtido via login:", userId)
+        // Faz logout para não manter a sessão
+        await supabase.auth.signOut()
+      } else {
+        // Se o login falhou, o email existe mas a senha está errada
+        // Neste caso, precisa pedir para o admin verificar no Supabase Auth
+        console.log("[db] Não foi possível fazer login:", signInError?.message)
+        throw new Error(
+          "Este email já está registrado no sistema de autenticação mas com uma senha diferente. " +
+          "Verifique o usuário no painel de Authentication do Supabase ou use outra senha."
+        )
+      }
+    } else {
+      // Outro tipo de erro no admin.createUser, tenta signUp normal
+      console.log("[db] Tentando signUp normal...")
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password: userData.password,
+        options: {
+          data: { name: userData.name }
         }
+      })
+
+      if (signUpError) {
+        // Verificar se é erro de email já existente
+        if (signUpError.message.includes("already registered") || 
+            signUpError.message.includes("already exists") ||
+            signUpError.message.includes("Database error")) {
+          throw new Error(
+            "Este email já está registrado no sistema de autenticação. " +
+            "Verifique o usuário no painel de Authentication do Supabase."
+          )
+        }
+        throw new Error("Erro ao criar usuário: " + signUpError.message)
       }
-    })
 
-    if (signUpError) {
-      // Verificar se é erro de email já existente no Auth
-      if (signUpError.message.includes("already registered") || signUpError.message.includes("already exists")) {
-        throw new Error("Este email já está registrado. Verifique se o usuário já existe.")
+      if (!signUpData.user) {
+        throw new Error("Usuário não foi criado. Tente novamente.")
       }
-      throw new Error("Erro ao criar usuário: " + signUpError.message)
+      userId = signUpData.user.id
     }
-
-    if (!signUpData.user) {
-      throw new Error("Usuário não foi criado. Tente novamente.")
-    }
-
-    userId = signUpData.user.id
   } else {
     if (!authData.user) {
       throw new Error("Usuário não foi criado. Tente novamente.")
@@ -706,11 +739,15 @@ export const createNewUser = async (userData: any, tenantId: string): Promise<an
     userId = authData.user.id
   }
 
+  if (!userId) {
+    throw new Error("Não foi possível obter o ID do usuário. Tente novamente.")
+  }
+
   // 2. Inserir na tabela usuarios com o ID do Auth
   const dbUser = {
     id: userId,
     nome: userData.name,
-    email: userData.email.toLowerCase().trim(),
+    email: normalizedEmail,
     perfil: userData.role || "Analista",
     status: userData.status || "ativo",
     organizacao_id: tenantId,
