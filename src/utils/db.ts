@@ -599,7 +599,16 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
       if (item.type === 'operational' && item.operationalFormulaId) {
         obj.formula = `OP:${item.operationalFormulaId}`;
       }
+      // Validate conta_dre_id is a valid UUID (not a name) - if it's not a UUID, set to null
+      if (obj.conta_dre_id && typeof obj.conta_dre_id === 'string') {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(obj.conta_dre_id)) {
+          console.warn("[v0-db] Invalid UUID for conta_dre_id, setting to null:", obj.conta_dre_id);
+          obj.conta_dre_id = null;
+        }
+      }
       obj.organizacao_id = tenantId
+      console.log("[v0-db] linhas_relatorio mapped object:", { name: obj.nome, conta_dre_id: obj.conta_dre_id, type: obj.tipo })
       return obj
     }
 
