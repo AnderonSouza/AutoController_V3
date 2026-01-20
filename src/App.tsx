@@ -692,8 +692,19 @@ const App: React.FC = () => {
         if (isLoadingDreData || isLoadingData) {
           return (
             <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
-              <div className="flex flex-col items-center justify-center h-64 gap-4">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-primary)]"></div>
+              <div className="flex flex-col items-center justify-center h-full gap-4">
+                {splashVideoUrl ? (
+                  <video
+                    src={splashVideoUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-64 h-64 object-contain"
+                  />
+                ) : (
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-primary)]"></div>
+                )}
                 <p className="text-slate-500 text-sm">Carregando dados do relatório...</p>
               </div>
             </main>
