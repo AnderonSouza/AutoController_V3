@@ -352,6 +352,40 @@ interface FinancialTableProps {
   closingConfig?: { lastClosedYear: number; lastClosedMonth: string }
 }
 
+const hasAnyValue = (account: FinancialAccount): boolean => {
+  for (const year of Object.keys(account.monthlyData)) {
+    const yearData = account.monthlyData[Number(year)]
+    if (yearData) {
+      for (const month of Object.keys(yearData)) {
+        const data = yearData[month]
+        if (data) {
+          const effectiveResult = calculateEffectiveResult(data)
+          if (effectiveResult !== 0) return true
+          if (data.orcado && data.orcado !== 0) return true
+        }
+      }
+    }
+  }
+  if (account.children) {
+    for (const child of account.children) {
+      if (hasAnyValue(child)) return true
+    }
+  }
+  return false
+}
+
+const filterAccountsWithValues = (accounts: FinancialAccount[]): FinancialAccount[] => {
+  return accounts
+    .filter(account => {
+      if (account.isTotal || account.isSubTotal) return true
+      return hasAnyValue(account)
+    })
+    .map(account => ({
+      ...account,
+      children: account.children ? filterAccountsWithValues(account.children) : undefined
+    }))
+}
+
 const FinancialTable: React.FC<FinancialTableProps> = ({
   data,
   onDataChange,
@@ -366,6 +400,8 @@ const FinancialTable: React.FC<FinancialTableProps> = ({
   userRole,
   closingConfig,
 }) => {
+  const filteredData = useMemo(() => filterAccountsWithValues(data), [data])
+  
   const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
     const allIds = new Set<string>()
     const collectIds = (accounts: FinancialAccount[]) => {
@@ -585,7 +621,7 @@ const FinancialTable: React.FC<FinancialTableProps> = ({
           </tr>
         </thead>
         <tbody className="bg-white">
-          {data.map((account) => (
+          {filteredData.map((account) => (
             <FinancialTableRow
               key={account.id}
               account={account}
