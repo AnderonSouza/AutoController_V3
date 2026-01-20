@@ -291,11 +291,15 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
                         if(accountingId && bsName) {
                             // FIX: Ensure ID is present for new mappings to avoid DB error
                             const existing = currentMappings.find(m => m.idconta === accountingId);
+                            // Get the balance account ID from the newly created accounts map
+                            const balanceAccount = newAccountsMap.get(bsName);
                             newMappingsMap.set(accountingId, { 
                                 id: existing?.id || generateUUID(),
                                 idconta: accountingId, 
                                 conta: accountingName, 
-                                contasintetica: bsName 
+                                contasintetica: bsName,
+                                balanceAccountId: balanceAccount?.id,
+                                contaBalancoId: balanceAccount?.id
                             });
                         }
                     }
