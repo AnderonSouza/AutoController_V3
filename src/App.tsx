@@ -281,6 +281,45 @@ const App: React.FC = () => {
   const [currentBrand, setCurrentBrand] = useState("Todas as Marcas")
   const [currentStore, setCurrentStore] = useState("Consolidado")
   const [activeTab, setActiveTab] = useState("")
+  
+  // Calculate store options based on selected brand
+  const storeOptionsForBrand = useMemo(() => {
+    const options: { label: string; value: string }[] = [{ label: "Consolidado", value: "Consolidado" }]
+    
+    if (currentBrand === "Todas as Marcas") {
+      // Show all companies when "Todas as Marcas" is selected
+      companies.forEach(c => {
+        options.push({ label: c.nickname || c.name, value: c.id })
+      })
+    } else {
+      // Find the brand by name and filter companies by brandId
+      const selectedBrandObj = brands.find(b => b.name === currentBrand)
+      if (selectedBrandObj) {
+        companies
+          .filter(c => c.brandId === selectedBrandObj.id)
+          .forEach(c => {
+            options.push({ label: c.nickname || c.name, value: c.id })
+          })
+      }
+    }
+    
+    return options
+  }, [currentBrand, brands, companies])
+  
+  // Get company IDs for the selected brand (for filtering data)
+  const companyIdsForBrand = useMemo(() => {
+    if (currentBrand === "Todas as Marcas") return null
+    
+    const selectedBrandObj = brands.find(b => b.name === currentBrand)
+    if (!selectedBrandObj) return null
+    
+    return companies.filter(c => c.brandId === selectedBrandObj.id).map(c => c.id)
+  }, [currentBrand, brands, companies])
+  
+  // Reset store to Consolidado when brand changes
+  useEffect(() => {
+    setCurrentStore("Consolidado")
+  }, [currentBrand])
   const [isBudgetMode, setIsBudgetMode] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [showVertical, setShowVertical] = useState(false)
@@ -363,10 +402,18 @@ const App: React.FC = () => {
       ? costCenters.filter(cc => cc.departmentId === selectedDepartment.id).map(cc => cc.id)
       : null
     
+    // Filter entries by brand if a specific brand is selected
+    let filteredEntries = realizedEntries
+    if (companyIdsForBrand && companyIdsForBrand.length > 0) {
+      filteredEntries = realizedEntries.filter((entry: any) => 
+        companyIdsForBrand.includes(entry.companyId)
+      )
+    }
+    
     const result = calculateDynamicReport(
       dreTemplate,
       dreLines,
-      realizedEntries,
+      filteredEntries,
       adjustments,
       [],
       [],
@@ -375,7 +422,8 @@ const App: React.FC = () => {
       costCenterIdsForDepartment
     )
     setFinancialData(result)
-  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies])
 
   useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
@@ -714,7 +762,7 @@ const App: React.FC = () => {
           <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
             <div className="w-full flex flex-col h-full">
               <Toolbar
-                storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
+                storeOptions={storeOptionsForBrand}
                 currentStore={currentStore}
                 onStoreChange={setCurrentStore}
                 brands={brands}
