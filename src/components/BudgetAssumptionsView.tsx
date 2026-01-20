@@ -165,7 +165,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                 
                 {/* TAB 1: DEFINITIONS */}
                 {activeTab === 'definitions' && (
-                    <div className="max-w-4xl mx-auto bg-white p-6 rounded-custom shadow-lg border border-slate-200">
+                    <div className="max-w-4xl mx-auto bg-white p-6 border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800">Cadastro de Premissas</h2>
@@ -200,7 +200,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
 
                 {/* TAB 2: FORMULAS */}
                 {activeTab === 'formulas' && (
-                    <div className="max-w-5xl mx-auto bg-white p-6 rounded-custom shadow-lg border border-slate-200">
+                    <div className="max-w-5xl mx-auto bg-white p-6 border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-800">Fórmulas de Cálculo</h2>
@@ -211,7 +211,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
 
                         <div className="space-y-6">
                             {editableFormulas.map((formula, index) => (
-                                <div key={formula.id} className="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                                <div key={formula.id} className="p-5 bg-slate-50 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                                         {/* Target Account */}
                                         <div className="md:col-span-4">

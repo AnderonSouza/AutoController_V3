@@ -102,8 +102,8 @@ export default function BalanceSheetView({
 
   if (!reportTemplate || reportLines.length === 0) {
     return (
-      <div className="flex flex-col h-full overflow-hidden p-4">
-        <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+        <div className="w-full flex flex-col h-full">
           <div className="flex-1 flex items-center justify-center text-slate-400">
             <div className="text-center">
               <p className="text-lg font-medium">Nenhuma estrutura de relatório configurada</p>
@@ -111,13 +111,13 @@ export default function BalanceSheetView({
             </div>
           </div>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden p-0">
-      <div className="flex-grow flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden">
+    <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+      <div className="w-full flex flex-col h-full">
         <Toolbar
           storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
           currentStore={currentStore}
@@ -157,6 +157,6 @@ export default function BalanceSheetView({
         </div>
         <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
-    </div>
+    </main>
   )
 }

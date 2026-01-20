@@ -333,12 +333,12 @@ const CgEntriesView: React.FC<CgEntriesViewProps> = ({
     const handleDelete = (transactionId: string) => { if (confirm('Excluir este lançamento?')) onSaveEntries(entries.filter(t => t.transactionId !== transactionId)); };
 
     return (
-        <div className="page-container">
-          <div className="content-card">
-            <div className="card-header">
-              <div className="header-text">
-                <h1 className="card-title">Gerenciar Ajustes de Caixa</h1>
-                <p className="card-subtitle">Lançamentos manuais que afetam o Caixa Gerencial.</p>
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+          <div className="w-full flex flex-col h-full">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+              <div>
+                <h1 className="text-xl font-bold text-slate-800">Gerenciar Ajustes de Caixa</h1>
+                <p className="text-sm text-slate-500 mt-1">Lançamentos manuais que afetam o Caixa Gerencial.</p>
               </div>
               <div className="header-actions">
                 <button onClick={() => setIsFilterVisible(!isFilterVisible)} className={`btn ${isFilterVisible ? 'btn-primary-outline' : 'btn-secondary'}`}>
@@ -408,7 +408,7 @@ const CgEntriesView: React.FC<CgEntriesViewProps> = ({
             </div>
           </div>
           {editingTransaction && <CgEntryEditModal transaction={editingTransaction} onClose={() => setEditingTransaction(null)} onSave={handleSave} companies={companies} dreAccounts={dreAccounts} balanceSheetAccounts={balanceSheetAccounts} dreDepartmentOptions={dreDepartmentOptions} />}
-        </div>
+        </main>
     );
 };
 

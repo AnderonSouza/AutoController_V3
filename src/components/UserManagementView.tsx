@@ -65,28 +65,23 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({
   const validUsers = Array.isArray(users) ? users.filter(u => u && u.id) : [];
 
   return (
-    <div className="page-container">
-      <button onClick={onNavigateBack} className="back-button">
-        <ChevronLeft className="w-4 h-4" />
-        Voltar
-      </button>
-      
-      <div className="content-card">
-        <div className="card-header">
-          <div className="header-text">
-            <h1 className="card-title">Gerenciamento de Usuários</h1>
-            <p className="card-subtitle">Adicione, edite ou remova usuários e configure suas permissões de acesso.</p>
+    <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+      <div className="w-full flex flex-col h-full">
+        <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
+          <div>
+            <h1 className="text-xl font-bold text-slate-800">Gerenciamento de Usuários</h1>
+            <p className="text-sm text-slate-500 mt-1">Adicione, edite ou remova usuários e configure suas permissões de acesso.</p>
           </div>
-          <div className="header-actions">
-            <button onClick={handleAddNewUser} className="btn btn-primary">
+          <div className="flex items-center gap-2">
+            <button onClick={handleAddNewUser} className="px-4 py-2 bg-primary text-on-primary text-sm font-semibold rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 shadow-sm">
               <UserPlus className="w-4 h-4" />
               Adicionar Novo Usuário
             </button>
           </div>
         </div>
         
-        <div className="card-body p-0">
-          <div className="data-table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
+        <div className="flex-grow overflow-auto">
+          <div className="w-full">
             <table className="data-table">
               <thead className="sticky-header">
                 <tr>
@@ -152,7 +147,7 @@ const UserManagementView: React.FC<UserManagementViewProps> = ({
           departments={departments}
         />
       )}
-    </div>
+    </main>
   );
 };
 

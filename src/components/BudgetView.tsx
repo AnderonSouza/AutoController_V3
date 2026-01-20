@@ -25,8 +25,8 @@ const BudgetView: React.FC<BudgetViewProps> = ({
   };
 
   return (
-      <div className="flex-grow flex flex-col h-full overflow-hidden p-3 md:p-4">
-          <div className="flex-grow flex flex-col bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+          <div className="w-full flex flex-col h-full">
                <div className="flex-grow overflow-auto h-full">
                    <BudgetTable 
                         data={accounts}
@@ -36,7 +36,7 @@ const BudgetView: React.FC<BudgetViewProps> = ({
                    />
                </div>
           </div>
-      </div>
+      </main>
   );
 };
 
