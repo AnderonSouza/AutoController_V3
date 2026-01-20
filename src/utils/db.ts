@@ -639,7 +639,17 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
       return obj
     }
 
+    if (dbTable === "plano_contas_balanco") {
+      const obj: any = {
+        nome: item.name || item.nome,
+        organizacao_id: tenantId,
+      }
+      if (item.id) obj.id = item.id
+      return obj
+    }
+
     const obj = { ...item, organizacao_id: tenantId }
+    delete obj.economicGroupId
     return obj
   })
 
