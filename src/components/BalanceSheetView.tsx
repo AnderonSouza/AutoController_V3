@@ -92,11 +92,20 @@ export default function BalanceSheetView({
     )
   }, [reportTemplate, reportLines, monthlyBalances, accountMappings, selectedPeriod, filteredCompanyIds, calculateBalanceSheet])
 
-  if (isLoading) {
+  const isCalculating = useMemo(() => {
+    return monthlyBalances.length > 0 && balanceSheetData.length === 0 && reportLines.length > 0;
+  }, [monthlyBalances.length, balanceSheetData.length, reportLines.length]);
+
+  if (isLoading || isCalculating) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
-      </div>
+      <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-primary)]"></div>
+          <p className="text-slate-500 text-sm">
+            {isCalculating ? 'Calculando dados do relatório...' : 'Carregando dados...'}
+          </p>
+        </div>
+      </main>
     )
   }
 

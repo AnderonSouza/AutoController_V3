@@ -32,6 +32,13 @@ export const useBalanceSheetCalculation = () => {
                 balanceAccountMap.set(m.contaContabilId, m.contaBalancoId)
             }
         })
+        
+        console.log("[v0] Balance sheet calculation:", {
+            mappingsWithBalanceAccount: Array.from(balanceAccountMap.entries()).slice(0, 5),
+            totalMappings: balanceAccountMap.size,
+            reportLinesWithDreAccountId: reportLines.filter(l => l.type === 'data_bucket' && l.dreAccountId).length,
+            monthlyBalancesCount: monthlyBalances.length
+        })
 
         reportLines.forEach(line => {
             lineMap.set(line.id, {
