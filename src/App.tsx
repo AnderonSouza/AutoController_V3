@@ -678,8 +678,8 @@ const App: React.FC = () => {
       case "CASH_FLOW":
       case "DYNAMIC_REPORT":
         return (
-          <div className="flex flex-col h-full overflow-hidden p-0">
-            <div className="flex-grow flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden">
+          <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
               <Toolbar
                 storeOptions={[{ label: "Consolidado", value: "Consolidado" }]}
                 currentStore={currentStore}
@@ -718,7 +718,7 @@ const App: React.FC = () => {
               </div>
               <Tabs tabs={departments.map((d) => d.name)} activeTab={activeTab} setActiveTab={setActiveTab} />
             </div>
-          </div>
+          </main>
         )
       case "BALANCE_SHEET":
         const balanceSheetTemplate = reportTemplates.find(t => t.type === 'BALANCE_SHEET')
