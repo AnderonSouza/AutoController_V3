@@ -158,7 +158,7 @@ const FIELD_MAP_REPORT_LINES: Record<string, string> = {
   createdAt: "criado_em",
   updatedAt: "atualizado_em",
   dreAccountId: "conta_dre_id",
-  balanceAccountId: "conta_balanco_id",
+  // Note: balanceAccountId is stored in dreAccountId (conta_dre_id) since linhas_relatorio doesn't have conta_balanco_id column
   economicGroupId: "organizacao_id",
 }
 

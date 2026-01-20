@@ -241,26 +241,20 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     }, [reportTemplate.type, dreAccounts, balanceSheetAccounts]);
 
     // Calcular IDs de contas já usadas no relatório (para evitar duplicação)
-    const isBalanceReport = reportTemplate.type === 'BALANCE_SHEET' || reportTemplate.type === 'CASH_FLOW';
-    
     const usedAccountIds = useMemo(() => {
         const usedIds = new Set<string>();
         lines.forEach(line => {
-            if (line.type === 'data_bucket') {
-                // Use the correct field based on report type
-                const accountId = isBalanceReport ? line.balanceAccountId : line.dreAccountId;
-                if (accountId) {
-                    usedIds.add(accountId);
-                }
+            if (line.type === 'data_bucket' && line.dreAccountId) {
+                usedIds.add(line.dreAccountId);
             }
         });
         return usedIds;
-    }, [lines, isBalanceReport]);
+    }, [lines]);
 
     // Função para obter lista de contas com marcação de "já usada"
     const getAccountOptionsForLine = (currentLineId: string) => {
         const currentLine = lines.find(l => l.id === currentLineId);
-        const currentAccountId = isBalanceReport ? currentLine?.balanceAccountId : currentLine?.dreAccountId;
+        const currentAccountId = currentLine?.dreAccountId;
         
         return sourceAccountsList.map(a => ({
             id: a.id,
@@ -475,15 +469,11 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
 
     const handleSave = async () => {
         // Validar duplicatas antes de salvar
-        const analyticalLines = lines.filter(l => {
-            if (l.type !== 'data_bucket') return false;
-            return isBalanceReport ? !!l.balanceAccountId : !!l.dreAccountId;
-        });
+        const analyticalLines = lines.filter(l => l.type === 'data_bucket' && l.dreAccountId);
         const accountIdCounts = new Map<string, number>();
         analyticalLines.forEach(l => {
-            const accountId = isBalanceReport ? l.balanceAccountId! : l.dreAccountId!;
-            const count = accountIdCounts.get(accountId) || 0;
-            accountIdCounts.set(accountId, count + 1);
+            const count = accountIdCounts.get(l.dreAccountId!) || 0;
+            accountIdCounts.set(l.dreAccountId!, count + 1);
         });
         
         const duplicates = Array.from(accountIdCounts.entries()).filter(([_, count]) => count > 1);
@@ -554,9 +544,8 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                             const isOperational = line.type === 'operational';
                             const canNest = line.type === 'total' || line.type === 'header';
                             
-                            const accountIdForLine = isBalanceReport ? line.balanceAccountId : line.dreAccountId;
-                            const linkedAccount = isAnalytical && accountIdForLine 
-                                ? sourceAccountsList.find(a => a.id === accountIdForLine) 
+                            const linkedAccount = isAnalytical && line.dreAccountId 
+                                ? sourceAccountsList.find(a => a.id === line.dreAccountId) 
                                 : null;
                             const displayName = linkedAccount ? linkedAccount.name : line.name;
                             const formulaCount = line.formula ? (JSON.parse(line.formula) as any[]).length : 0;
@@ -669,22 +658,17 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                         <div className="col-span-3 relative">
                                             {isAnalytical && (
                                                 <SearchableSelect 
-                                                    value={(reportTemplate.type === 'BALANCE_SHEET' || reportTemplate.type === 'CASH_FLOW' ? line.balanceAccountId : line.dreAccountId) || ''} 
+                                                    value={line.dreAccountId || ''} 
                                                     options={getAccountOptionsForLine(line.id)} 
                                                     onChange={(val) => {
                                                         // Validação extra: verificar se já está em uso
-                                                        const isBalanceReport = reportTemplate.type === 'BALANCE_SHEET' || reportTemplate.type === 'CASH_FLOW';
-                                                        const currentAccountId = isBalanceReport ? line.balanceAccountId : line.dreAccountId;
+                                                        const currentAccountId = line.dreAccountId;
                                                         if (val && val !== currentAccountId && usedAccountIds.has(val)) {
                                                             alert('Esta conta já está vinculada a outra linha. Selecione uma conta diferente.');
                                                             return;
                                                         }
-                                                        // Use the correct field based on report type
-                                                        if (isBalanceReport) {
-                                                            handleUpdateLine(line.id, 'balanceAccountId', val);
-                                                        } else {
-                                                            handleUpdateLine(line.id, 'dreAccountId', val);
-                                                        }
+                                                        // Use dreAccountId for all report types (conta_dre_id in DB stores both DRE and Balance account IDs)
+                                                        handleUpdateLine(line.id, 'dreAccountId', val);
                                                         const acc = sourceAccountsList.find(a => a.id === val);
                                                         if (acc) {
                                                             handleUpdateLine(line.id, 'name', acc.name);
