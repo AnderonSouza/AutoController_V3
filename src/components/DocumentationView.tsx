@@ -157,8 +157,8 @@ const DocumentationView: React.FC = () => {
     }, [searchTerm, selectedCategory, featuredArticles, regularArticles]);
 
     return (
-        <main className="flex-grow p-6 lg:p-8 overflow-y-auto bg-slate-50/50 h-full flex flex-col">
-            <div className="max-w-7xl mx-auto w-full flex flex-col h-full">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full overflow-y-auto p-6">
                 
                 {/* Search & Filter Bar */}
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8 sticky top-0 z-20">

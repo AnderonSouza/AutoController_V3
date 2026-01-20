@@ -104,25 +104,16 @@ const EconomicGroupsView: React.FC<EconomicGroupsViewProps> = ({ economicGroups,
 
     if (!editableGroup) {
         return (
-            <main className="flex-grow p-6 flex items-center justify-center">
+            <main className="flex-grow flex items-center justify-center bg-white">
                 <p>Carregando configurações...</p>
             </main>
         );
     }
 
     return (
-        <main className="flex-grow p-4 lg:p-6 flex flex-col h-full overflow-x-hidden">
-            <div className="max-w-full mx-auto w-full flex flex-col h-full">
-                <div className="flex justify-between items-center mb-4 shrink-0">
-                    <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        Voltar para Estrutura Organizacional
-                    </button>
-                </div>
-                
-                <div className="bg-white rounded-custom shadow-xl border border-slate-200 flex flex-col overflow-hidden flex-grow">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
                         <div>
                             <h1 className="text-xl font-bold text-slate-800">Cadastro do Grupo Econômico</h1>

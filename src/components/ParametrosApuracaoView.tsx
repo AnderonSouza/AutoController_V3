@@ -22,8 +22,8 @@ const ParametrosApuracaoView: React.FC<ParametrosApuracaoViewProps> = ({
   onNavigateToBalanceSheetAccounts,
 }) => {
   return (
-    <main className="flex-grow p-4 lg:p-6 overflow-y-auto" style={{ backgroundColor: "var(--color-bg-app)" }}>
-      <div className="max-w-5xl mx-auto">
+    <main className="flex-grow flex flex-col h-full overflow-y-auto bg-white">
+      <div className="w-full p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-800 mb-2 tracking-tight">Parâmetros de Apuração</h1>
           <p className="text-slate-500 text-lg">Configure os parâmetros para análise e apuração de resultados.</p>

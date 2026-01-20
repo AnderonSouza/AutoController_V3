@@ -213,8 +213,8 @@ const ManagementView: React.FC<ManagementViewProps> = ({
 
 
   return (
-    <main className="flex-grow p-6 lg:p-8 overflow-y-auto" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-      <div className="max-w-6xl mx-auto">
+    <main className="flex-grow flex flex-col h-full overflow-y-auto bg-white">
+      <div className="w-full p-6">
         <div className="mb-8 flex justify-between items-end">
             <div>
                 <h1 className="text-3xl font-bold text-slate-800 mb-2 tracking-tight">

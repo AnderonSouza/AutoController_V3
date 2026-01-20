@@ -226,8 +226,8 @@ const ClosingModuleView: React.FC<ClosingModuleViewProps> = ({ user, users = [],
     }, [users]);
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-            <div className="max-w-[1700px] mx-auto w-full flex flex-col h-full">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
                 
                 <div className="mb-6 flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div className="flex items-center gap-6 flex-wrap">

@@ -260,9 +260,9 @@ const AjustesContabeisView: React.FC<AjustesContabeisViewProps> = ({
     };
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-            <div className="max-w-full mx-auto w-full flex flex-col h-full">
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex-grow flex flex-col overflow-hidden">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                         <div> <h1 className="text-xl font-bold text-slate-800">Gerenciar Ajustes Contábeis</h1> <p className="text-sm text-slate-500 mt-1">Gerencie provisões, estornos e reclassificações.</p> </div>
                         <button onClick={handleAddNewProvision} className="px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-hover transition-all flex items-center shadow-md transform active:scale-95"> <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg> Novo Ajuste Contábil </button>

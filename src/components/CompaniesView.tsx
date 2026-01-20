@@ -519,16 +519,9 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
     }, [editableCompanies, searchTerm, sortConfig, brands]);
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden bg-slate-50">
-            <div className="max-w-full mx-auto w-full flex flex-col h-full">
-                <div className="flex justify-between items-center mb-4 shrink-0">
-                    <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
-                        Voltar para Estrutura Organizacional
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col overflow-hidden flex-grow">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white shrink-0">
                         <div><h1 className="text-xl font-bold text-slate-800">Gerenciamento de Empresas</h1><p className="text-sm text-slate-500 mt-1">Cadastre suas lojas com CNPJ e Código ERP para garantir a importação correta.</p></div>
                         <div className="flex items-center gap-3 w-full sm:w-auto">

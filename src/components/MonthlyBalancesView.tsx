@@ -87,15 +87,9 @@ const MonthlyBalancesView: React.FC<MonthlyBalancesViewProps> = ({ onNavigateBac
     ];
 
     return (
-        <main className="flex-grow p-4 sm:p-6 lg:p-8 flex flex-col h-full overflow-hidden">
-            <div className="max-w-full mx-auto w-full flex flex-col h-full">
-                <button onClick={onNavigateBack} className="mb-6 text-sm text-slate-600 hover:text-slate-800 font-semibold flex items-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    Voltar para Importação
-                </button>
-                <div className="bg-white p-6 rounded-custom shadow-md border border-gray-200 flex flex-col flex-grow overflow-hidden">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow p-6">
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h1 className="text-2xl font-bold text-gray-800">Balancetes Mensais Importados</h1>
                         <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">

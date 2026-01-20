@@ -403,9 +403,9 @@ const ManagementTransfersView: React.FC<ManagementTransfersViewProps> = ({
     };
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-          <div className="max-w-7xl mx-auto w-full flex flex-col h-full">
-              <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex-grow flex flex-col overflow-hidden">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+          <div className="w-full flex flex-col h-full">
+              <div className="flex flex-col overflow-hidden flex-grow">
                   <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                       <div><h1 className="text-xl font-bold text-slate-800">Gerenciar Transferências Gerenciais</h1><p className="text-sm text-slate-500 mt-1">Adicione, edite ou remova lançamentos de múltiplas partidas.</p></div>
                        <div className="flex items-center gap-4">

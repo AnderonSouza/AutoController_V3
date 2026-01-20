@@ -90,8 +90,8 @@ const ClosingLockView: React.FC<ClosingLockViewProps> = ({ user, economicGroup, 
     };
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-            <div className="max-w-2xl mx-auto w-full">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full p-6">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Bloqueio de Período</h1>
                     <p className="text-slate-500">Defina a data limite para visualização e edição de dados.</p>

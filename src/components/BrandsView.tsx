@@ -167,16 +167,9 @@ const BrandsView: React.FC<BrandsViewProps> = ({ brands, economicGroups, onNavig
     const inputClasses = "w-full bg-white border border-slate-300 rounded-lg shadow-sm py-2 px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition";
 
     return (
-        <main className="flex-grow p-6 lg:p-8 h-full flex flex-col overflow-hidden">
-            <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
-                <button onClick={onNavigateBack} className="mb-4 text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    Voltar para Estrutura Organizacional
-                </button>
-                
-                <div className="bg-white rounded-custom shadow-lg border border-slate-200 flex flex-col flex-grow overflow-hidden">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     {/* Header Section - Fixed */}
                     <div className="p-6 border-b border-slate-100 shrink-0 bg-white z-10">
                         <div className="flex justify-between items-center mb-2">

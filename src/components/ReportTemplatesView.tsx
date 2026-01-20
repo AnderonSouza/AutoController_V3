@@ -164,9 +164,9 @@ const ReportTemplatesView: React.FC<ReportTemplatesViewProps> = ({
     const inputClasses = "w-full bg-white border border-slate-300 rounded-lg shadow-sm py-2 px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition";
 
     return (
-        <main className="flex-grow p-6 lg:p-8 overflow-y-auto">
-            <div className="max-w-6xl mx-auto w-full flex flex-col h-full">
-                <div className="bg-white rounded-custom shadow-lg border border-slate-200 flex flex-col overflow-hidden">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
                         <div>
                             <h1 className="text-xl font-bold text-slate-800">Modelos de Demonstrações</h1>

@@ -436,12 +436,9 @@ const BalanceSheetChartOfAccountsView: React.FC<BalanceSheetChartOfAccountsViewP
     }, [accountingAccounts]);
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden bg-slate-50">
-            <div className="max-w-5xl mx-auto w-full flex flex-col h-full">
-                <button onClick={onNavigateBack} className="mb-6 text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center self-start shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg> Voltar para Parâmetros de Apuração
-                </button>
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col overflow-hidden flex-grow">
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+            <div className="w-full flex flex-col h-full">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-5 border-b border-slate-100 shrink-0">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div><h1 className="text-2xl font-bold text-slate-800">Plano de Contas Patrimonial & Mapeamento</h1><p className="text-sm text-slate-500 mt-1">Gerencie os vínculos entre contas contábeis e contas do Balanço Patrimonial.</p></div>

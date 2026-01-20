@@ -44,6 +44,16 @@ Preferred communication style: Simple, everyday language.
 - Key props: `iconBarColor`, `panelTitle`, `showHomeButton`, `primaryColor`, `secondaryColor`, `containerColor` (per-item custom background)
 - Special items at bottom: Support (headphones icon) and Learning Center (purple background `#7c3aed` - stimulates learning)
 
+### Full-Screen Layout Pattern (Standard)
+All data/editor views follow the full-screen white background pattern:
+- **UnifiedLayout** (`src/components/UnifiedLayout.tsx`) has NO default padding - each view manages its own spacing
+- Main element structure: `<main className="flex-grow flex flex-col h-full overflow-hidden bg-white">`
+- Inner container: `<div className="w-full flex flex-col h-full">`
+- Content wrapper: `<div className="flex flex-col overflow-hidden flex-grow">`
+- Views that need padding add it internally: `p-6` or similar
+- Views that need scrolling add `overflow-y-auto` internally
+- This pattern ensures 100% width utilization without visible margins/borders
+
 ### State Management
 - React useState/useEffect hooks for local state
 - LocalStorage for theme persistence and session data
