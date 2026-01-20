@@ -653,7 +653,15 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
     return obj
   })
 
-  const { data: saved, error } = await supabase.from(dbTable).upsert(dbData).select()
+  // Use onConflict for mapeamento_contas to handle the unique constraint on conta_contabil_id
+  let query
+  if (dbTable === "mapeamento_contas") {
+    query = supabase.from(dbTable).upsert(dbData, { onConflict: "conta_contabil_id" }).select()
+  } else {
+    query = supabase.from(dbTable).upsert(dbData).select()
+  }
+  
+  const { data: saved, error } = await query
   if (error) {
     console.error("Erro ao salvar em " + tableName + ":", error.message)
     throw error
