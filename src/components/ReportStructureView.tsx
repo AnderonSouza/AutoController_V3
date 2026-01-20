@@ -499,8 +499,8 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     };
 
     return (
-        <main className="flex-grow p-6 lg:p-8 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
-            <div className="max-w-[1600px] mx-auto w-full flex flex-col h-full">
+        <main className="flex-grow p-4 lg:p-6 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
+            <div className="w-full flex flex-col h-full">
                 <div className="flex justify-between items-center mb-4 shrink-0">
                     <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
