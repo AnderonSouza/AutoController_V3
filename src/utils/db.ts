@@ -783,20 +783,33 @@ export const createNewUser = async (userData: any, tenantId: string): Promise<an
 }
 
 export const updateExistingUser = async (userData: any, tenantId: string): Promise<any> => {
-  const dbUser: any = {
-    nome: userData.name,
-    email: userData.email,
-    perfil: userData.role,
-    status: userData.status,
-    organizacao_id: tenantId,
-    permissoes: userData.permissions || {},
-    departamento_suporte: userData.supportDepartment,
-  }
+  // Filtra campos undefined para não sobrescrever com null
+  const dbUser: any = {}
+  if (userData.name !== undefined) dbUser.nome = userData.name
+  if (userData.email !== undefined) dbUser.email = userData.email
+  if (userData.role !== undefined) dbUser.perfil = userData.role
+  if (userData.status !== undefined) dbUser.status = userData.status
+  if (tenantId !== undefined) dbUser.organizacao_id = tenantId
+  if (userData.permissions !== undefined) dbUser.permissoes = userData.permissions
+  if (userData.supportDepartment !== undefined) dbUser.departamento_suporte = userData.supportDepartment
 
-  // Nota: Atualização de senha de outros usuários requer service role key
-  // Por segurança, apenas o próprio usuário pode atualizar sua senha via auth.updateUser()
-  if (userData.password) {
-    console.warn("Atualização de senha ignorada - use o fluxo de redefinição de senha")
+  // Tenta atualizar a senha no Supabase Auth se fornecida
+  if (userData.password && userData.password.trim() !== "") {
+    console.log("[db] Tentando atualizar senha do usuário...")
+    
+    // Tenta usar admin.updateUserById se disponível
+    const { error: adminUpdateError } = await supabase.auth.admin.updateUserById(
+      userData.id,
+      { password: userData.password }
+    )
+    
+    if (adminUpdateError) {
+      console.log("[db] Admin updateUserById não disponível:", adminUpdateError.message)
+      // Se não tiver permissão admin, informar que a senha não pode ser atualizada
+      console.warn("[db] Atualização de senha requer privilégios de admin. Use redefinição de senha.")
+    } else {
+      console.log("[db] Senha atualizada com sucesso via admin API")
+    }
   }
 
   const { data: savedUser, error: dbError } = await supabase
