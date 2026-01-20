@@ -352,6 +352,10 @@ const App: React.FC = () => {
     const dreLines = reportLines.filter(l => l.reportId === dreTemplate.id)
     if (dreLines.length === 0) return
     
+    // Find the department ID from the activeTab name
+    const selectedDepartment = departments.find(d => d.name === activeTab)
+    const filterDepartmentId = selectedDepartment?.id || null
+    
     const result = calculateDynamicReport(
       dreTemplate,
       dreLines,
@@ -360,10 +364,11 @@ const App: React.FC = () => {
       [],
       [],
       selectedPeriod,
-      currentStore
+      currentStore,
+      filterDepartmentId
     )
     setFinancialData(result)
-  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, calculateDynamicReport])
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, calculateDynamicReport])
 
   useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
