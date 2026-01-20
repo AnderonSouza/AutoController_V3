@@ -24,7 +24,7 @@ export const useDreCalculation = () => {
         transfers: ManagementTransfer[],
         selectedPeriod: { years: number[], months: string[] },
         filterStore: string = 'Consolidado',
-        filterDepartmentId: string | null = null
+        filterCostCenterIds: string[] | null = null
     ): FinancialAccount[] => {
         if (!reportLines || reportLines.length === 0) return [];
 
@@ -47,8 +47,8 @@ export const useDreCalculation = () => {
         // Entries now come with dreAccountId already resolved from mapeamento_contas
         accountingEntries.forEach(entry => {
             if (filterStore !== 'Consolidado' && entry.companyId !== filterStore) return;
-            // Filter by department if specified
-            if (filterDepartmentId && (entry as any).costCenterId !== filterDepartmentId) return;
+            // Filter by cost center IDs if specified (cost centers belong to the selected department)
+            if (filterCostCenterIds && filterCostCenterIds.length > 0 && !filterCostCenterIds.includes((entry as any).costCenterId)) return;
 
             // Match by dreAccountId directly (already mapped from conta_contabil_id)
             const entryDreId = (entry as any).dreAccountId || entry.idconta;

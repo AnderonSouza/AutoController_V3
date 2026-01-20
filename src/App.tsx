@@ -272,6 +272,7 @@ const App: React.FC = () => {
   const { count: bsPendingCount } = useUnmappedAccounts(accountingAccounts, mappings, "BALANCE")
 
   const [realizedEntries, setRealizedEntries] = useState<any[]>([])
+  const [isLoadingDreData, setIsLoadingDreData] = useState(false)
   const currentYear = new Date().getFullYear()
   const [selectedPeriod, setSelectedPeriod] = useState<{ years: number[]; months: string[] }>({
     years: [currentYear],
@@ -316,6 +317,7 @@ const App: React.FC = () => {
     const loadDreData = async () => {
       if (!effectiveTenantId || selectedPeriod.years.length === 0 || mappingsLength === 0) return
       try {
+        setIsLoadingDreData(true)
         console.log("[v0] Loading DRE data with mappings:", { 
           years: selectedPeriod.years, 
           mappingsCount: mappingsLength 
@@ -325,6 +327,8 @@ const App: React.FC = () => {
         setRealizedEntries(dreData)
       } catch (e) {
         console.error("Error loading DRE data:", e)
+      } finally {
+        setIsLoadingDreData(false)
       }
     }
     loadDreData()
@@ -353,8 +357,11 @@ const App: React.FC = () => {
     if (dreLines.length === 0) return
     
     // Find the department ID from the activeTab name
+    // Then get all cost centers that belong to this department
     const selectedDepartment = departments.find(d => d.name === activeTab)
-    const filterDepartmentId = selectedDepartment?.id || null
+    const costCenterIdsForDepartment = selectedDepartment 
+      ? costCenters.filter(cc => cc.departmentId === selectedDepartment.id).map(cc => cc.id)
+      : null
     
     const result = calculateDynamicReport(
       dreTemplate,
@@ -365,10 +372,10 @@ const App: React.FC = () => {
       [],
       selectedPeriod,
       currentStore,
-      filterDepartmentId
+      costCenterIdsForDepartment
     )
     setFinancialData(result)
-  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, calculateDynamicReport])
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport])
 
   useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
@@ -682,6 +689,16 @@ const App: React.FC = () => {
       case "DRE":
       case "CASH_FLOW":
       case "DYNAMIC_REPORT":
+        if (isLoadingDreData || isLoadingData) {
+          return (
+            <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+              <div className="flex flex-col items-center justify-center h-64 gap-4">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--color-primary)]"></div>
+                <p className="text-slate-500 text-sm">Carregando dados do relatório...</p>
+              </div>
+            </main>
+          )
+        }
         return (
           <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
             <div className="w-full flex flex-col h-full">
