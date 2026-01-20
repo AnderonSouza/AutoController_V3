@@ -78,6 +78,16 @@ All data/editor views follow the full-screen white background pattern:
 - Environment-based redirect URLs for development/production
 - Role-based access control (admin, user roles per tenant)
 
+### Data Architecture for Reports (Performance Optimization)
+- **Financial Reports (DRE, Balanço Patrimonial)** use `saldos_mensais` (monthly balances) for better performance
+  - `saldos_mensais` contains pre-aggregated values per company/account/month
+  - Single query per year instead of paginated queries over individual entries
+  - Function: `getDreAggregatedData()` in `src/utils/db.ts`
+- **Razão Contábil / Auditoria Contábil** use `lancamentos_contabeis` (accounting entries)
+  - Individual transaction-level data for detailed ledger queries
+  - Paginated loading with 50,000 records per page
+  - Used only when detailed line-item information is needed
+
 ### Data Import/Export
 - **xlsx** library for Excel file parsing
 - Bulk import support for accounting entries
