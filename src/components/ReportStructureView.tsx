@@ -499,22 +499,20 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
     };
 
     return (
-        <main className="flex-grow p-4 lg:p-6 flex flex-col h-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-app)' }}>
+        <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
             <div className="w-full flex flex-col h-full">
-                <div className="flex justify-between items-center mb-4 shrink-0">
-                    <button onClick={onNavigateBack} className="text-sm text-slate-600 hover:text-slate-900 font-semibold flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        Voltar para Modelos
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col overflow-hidden flex-grow">
+                <div className="flex flex-col overflow-hidden flex-grow">
                     <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-800">Editor de estrutura: {reportTemplate.name}</h1>
-                            <p className="text-sm text-slate-500">Use as setas para organizar a hierarquia e ordem das linhas.</p>
+                        <div className="flex items-center gap-4">
+                            <button onClick={onNavigateBack} className="text-slate-400 hover:text-slate-700 transition-colors p-2 rounded-lg hover:bg-slate-100" title="Voltar para Modelos">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                            <div>
+                                <h1 className="text-xl font-bold text-slate-800">Editor de estrutura: {reportTemplate.name}</h1>
+                                <p className="text-sm text-slate-500">Use as setas para organizar a hierarquia e ordem das linhas.</p>
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             <button onClick={() => handleAddLine(null)} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-sm flex items-center">
