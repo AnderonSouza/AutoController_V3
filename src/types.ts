@@ -338,6 +338,46 @@ export interface BudgetFormula {
   description?: string
 }
 
+export interface BudgetMapping {
+  id: string
+  premissaId: string
+  contaDreId: string
+  departamentoId?: string
+  fatorMultiplicador: number
+  tipoCalculo: 'direto' | 'formula' | 'percentual'
+  formula?: string
+  descricao?: string
+  ativo: boolean
+}
+
+export interface AuxiliaryPremise {
+  id: string
+  nome: string
+  tipo: 'preco_medio' | 'margem' | 'taxa' | 'indice' | 'outros'
+  contaDreId?: string
+  departamento?: string
+  marcaId?: string
+  empresaId?: string
+  ano: number
+  mes?: string
+  valor: number
+  origem: 'manual' | 'historico' | 'calculado'
+}
+
+export interface BudgetDreValue {
+  id: string
+  contaDreId: string
+  empresaId: string
+  departamentoId?: string
+  ano: number
+  mes: string
+  valorPremissas: number
+  valorHistorico: number
+  valorManual: number
+  valorImportado: number
+  valorTotal: number
+}
+
 export type NaturezaConta = 'Receita' | 'Despesa' | 'Custo' | 'Outros'
 
 export interface DreAccount {
