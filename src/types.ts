@@ -152,6 +152,8 @@ export interface Brand {
   logo?: string
 }
 
+export type CompanyType = "efetiva" | "apoio"
+
 export interface Company {
   id: string
   name: string
@@ -161,6 +163,7 @@ export interface Company {
   brandId: string
   economicGroupId: string
   parentCompanyId?: string
+  tipo?: CompanyType
 }
 
 export type UserRole =
