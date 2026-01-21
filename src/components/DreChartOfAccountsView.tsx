@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { DreAccount, FinancialAccount, AccountCostCenterMapping, NaturezaConta } from '../types';
+import { DreAccount, FinancialAccount, AccountCostCenterMapping, NaturezaConta, GrupoContas } from '../types';
 import StyledSelect from './StyledSelect';
 import SearchableSelect from './SearchableSelect';
 import FileImportModal, { ImportFieldDefinition } from './FileImportModal';
@@ -13,6 +13,7 @@ interface DreChartOfAccountsViewProps {
   accounts: DreAccount[];
   accountingAccounts: FinancialAccount[]; 
   currentMappings: AccountCostCenterMapping[]; 
+  accountGroups: GrupoContas[];
   onNavigateBack: () => void;
   onSave: (accounts: DreAccount[]) => Promise<void>;
   onSaveMappings: (newMappings: AccountCostCenterMapping[]) => Promise<void>;
@@ -22,7 +23,7 @@ interface DreChartOfAccountsViewProps {
   onRename: (oldName: string, newName: string) => Promise<void>;
   onUploadClick: () => void; 
   autoOpenImport?: boolean; 
-  tenantId: string; // Added tenantId prop
+  tenantId: string;
 }
 
 const DeleteConfirmationModal: React.FC<{
@@ -211,7 +212,7 @@ const MappingModal: React.FC<{
     );
 };
 
-const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ accounts, accountingAccounts: propAccountingAccounts, currentMappings: propCurrentMappings, onNavigateBack, onSave, onSaveMappings, onDeleteMappings, onDeleteAccount, onUnmapAccounts, onRename, onUploadClick: legacyOnUploadClick, autoOpenImport, tenantId }) => {
+const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ accounts, accountingAccounts: propAccountingAccounts, currentMappings: propCurrentMappings, accountGroups, onNavigateBack, onSave, onSaveMappings, onDeleteMappings, onDeleteAccount, onUnmapAccounts, onRename, onUploadClick: legacyOnUploadClick, autoOpenImport, tenantId }) => {
     const [editableAccounts, setEditableAccounts] = useState<DreAccount[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -672,14 +673,17 @@ const DreChartOfAccountsView: React.FC<DreChartOfAccountsViewProps> = ({ account
                                             )}
                                             {!isEditing && <span className="text-xs text-slate-400 block mt-0.5 font-mono">{account.id.startsWith('new_') ? 'Novo' : `ID: ${account.id.substring(0,8)}...`}</span>}
                                         </div>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={account.grupoConta || ''}
                                             onChange={(e) => handleGrupoChange(account.id, e.target.value)}
-                                            placeholder="Grupo..."
-                                            className="px-2 py-1.5 text-xs rounded-md border border-slate-200 bg-slate-50 text-slate-600 w-32 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                                            title="Grupo da conta (ex: Receitas Operacionais)"
-                                        />
+                                            className="px-2 py-1.5 text-xs rounded-md border border-slate-200 bg-slate-50 text-slate-600 w-36 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                            title="Grupo da conta"
+                                        >
+                                            <option value="">Grupo...</option>
+                                            {accountGroups.filter(g => g.ativo && (g.tipo === 'dre' || g.tipo === 'ambos')).map(g => (
+                                                <option key={g.id} value={g.nome}>{g.nome}</option>
+                                            ))}
+                                        </select>
                                         <select
                                             value={account.naturezaConta || ''}
                                             onChange={(e) => handleNaturezaChange(account.id, e.target.value as NaturezaConta | '')}

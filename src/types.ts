@@ -231,6 +231,7 @@ export type View =
   | "OPERATIONAL_INDICATORS"
   | "OPERATIONAL_DATA_ENTRY"
   | "OPERATIONAL_FORMULAS"
+  | "ACCOUNT_GROUPS"
   | "SuperAdmin"
 
 export interface ReportTemplate {

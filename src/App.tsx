@@ -1059,6 +1059,7 @@ const App: React.FC = () => {
             accounts={dreAccounts}
             accountingAccounts={accountingAccounts}
             currentMappings={mappings}
+            accountGroups={accountGroups}
             onNavigateBack={() => handleNavigate("COST_CENTERS")}
             onSave={async (d) => {
               await saveCadastroTenant("plano_contas_dre", d, effectiveTenantId || user.tenantId)
