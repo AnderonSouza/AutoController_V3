@@ -165,9 +165,15 @@ export function useBudgetCalculation({
             operationalFormulaId: l.operationalFormulaId,
           })),
         });
-        const operationalLine = reportLines.find(line => 
-          line.type === 'operational' && line.operationalFormulaId === mapping.indicadorId
-        );
+        const operationalLine = reportLines.find(line => {
+          if (line.type !== 'operational') return false;
+          const formulaId = line.operationalFormulaId;
+          if (!formulaId) return false;
+          // Check for exact match or prefixed match (OPE:uuid or OP:uuid)
+          return formulaId === mapping.indicadorId ||
+                 formulaId === `OPE:${mapping.indicadorId}` ||
+                 formulaId === `OP:${mapping.indicadorId}`;
+        });
         targetAccountId = operationalLine?.id;
         console.log('[v0-budget] Found operational line:', operationalLine?.id);
       } else {
