@@ -1024,7 +1024,15 @@ export const getUnreadNotificationCount = async (userId: string): Promise<number
   return count || 0
 }
 
-export const bulkSaveLancamentos = async (entries: TrialBalanceEntry[], tenantId: string): Promise<void> => {
+export const bulkSaveLancamentos = async (
+  entries: TrialBalanceEntry[], 
+  tenantId: string,
+  onProgress?: (processed: number, total: number) => void
+): Promise<{ success: number; errors: number }> => {
+  const BATCH_SIZE = 1000
+  let successCount = 0
+  let errorCount = 0
+  
   const enrichedEntries = entries.map((entry) => ({
     empresa_id: entry.companyId || null,
     conta_contabil_id: entry.contaContabilId || null,
@@ -1041,8 +1049,33 @@ export const bulkSaveLancamentos = async (entries: TrialBalanceEntry[], tenantId
     organizacao_id: tenantId,
   }))
 
-  const { error } = await supabase.from("lancamentos_contabeis").insert(enrichedEntries)
-  if (error) throw error
+  const totalBatches = Math.ceil(enrichedEntries.length / BATCH_SIZE)
+  console.log(`[v0-db] bulkSaveLancamentos: ${enrichedEntries.length} registros em ${totalBatches} lotes de ${BATCH_SIZE}`)
+
+  for (let i = 0; i < enrichedEntries.length; i += BATCH_SIZE) {
+    const batch = enrichedEntries.slice(i, i + BATCH_SIZE)
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1
+    
+    try {
+      const { error } = await supabase.from("lancamentos_contabeis").insert(batch)
+      if (error) {
+        console.error(`[v0-db] Erro no lote ${batchNum}:`, error)
+        errorCount += batch.length
+      } else {
+        successCount += batch.length
+      }
+    } catch (e) {
+      console.error(`[v0-db] Excecao no lote ${batchNum}:`, e)
+      errorCount += batch.length
+    }
+    
+    if (onProgress) {
+      onProgress(Math.min(i + BATCH_SIZE, enrichedEntries.length), enrichedEntries.length)
+    }
+  }
+  
+  console.log(`[v0-db] bulkSaveLancamentos finalizado: ${successCount} sucesso, ${errorCount} erros`)
+  return { success: successCount, errors: errorCount }
 }
 
 export interface SaldosMensaisImportStats {
