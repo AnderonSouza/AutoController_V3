@@ -113,7 +113,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
             : !!mapping.indicadorId;
         
         if (!mapping.premissaId || !hasDestino) {
-            alert('Selecione a Premissa e o Destino (Conta DRE ou Indicador).');
+            alert('Selecione a Premissa e o Destino (Conta DRE ou Operacional).');
             return;
         }
         if (onSaveMapping) {
@@ -282,7 +282,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                                 containerClassName="w-full"
                                             >
                                                 <option value="conta_dre">Conta DRE</option>
-                                                <option value="indicador_operacional">Indicador</option>
+                                                <option value="indicador_operacional">Operacional</option>
                                             </StyledSelect>
                                         </div>
                                         <div className="col-span-4">
@@ -303,7 +303,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                                     onChange={(e) => handleMappingChange(mapping.id, 'indicadorId', e.target.value)}
                                                     containerClassName="w-full"
                                                 >
-                                                    <option value="">Selecione o Indicador...</option>
+                                                    <option value="">Selecione o Operacional...</option>
                                                     {operationalIndicators.map(ind => (
                                                         <option key={ind.id} value={ind.id}>{ind.nome} ({ind.unidadeMedida})</option>
                                                     ))}
@@ -388,7 +388,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                     <h5 className="text-xs font-semibold text-blue-700 mb-1">Tipos de Destino:</h5>
                                     <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
                                         <li><strong>Conta DRE:</strong> Vincula a uma conta financeira (Receita, Custo, etc.)</li>
-                                        <li><strong>Indicador:</strong> Vincula a um indicador operacional (Volume de Vendas, etc.)</li>
+                                        <li><strong>Operacional:</strong> Vincula a um indicador operacional (Volume de Vendas, etc.)</li>
                                     </ul>
                                 </div>
                                 <div>

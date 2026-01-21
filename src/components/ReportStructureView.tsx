@@ -612,7 +612,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                 <option value="total">Totalizador</option>
                                                 <option value="data_bucket">Conta Analítica</option>
                                                 <option value="formula">Fórmula</option>
-                                                <option value="operational">Indicador</option>
+                                                <option value="operational">Operacional</option>
                                             </StyledSelect>
                                         </div>
 
@@ -703,8 +703,8 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                             id: f.id,
                                                             name: f.nome || f.codigo,
                                                             description: f.codigo ? `Código: ${f.codigo}` : undefined,
-                                                            suffix: f.tipo === 'indicator' ? 'Indicador' : 'Fórmula',
-                                                            group: f.tipo === 'indicator' ? 'Indicadores' : 'Fórmulas Operacionais'
+                                                            suffix: f.tipo === 'indicator' ? 'Operacional' : 'Fórmula',
+                                                            group: f.tipo === 'indicator' ? 'Operacionais' : 'Fórmulas Operacionais'
                                                         }))
                                                     } 
                                                     onChange={(val) => {
