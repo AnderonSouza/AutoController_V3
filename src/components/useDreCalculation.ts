@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 import { 
     FinancialAccount, ReportTemplate, ReportLine, 
-    TrialBalanceEntry, AdjustmentEntry, CgEntry, ManagementTransfer, MonthlyData,
-    DreAccount
+    TrialBalanceEntry, AdjustmentEntry, CgEntry, ManagementTransfer, MonthlyData 
 } from '../types';
 import { createEmptyYearlyData, MONTHS } from '../constants';
 
@@ -25,16 +24,14 @@ export const useDreCalculation = () => {
         transfers: ManagementTransfer[],
         selectedPeriod: { years: number[], months: string[] },
         filterStore: string = 'Consolidado',
-        filterCostCenterIds: string[] | null = null,
-        dreAccounts: DreAccount[] = []
+        filterCostCenterIds: string[] | null = null
     ): FinancialAccount[] => {
         if (!reportLines || reportLines.length === 0) return [];
 
         const years = selectedPeriod.years;
         const lineMap = new Map<string, FinancialAccount>();
-        const analyticalAccountMap = new Map<string, FinancialAccount>();
 
-        // 1. Inicializar estrutura das linhas do relatório
+        // 1. Inicializar estrutura
         reportLines.forEach(line => {
             lineMap.set(line.id, {
                 id: line.id,
@@ -46,42 +43,24 @@ export const useDreCalculation = () => {
             });
         });
 
-        // 1b. Criar linhas analíticas a partir do plano de contas DRE
-        dreAccounts.forEach(account => {
-            const analyticalNode: FinancialAccount = {
-                id: `dre-${account.id}`,
-                name: account.name,
-                isTotal: false,
-                isSubTotal: false,
-                monthlyData: createEmptyYearlyData(years),
-                children: [],
-                levelAdjustment: 1
-            };
-            analyticalAccountMap.set(account.id, analyticalNode);
-        });
-
         // 2. Processar Realizado (Lançamentos Contábeis)
         // Entries now come with dreAccountId already resolved from mapeamento_contas
         accountingEntries.forEach(entry => {
             if (filterStore !== 'Consolidado' && entry.companyId !== filterStore) return;
+            // Filter by cost center IDs if specified (cost centers belong to the selected department)
             if (filterCostCenterIds && filterCostCenterIds.length > 0 && !filterCostCenterIds.includes((entry as any).costCenterId)) return;
 
+            // Match by dreAccountId directly (already mapped from conta_contabil_id)
             const entryDreId = (entry as any).dreAccountId || entry.idconta;
-            const entryMonth = entry.month?.toUpperCase() || '';
-            const monthKey = MONTHS.find(m => m.toUpperCase() === entryMonth) || entry.month;
-            const val = entry.natureza === 'D' ? -entry.valor : entry.valor;
             
-            // Populate analytical account if it exists
-            const analyticalAcc = analyticalAccountMap.get(entryDreId);
-            if (analyticalAcc && analyticalAcc.monthlyData[entry.year] && analyticalAcc.monthlyData[entry.year][monthKey]) {
-                analyticalAcc.monthlyData[entry.year][monthKey].balancete += val;
-            }
-            
-            // Also populate report line directly if it matches
             reportLines.forEach(line => {
                 if (line.type === 'data_bucket' && line.dreAccountId === entryDreId) {
                     const acc = lineMap.get(line.id);
+                    const entryMonth = entry.month?.toUpperCase() || '';
+                    const monthKey = MONTHS.find(m => m.toUpperCase() === entryMonth) || entry.month;
+                    
                     if (acc && acc.monthlyData[entry.year] && acc.monthlyData[entry.year][monthKey]) {
+                        const val = entry.natureza === 'D' ? -entry.valor : entry.valor;
                         acc.monthlyData[entry.year][monthKey].balancete += val;
                     }
                 }
@@ -114,24 +93,7 @@ export const useDreCalculation = () => {
                 .sort((a, b) => a.order - b.order)
                 .map(line => {
                     const node = lineMap.get(line.id)!;
-                    
-                    // Build children from report lines first
-                    const reportLineChildren = buildTree(line.id);
-                    
-                    // For data_bucket lines, add analytical accounts as children
-                    let analyticalChildren: FinancialAccount[] = [];
-                    if (line.type === 'data_bucket' && dreAccounts.length > 0) {
-                        // Find DRE accounts that belong to this line (grupoConta matches dreAccountId)
-                        const matchingAccounts = dreAccounts.filter(
-                            acc => acc.grupoConta === line.dreAccountId || acc.id === line.dreAccountId
-                        );
-                        
-                        analyticalChildren = matchingAccounts
-                            .map(acc => analyticalAccountMap.get(acc.id))
-                            .filter((acc): acc is FinancialAccount => acc !== undefined);
-                    }
-                    
-                    node.children = [...reportLineChildren, ...analyticalChildren];
+                    node.children = buildTree(line.id);
 
                     // Se não for analítico, soma os filhos
                     if (line.type !== 'data_bucket' && node.children.length > 0) {
@@ -140,7 +102,7 @@ export const useDreCalculation = () => {
                                 MONTHS.forEach(m => {
                                     const c = child.monthlyData[y][m];
                                     const p = node.monthlyData[y][m];
-                                    const sign = child.id.includes('subtracao') ? -1 : 1;
+                                    const sign = child.id.includes('subtracao') ? -1 : 1; // Logica simplificada de sinal
 
                                     p.balancete += c.balancete * sign;
                                     p.ajusteContabil! += (c.ajusteContabil || 0) * sign;
