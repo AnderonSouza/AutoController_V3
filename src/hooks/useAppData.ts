@@ -244,12 +244,12 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
         const rawMonthlyBalances = getVal<any>(14)
         setMonthlyBalances(rawMonthlyBalances.map((b: any) => ({
           id: b.id,
-          empresaId: b.empresa_id,
-          contaContabilId: b.conta_contabil_id,
+          empresa_id: b.empresa_id,
+          conta_contabil_id: b.conta_contabil_id,
           ano: b.ano,
           mes: b.mes,
           valor: b.valor || 0,
-          organizacaoId: b.organizacao_id,
+          organizacao_id: b.organizacao_id,
         })))
         
         const rawBudgetMappings = getVal<any>(15)

@@ -269,6 +269,7 @@ const App: React.FC = () => {
     budgetMappings,
     setBudgetMappings,
     operationalIndicators,
+    operationalValues,
     monthlyBalances,
     unreadNotifications,
     isLoadingData,
@@ -484,12 +485,14 @@ const App: React.FC = () => {
       [],
       selectedPeriod,
       currentStore,
-      costCenterIdsForDepartment
+      costCenterIdsForDepartment,
+      operationalValues,
+      selectedDepartment?.id || null
     )
     const resultWithBudget = applyBudgetToAccounts(result)
     setFinancialData(resultWithBudget)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies])
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies, operationalValues])
 
   useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
