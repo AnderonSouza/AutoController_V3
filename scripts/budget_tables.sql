@@ -9,7 +9,9 @@
 CREATE TABLE IF NOT EXISTS mapeamento_premissa_dre (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     premissa_id UUID NOT NULL REFERENCES premissas_orcamentarias(id) ON DELETE CASCADE,
-    conta_dre_id UUID NOT NULL REFERENCES plano_contas_dre(id) ON DELETE CASCADE,
+    tipo_destino VARCHAR(50) DEFAULT 'conta_dre' CHECK (tipo_destino IN ('conta_dre', 'indicador_operacional')),
+    conta_dre_id UUID REFERENCES plano_contas_dre(id) ON DELETE CASCADE,
+    indicador_id UUID REFERENCES indicadores_operacionais(id) ON DELETE CASCADE,
     departamento_id UUID REFERENCES departamentos(id) ON DELETE SET NULL,
     organizacao_id UUID NOT NULL REFERENCES organizacoes(id) ON DELETE CASCADE,
     fator_multiplicador DECIMAL(15,4) DEFAULT 1.0,
@@ -19,7 +21,10 @@ CREATE TABLE IF NOT EXISTS mapeamento_premissa_dre (
     ativo BOOLEAN DEFAULT true,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(premissa_id, conta_dre_id, departamento_id, organizacao_id)
+    CONSTRAINT chk_destino CHECK (
+        (tipo_destino = 'conta_dre' AND conta_dre_id IS NOT NULL) OR
+        (tipo_destino = 'indicador_operacional' AND indicador_id IS NOT NULL)
+    )
 );
 
 -- Índices para performance

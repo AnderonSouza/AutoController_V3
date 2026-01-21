@@ -121,3 +121,12 @@ All data/editor views follow the full-screen white background pattern:
 - TypeScript for type checking
 - PostCSS with Tailwind CSS plugin
 - ESLint for code quality (via Next.js)
+
+## Recent Changes (January 2026)
+
+### Budget-to-DRE Mapping System
+- Extended `BudgetMapping` type with `tipoDestino` field (`conta_dre` | `indicador_operacional`)
+- Added `indicadorId` field for mapping to operational indicators
+- SQL schema in `scripts/budget_tables.sql` includes CHECK constraint for destination type validation
+- `useAppData` now loads `operational_indicators` from Supabase and exposes via `operationalIndicators`
+- `BudgetAssumptionsView` receives both `dreAccounts` and `operationalIndicators` for unified mapping UI

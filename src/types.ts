@@ -341,7 +341,9 @@ export interface BudgetFormula {
 export interface BudgetMapping {
   id: string
   premissaId: string
-  contaDreId: string
+  tipoDestino: 'conta_dre' | 'indicador_operacional'
+  contaDreId?: string
+  indicadorId?: string
   departamentoId?: string
   fatorMultiplicador: number
   tipoCalculo: 'direto' | 'formula' | 'percentual'

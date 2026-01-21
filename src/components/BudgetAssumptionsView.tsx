@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BudgetAssumption, BudgetFormula, BudgetMapping, FinancialAccount, DreAccount } from '../types';
+import { BudgetAssumption, BudgetFormula, BudgetMapping, FinancialAccount, DreAccount, OperationalIndicator } from '../types';
 import StyledSelect from './StyledSelect';
 import { generateUUID } from '../utils/helpers';
 
@@ -13,6 +13,7 @@ interface BudgetAssumptionsViewProps {
   onDeleteFormula?: (id: string) => Promise<void>;
   availableDepartments?: string[];
   dreAccounts?: DreAccount[];
+  operationalIndicators?: OperationalIndicator[];
   budgetMappings?: BudgetMapping[];
   onSaveMapping?: (mapping: BudgetMapping) => Promise<void>;
   onDeleteMapping?: (id: string) => Promise<void>;
@@ -28,6 +29,7 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
     onDeleteFormula,
     availableDepartments = [],
     dreAccounts = [],
+    operationalIndicators = [],
     budgetMappings = [],
     onSaveMapping,
     onDeleteMapping,
@@ -81,7 +83,9 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
         const newMapping: BudgetMapping = {
             id: generateUUID(),
             premissaId: assumptions[0]?.id || '',
+            tipoDestino: 'conta_dre',
             contaDreId: '',
+            indicadorId: undefined,
             departamentoId: undefined,
             fatorMultiplicador: 1,
             tipoCalculo: 'direto',
@@ -92,12 +96,24 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
     };
 
     const handleMappingChange = (id: string, field: keyof BudgetMapping, value: any) => {
-        setEditableMappings(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+        setEditableMappings(prev => prev.map(m => {
+            if (m.id !== id) return m;
+            const updated = { ...m, [field]: value };
+            if (field === 'tipoDestino') {
+                updated.contaDreId = undefined;
+                updated.indicadorId = undefined;
+            }
+            return updated;
+        }));
     };
 
     const handleSaveMapping = async (mapping: BudgetMapping) => {
-        if (!mapping.premissaId || !mapping.contaDreId) {
-            alert('Selecione a Premissa e a Conta DRE.');
+        const hasDestino = mapping.tipoDestino === 'conta_dre' 
+            ? !!mapping.contaDreId 
+            : !!mapping.indicadorId;
+        
+        if (!mapping.premissaId || !hasDestino) {
+            alert('Selecione a Premissa e o Destino (Conta DRE ou Indicador).');
             return;
         }
         if (onSaveMapping) {
@@ -212,11 +228,11 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                 )}
 
                 {activeTab === 'mappings' && (
-                    <div className="max-w-5xl mx-auto bg-white p-6 border border-slate-200">
+                    <div className="max-w-6xl mx-auto bg-white p-6 border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-slate-800">Vincular Premissas às Contas DRE</h2>
-                                <p className="text-sm text-slate-500">Defina como cada premissa afeta as linhas do seu DRE orçamentário.</p>
+                                <h2 className="text-xl font-bold text-slate-800">Vincular Premissas ao DRE</h2>
+                                <p className="text-sm text-slate-500">Defina como cada premissa afeta as linhas do seu DRE orçamentário (contas financeiras ou indicadores operacionais).</p>
                             </div>
                             <button 
                                 onClick={handleAddMapping} 
@@ -236,16 +252,17 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
 
                         {assumptions.length > 0 && (
                             <div className="space-y-4">
-                                <div className="grid grid-cols-12 gap-3 px-4 py-2 bg-slate-100 text-xs font-semibold text-slate-600 uppercase">
+                                <div className="grid grid-cols-14 gap-2 px-4 py-2 bg-slate-100 text-xs font-semibold text-slate-600 uppercase">
                                     <div className="col-span-3">Premissa</div>
-                                    <div className="col-span-4">Conta DRE (Destino)</div>
+                                    <div className="col-span-2">Tipo Destino</div>
+                                    <div className="col-span-4">Destino</div>
                                     <div className="col-span-2">Tipo Cálculo</div>
-                                    <div className="col-span-2">Fator / Fórmula</div>
+                                    <div className="col-span-2">Fator</div>
                                     <div className="col-span-1 text-center">Ações</div>
                                 </div>
 
                                 {editableMappings.map((mapping) => (
-                                    <div key={mapping.id} className="grid grid-cols-12 gap-3 items-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition-shadow">
+                                    <div key={mapping.id} className="grid grid-cols-14 gap-2 items-center p-4 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition-shadow">
                                         <div className="col-span-3">
                                             <StyledSelect 
                                                 value={mapping.premissaId} 
@@ -258,17 +275,40 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                                 ))}
                                             </StyledSelect>
                                         </div>
-                                        <div className="col-span-4">
+                                        <div className="col-span-2">
                                             <StyledSelect 
-                                                value={mapping.contaDreId} 
-                                                onChange={(e) => handleMappingChange(mapping.id, 'contaDreId', e.target.value)}
+                                                value={mapping.tipoDestino || 'conta_dre'} 
+                                                onChange={(e) => handleMappingChange(mapping.id, 'tipoDestino', e.target.value)}
                                                 containerClassName="w-full"
                                             >
-                                                <option value="">Selecione a Conta DRE...</option>
-                                                {dreAccountsList.map(acc => (
-                                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                                ))}
+                                                <option value="conta_dre">Conta DRE</option>
+                                                <option value="indicador_operacional">Indicador</option>
                                             </StyledSelect>
+                                        </div>
+                                        <div className="col-span-4">
+                                            {(mapping.tipoDestino || 'conta_dre') === 'conta_dre' ? (
+                                                <StyledSelect 
+                                                    value={mapping.contaDreId || ''} 
+                                                    onChange={(e) => handleMappingChange(mapping.id, 'contaDreId', e.target.value)}
+                                                    containerClassName="w-full"
+                                                >
+                                                    <option value="">Selecione a Conta DRE...</option>
+                                                    {dreAccountsList.map(acc => (
+                                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                    ))}
+                                                </StyledSelect>
+                                            ) : (
+                                                <StyledSelect 
+                                                    value={mapping.indicadorId || ''} 
+                                                    onChange={(e) => handleMappingChange(mapping.id, 'indicadorId', e.target.value)}
+                                                    containerClassName="w-full"
+                                                >
+                                                    <option value="">Selecione o Indicador...</option>
+                                                    {operationalIndicators.map(ind => (
+                                                        <option key={ind.id} value={ind.id}>{ind.nome} ({ind.unidadeMedida})</option>
+                                                    ))}
+                                                </StyledSelect>
+                                            )}
                                         </div>
                                         <div className="col-span-2">
                                             <StyledSelect 
@@ -343,12 +383,28 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
 
                         <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <h4 className="text-sm font-semibold text-blue-800 mb-2">Como funciona o vínculo?</h4>
-                            <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                                <li><strong>Direto:</strong> O valor da premissa × fator vai diretamente para a conta DRE</li>
-                                <li><strong>Percentual:</strong> Calcula X% do valor da premissa</li>
-                                <li><strong>Fórmula:</strong> Use expressões como <code className="bg-blue-100 px-1 rounded">volume * preco_medio</code></li>
-                            </ul>
-                            <p className="text-xs text-blue-600 mt-2">Exemplo: Volume de Vendas = 10, Ticket Médio = R$100.000 → Receita = 10 × 100.000 = R$1.000.000</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h5 className="text-xs font-semibold text-blue-700 mb-1">Tipos de Destino:</h5>
+                                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                                        <li><strong>Conta DRE:</strong> Vincula a uma conta financeira (Receita, Custo, etc.)</li>
+                                        <li><strong>Indicador:</strong> Vincula a um indicador operacional (Volume de Vendas, etc.)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 className="text-xs font-semibold text-blue-700 mb-1">Tipos de Cálculo:</h5>
+                                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                                        <li><strong>Direto:</strong> O valor × fator vai para o destino</li>
+                                        <li><strong>Percentual:</strong> Calcula X% do valor</li>
+                                        <li><strong>Fórmula:</strong> Expressões como <code className="bg-blue-100 px-1 rounded">volume * preco</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p className="text-xs text-blue-600 mt-3 border-t border-blue-200 pt-2">
+                                <strong>Exemplo:</strong> A premissa "Volume de Vendas" pode ter 2 vínculos: 
+                                (1) Para o indicador "Volume de Vendas" como Direto×1, 
+                                (2) Para a conta "Receita de Veículos" como Fórmula = volume × preço_médio
+                            </p>
                         </div>
                     </div>
                 )}

@@ -19,6 +19,7 @@ import type {
   BudgetAssumptionValue,
   BudgetMapping,
   MonthlyBalanceEntry,
+  OperationalIndicator,
 } from "../types"
 import { getCadastroTenant, getUnreadNotificationCount } from "../utils/db"
 
@@ -90,6 +91,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [budgetAssumptions, setBudgetAssumptions] = useState<BudgetAssumption[]>([])
   const [budgetAssumptionValues, setBudgetAssumptionValues] = useState<BudgetAssumptionValue[]>([])
   const [budgetMappings, setBudgetMappings] = useState<BudgetMapping[]>([])
+  const [operationalIndicators, setOperationalIndicators] = useState<OperationalIndicator[]>([])
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -156,6 +158,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("budget_values", tenantId),
           getCadastroTenant("saldos_mensais", tenantId),
           getCadastroTenant("budget_mappings", tenantId),
+          getCadastroTenant("operational_indicators", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -250,13 +253,31 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
         setBudgetMappings(rawBudgetMappings.map((m: any) => ({
           id: m.id,
           premissaId: m.premissa_id || m.premissaId,
+          tipoDestino: m.tipo_destino || m.tipoDestino || 'conta_dre',
           contaDreId: m.conta_dre_id || m.contaDreId,
+          indicadorId: m.indicador_id || m.indicadorId,
           departamentoId: m.departamento_id || m.departamentoId,
           fatorMultiplicador: m.fator_multiplicador || m.fatorMultiplicador || 1,
           tipoCalculo: m.tipo_calculo || m.tipoCalculo || 'direto',
           formula: m.formula || '',
           descricao: m.descricao || '',
           ativo: m.ativo !== false,
+        })))
+        
+        const rawIndicators = getVal<any>(16)
+        setOperationalIndicators(rawIndicators.map((i: any) => ({
+          id: i.id,
+          organizacaoId: i.organizacao_id || i.organizacaoId,
+          codigo: i.codigo || '',
+          nome: i.nome || i.name || '',
+          descricao: i.descricao,
+          categoria: i.categoria,
+          unidadeMedida: i.unidade_medida || i.unidadeMedida || '',
+          natureza: i.natureza || 'volume',
+          escopos: i.escopos || [],
+          permiteMeta: i.permite_meta || i.permiteMeta || false,
+          ativo: i.ativo !== false,
+          ordem: i.ordem || 0,
         })))
 
         const unread = await getUnreadNotificationCount(user.id)
@@ -303,6 +324,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     setBudgetAssumptionValues,
     budgetMappings,
     setBudgetMappings,
+    operationalIndicators,
     monthlyBalances,
     setMonthlyBalances,
     unreadNotifications,

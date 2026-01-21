@@ -266,6 +266,7 @@ const App: React.FC = () => {
     setBudgetAssumptionValues,
     budgetMappings,
     setBudgetMappings,
+    operationalIndicators,
     monthlyBalances,
     unreadNotifications,
     isLoadingData,
@@ -1202,18 +1203,23 @@ const App: React.FC = () => {
             financialAccounts={accountingAccounts}
             availableDepartments={departments.map(d => d.name)}
             dreAccounts={dreAccounts}
+            operationalIndicators={operationalIndicators}
             budgetMappings={budgetMappings}
             onSaveMapping={async (mapping) => {
+              const tenantId = effectiveTenantId || user.tenantId
               await saveCadastroTenant("budget_mappings", [{
                 id: mapping.id,
                 premissa_id: mapping.premissaId,
+                tipo_destino: mapping.tipoDestino,
                 conta_dre_id: mapping.contaDreId,
+                indicador_id: mapping.indicadorId,
                 departamento_id: mapping.departamentoId,
                 fator_multiplicador: mapping.fatorMultiplicador,
                 tipo_calculo: mapping.tipoCalculo,
                 formula: mapping.formula,
                 ativo: mapping.ativo,
-              }], effectiveTenantId || user.tenantId)
+                organizacao_id: tenantId,
+              }], tenantId)
               setBudgetMappings(prev => {
                 const idx = prev.findIndex(m => m.id === mapping.id)
                 if (idx >= 0) {
