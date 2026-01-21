@@ -1219,7 +1219,7 @@ const App: React.FC = () => {
           <ManagementTransfersView 
             onNavigateBack={() => handleNavigate("MANAGEMENT_DATA")} 
             tenantId={effectiveTenantId || user.tenantId}
-            companies={companies}
+            companies={companies.filter(c => c.tipo === 'efetiva' || !c.tipo)}
             brands={brands}
             dreAccounts={dreAccounts}
             balanceSheetAccounts={balanceSheetAccounts}
