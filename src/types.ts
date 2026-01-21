@@ -386,6 +386,16 @@ export interface BudgetDreValue {
 
 export type NaturezaConta = 'Receita' | 'Despesa' | 'Custo' | 'Outros'
 
+export interface GrupoContas {
+  id: string
+  organizacaoId: string
+  nome: string
+  descricao?: string
+  tipo: 'dre' | 'balanco' | 'ambos'
+  ordem: number
+  ativo: boolean
+}
+
 export interface DreAccount {
   id: string
   name: string

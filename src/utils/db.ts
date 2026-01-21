@@ -72,6 +72,9 @@ const TABLE_MAPPING: Record<string, string> = {
   operational_formulas: "formulas_operacionais",
   operational_formula_dependencies: "formulas_operacionais_dependencias",
   operational_report_mappings: "relatorio_linhas_operacionais",
+  
+  // Tabelas de grupos de contas
+  account_groups: "grupos_contas",
 }
 
 const resolveTableName = (tableName: string) => TABLE_MAPPING[tableName] || tableName
