@@ -423,11 +423,12 @@ const App: React.FC = () => {
       [],
       selectedPeriod,
       currentStore,
-      costCenterIdsForDepartment
+      costCenterIdsForDepartment,
+      dreAccounts
     )
     setFinancialData(result)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies])
+  }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies, dreAccounts])
 
   useEffect(() => {
     console.log("[v0] Tenant data loading debug:", {
