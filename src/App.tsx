@@ -1182,7 +1182,26 @@ const App: React.FC = () => {
               ))
             }}
             selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
             activeTabContext={activeTab}
+            brands={brands}
+            currentBrand={currentBrand}
+            onBrandChange={setCurrentBrand}
+            storeOptions={storeOptionsForBrand}
+            currentStore={currentStore}
+            onStoreChange={setCurrentStore}
+            reportTemplates={reportTemplates.filter(t => t.type === 'DRE' || t.name.includes('Base DRE'))}
+            currentReportTemplateId={currentReportId}
+            onReportTemplateChange={setCurrentReportId}
+            isLoading={isLoadingData}
+            showDetails={showDetails}
+            onShowDetailsChange={setShowDetails}
+            showVerticalAnalysis={showVertical}
+            onShowVerticalAnalysisChange={setShowVertical}
+            showHorizontalAnalysis={showHorizontal}
+            onShowHorizontalAnalysisChange={setShowHorizontal}
+            showBenchmark={showBenchmark}
+            onShowBenchmarkChange={setShowBenchmark}
           />
         )
       case "BUDGET_ASSUMPTIONS":

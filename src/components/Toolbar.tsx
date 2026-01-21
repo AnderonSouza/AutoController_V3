@@ -34,6 +34,7 @@ interface ToolbarProps {
   showReportSelector?: boolean;
   hideBrandFilter?: boolean;
   hideStoreFilter?: boolean;
+  hideBudgetToggle?: boolean;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ 
@@ -51,16 +52,17 @@ const Toolbar: React.FC<ToolbarProps> = ({
     onReportTemplateChange,
     showReportSelector = false,
     hideBrandFilter = false,
-    hideStoreFilter = false
+    hideStoreFilter = false,
+    hideBudgetToggle = false
 }) => {
   const currentYear = new Date().getFullYear();
   const startYear = 2025;
   const years = Array.from({ length: currentYear - startYear + 2 }, (_, i) => currentYear + 1 - i);
 
-  const showViewControls = isBudgetMode !== undefined && onBudgetModeChange && 
-                           showCalculationDetails !== undefined && onShowCalculationDetailsChange &&
-                           showVerticalAnalysis !== undefined && onShowVerticalAnalysisChange &&
-                           showHorizontalAnalysis !== undefined && onShowHorizontalAnalysisChange;
+  const hasAnalysisToggles = showCalculationDetails !== undefined && onShowCalculationDetailsChange &&
+                            showVerticalAnalysis !== undefined && onShowVerticalAnalysisChange &&
+                            showHorizontalAnalysis !== undefined && onShowHorizontalAnalysisChange;
+  const showViewControls = hasAnalysisToggles && (hideBudgetToggle || (isBudgetMode !== undefined && onBudgetModeChange));
 
   const selectClassName = "h-10 text-sm py-0 pl-3 pr-8 border-[var(--color-border)] bg-white shadow-sm rounded-lg";
 
@@ -157,19 +159,23 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 <span className={`inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform ${showBenchmark ? 'translate-x-4.5' : 'translate-x-0.5'}`}/>
             </button>
           </div>
-          <div className="w-px h-4 bg-[var(--color-border-light)]"></div>
-          <div className="flex items-center gap-2">
-              <label htmlFor="budget-toggle" className="text-xs font-bold text-[var(--color-text-main)] cursor-pointer">Orçamento</label>
-              <button
-                  id="budget-toggle"
-                  role="switch"
-                  aria-checked={isBudgetMode}
-                  onClick={() => onBudgetModeChange(!isBudgetMode)}
-                  className={`relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none ${isBudgetMode ? 'bg-[var(--color-warning)]' : 'bg-slate-300'}`}
-              >
-                  <span className={`inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform ${isBudgetMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}/>
-              </button>
-          </div>
+          {!hideBudgetToggle && (
+            <>
+              <div className="w-px h-4 bg-[var(--color-border-light)]"></div>
+              <div className="flex items-center gap-2">
+                  <label htmlFor="budget-toggle" className="text-xs font-bold text-[var(--color-text-main)] cursor-pointer">Orçamento</label>
+                  <button
+                      id="budget-toggle"
+                      role="switch"
+                      aria-checked={isBudgetMode}
+                      onClick={() => onBudgetModeChange && onBudgetModeChange(!isBudgetMode)}
+                      className={`relative inline-flex items-center h-5 rounded-full w-9 transition-colors focus:outline-none ${isBudgetMode ? 'bg-[var(--color-warning)]' : 'bg-slate-300'}`}
+                  >
+                      <span className={`inline-block w-3.5 h-3.5 transform bg-white rounded-full transition-transform ${isBudgetMode ? 'translate-x-4.5' : 'translate-x-0.5'}`}/>
+                  </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

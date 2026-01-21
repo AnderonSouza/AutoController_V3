@@ -1,42 +1,110 @@
-import React from 'react';
-import { FinancialAccount } from '../types';
+"use client"
+
+import React, { useState } from 'react';
+import type { FinancialAccount, Brand, ReportTemplate } from '../types';
 import BudgetTable from './BudgetTable';
+import Toolbar from './Toolbar';
+
+interface StoreOption {
+  label: string;
+  value: string;
+}
 
 interface BudgetViewProps {
   onNavigateBack: () => void;
-  // Props for the Planning Table
   accounts: FinancialAccount[];
   onDataChange: (accountId: string, year: number, month: string, field: 'orcado' | 'cg' | 'orcadoManual', value: number) => void;
   selectedPeriod: { years: number[]; months: string[] };
+  onPeriodChange: (period: { years: number[]; months: string[] }) => void;
   activeTabContext: string;
+  brands: Brand[];
+  currentBrand: string;
+  onBrandChange: (brand: string) => void;
+  storeOptions: StoreOption[];
+  currentStore: string;
+  onStoreChange: (store: string) => void;
+  reportTemplates?: ReportTemplate[];
+  currentReportTemplateId?: string | null;
+  onReportTemplateChange?: (templateId: string) => void;
+  isLoading?: boolean;
+  showDetails?: boolean;
+  onShowDetailsChange?: (show: boolean) => void;
+  showVerticalAnalysis?: boolean;
+  onShowVerticalAnalysisChange?: (show: boolean) => void;
+  showHorizontalAnalysis?: boolean;
+  onShowHorizontalAnalysisChange?: (show: boolean) => void;
+  showBenchmark?: boolean;
+  onShowBenchmarkChange?: (show: boolean) => void;
 }
 
 const BudgetView: React.FC<BudgetViewProps> = ({ 
-    onNavigateBack,
-    accounts,
-    onDataChange,
-    selectedPeriod,
-    activeTabContext
+  onNavigateBack,
+  accounts,
+  onDataChange,
+  selectedPeriod,
+  onPeriodChange,
+  activeTabContext,
+  brands,
+  currentBrand,
+  onBrandChange,
+  storeOptions,
+  currentStore,
+  onStoreChange,
+  reportTemplates,
+  currentReportTemplateId,
+  onReportTemplateChange,
+  isLoading = false,
+  showDetails = false,
+  onShowDetailsChange,
+  showVerticalAnalysis = false,
+  onShowVerticalAnalysisChange,
+  showHorizontalAnalysis = false,
+  onShowHorizontalAnalysisChange,
+  showBenchmark = false,
+  onShowBenchmarkChange,
 }) => {
 
-  // Wrapper for data change to limit to 'orcadoManual' which is relevant for this view's table
   const handleManualBudgetChange = (accountId: string, year: number, month: string, field: 'orcadoManual', value: number) => {
-      onDataChange(accountId, year, month, field, value);
+    onDataChange(accountId, year, month, field, value);
   };
 
   return (
-      <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
-          <div className="w-full flex flex-col h-full">
-               <div className="flex-grow overflow-auto h-full">
-                   <BudgetTable 
-                        data={accounts}
-                        onDataChange={handleManualBudgetChange}
-                        activeTab={activeTabContext}
-                        selectedPeriod={selectedPeriod}
-                   />
-               </div>
-          </div>
-      </main>
+    <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
+      <div className="w-full flex flex-col h-full">
+        <Toolbar
+          storeOptions={storeOptions}
+          currentStore={currentStore}
+          onStoreChange={onStoreChange}
+          brands={brands}
+          currentBrand={currentBrand}
+          onBrandChange={onBrandChange}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={onPeriodChange}
+          isLoading={isLoading}
+          reportTemplates={reportTemplates}
+          currentReportTemplateId={currentReportTemplateId}
+          onReportTemplateChange={onReportTemplateChange}
+          showReportSelector={true}
+          hideBudgetToggle={true}
+          showCalculationDetails={showDetails}
+          onShowCalculationDetailsChange={onShowDetailsChange}
+          showVerticalAnalysis={showVerticalAnalysis}
+          onShowVerticalAnalysisChange={onShowVerticalAnalysisChange}
+          showHorizontalAnalysis={showHorizontalAnalysis}
+          onShowHorizontalAnalysisChange={onShowHorizontalAnalysisChange}
+          showBenchmark={showBenchmark}
+          onShowBenchmarkChange={onShowBenchmarkChange}
+        />
+        <div className="flex-grow overflow-auto h-full">
+          <BudgetTable 
+            data={accounts}
+            onDataChange={handleManualBudgetChange}
+            activeTab={activeTabContext}
+            selectedPeriod={selectedPeriod}
+          />
+        </div>
+      </div>
+    </main>
   );
 };
 
