@@ -8,6 +8,7 @@ import { CALENDAR_MONTHS } from '../constants';
 import { generateUUID } from '../utils/helpers';
 import { saveCadastroTenant } from '../utils/db';
 import * as XLSX from 'xlsx';
+import BudgetImportResultModal, { BudgetImportResult, BudgetImportError } from './BudgetImportResultModal';
 
 interface BudgetValuesViewProps {
   assumptions: BudgetAssumption[];
@@ -48,6 +49,10 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // --- IMPORT RESULT MODAL STATE ---
+  const [importResultModalOpen, setImportResultModalOpen] = useState(false);
+  const [importResult, setImportResult] = useState<BudgetImportResult | null>(null);
 
   // Initialize Defaults
   useEffect(() => {
@@ -199,82 +204,140 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-          const valuesToImport: any[] = [];
-          let imported = 0;
+          const valuesToImport: { record: any; rowIndex: number }[] = [];
+          const errors: BudgetImportError[] = [];
+          const totalLinhas = jsonData.length;
 
-          for (const row of jsonData) {
-            const premissaId = row["Código Premissa"]?.toString().trim();
-            const ano = parseInt(row["Ano"]);
-            const mes = row["Mês"]?.toString().trim().toUpperCase();
+          for (let i = 0; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            const rowNumber = i + 2;
+
+            const premissaId = row["Codigo Premissa"]?.toString().trim() || row["Código Premissa"]?.toString().trim();
+            const anoStr = row["Ano"]?.toString().trim();
+            const mes = row["Mes"]?.toString().trim().toUpperCase() || row["Mês"]?.toString().trim().toUpperCase();
             const valorStr = row["Valor"]?.toString().trim();
             const cnpj = row["CNPJ"]?.toString().replace(/\D/g, '').trim();
             const departamento = row["Departamento"]?.toString().trim();
 
-            if (!premissaId || !ano || !mes || !valorStr) continue;
+            if (!premissaId) {
+              errors.push({ linha: rowNumber, campo: 'Codigo Premissa', valor: '', motivo: 'Codigo da premissa nao informado' });
+              continue;
+            }
+
+            if (!anoStr) {
+              errors.push({ linha: rowNumber, campo: 'Ano', valor: '', motivo: 'Ano nao informado' });
+              continue;
+            }
+
+            const ano = parseInt(anoStr);
+            if (isNaN(ano)) {
+              errors.push({ linha: rowNumber, campo: 'Ano', valor: anoStr, motivo: 'Ano invalido' });
+              continue;
+            }
+
+            if (!mes) {
+              errors.push({ linha: rowNumber, campo: 'Mes', valor: '', motivo: 'Mes nao informado' });
+              continue;
+            }
+
+            if (!valorStr) {
+              errors.push({ linha: rowNumber, campo: 'Valor', valor: '', motivo: 'Valor nao informado' });
+              continue;
+            }
 
             const valor = parseFloat(valorStr.replace(",", "."));
-            if (isNaN(valor)) continue;
+            if (isNaN(valor)) {
+              errors.push({ linha: rowNumber, campo: 'Valor', valor: valorStr, motivo: 'Valor invalido (nao e um numero)' });
+              continue;
+            }
+
+            if (!cnpj) {
+              errors.push({ linha: rowNumber, campo: 'CNPJ', valor: '', motivo: 'CNPJ nao informado' });
+              continue;
+            }
 
             const assumption = assumptions.find(a => a.id === premissaId);
-            if (!assumption) continue;
+            if (!assumption) {
+              errors.push({ linha: rowNumber, campo: 'Codigo Premissa', valor: premissaId, motivo: 'Premissa nao encontrada no sistema' });
+              continue;
+            }
 
-            let empresa = availableCompanies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj);
-            if (!empresa) continue;
+            const empresa = availableCompanies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj);
+            if (!empresa) {
+              errors.push({ linha: rowNumber, campo: 'CNPJ', valor: cnpj, motivo: 'Empresa nao encontrada com este CNPJ' });
+              continue;
+            }
 
             const dept = departamento || selectedDepartment;
             
-            // Check if record already exists to get its ID (for upsert)
             const existingRecord = assumptionValues.find(v =>
               v.assumptionId === premissaId &&
-              v.store === empresa!.id &&
+              v.store === empresa.id &&
               v.year === ano &&
               v.month === mes &&
               v.department === dept
             );
 
             valuesToImport.push({
-              id: existingRecord?.id || generateUUID(),
-              organizacao_id: tenantId,
-              premissa_id: premissaId,
-              ano: ano,
-              mes: mes,
-              empresa_id: empresa.id,
-              departamento: dept,
-              valor: valor,
+              record: {
+                id: existingRecord?.id || generateUUID(),
+                organizacao_id: tenantId,
+                premissa_id: premissaId,
+                ano: ano,
+                mes: mes,
+                empresa_id: empresa.id,
+                departamento: dept,
+                valor: valor,
+              },
+              rowIndex: rowNumber
             });
-            imported++;
           }
 
+          let successCount = 0;
+
           if (valuesToImport.length > 0) {
-            let successCount = 0;
-            let errorCount = 0;
-            
-            // Save one by one to handle upserts correctly and continue on errors
-            for (const record of valuesToImport) {
+            for (const item of valuesToImport) {
               try {
-                await saveCadastroTenant("budget_values", [record], tenantId);
+                await saveCadastroTenant("budget_values", [item.record], tenantId);
                 successCount++;
               } catch (err: any) {
-                console.warn("Erro ao salvar registro:", err?.message || err);
-                errorCount++;
+                const errorMsg = err?.message || 'Erro ao salvar no banco de dados';
+                errors.push({ 
+                  linha: item.rowIndex, 
+                  campo: 'Banco de Dados', 
+                  valor: '', 
+                  motivo: errorMsg 
+                });
               }
             }
             
             if (successCount > 0) {
               onRefreshData?.();
             }
-            
-            if (errorCount > 0) {
-              alert(`Importação concluída! ${successCount} valores importados, ${errorCount} com erro.`);
-            } else {
-              alert(`Importação concluída! ${successCount} valores importados com sucesso.`);
-            }
-          } else {
-            alert('Nenhum valor válido encontrado na planilha.');
           }
+
+          const result: BudgetImportResult = {
+            success: errors.length === 0,
+            totalLinhas,
+            valoresImportados: successCount,
+            valoresComErro: errors.length,
+            errors
+          };
+
+          setImportResult(result);
+          setImportResultModalOpen(true);
+
         } catch (err) {
           console.error("Erro ao processar arquivo:", err);
-          alert("Erro ao processar arquivo.");
+          const result: BudgetImportResult = {
+            success: false,
+            totalLinhas: 0,
+            valoresImportados: 0,
+            valoresComErro: 1,
+            errors: [{ linha: 0, campo: 'Arquivo', valor: '', motivo: 'Erro ao processar arquivo Excel' }]
+          };
+          setImportResult(result);
+          setImportResultModalOpen(true);
         } finally {
           setImporting(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -489,6 +552,12 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
               </div>
           </div>
       )}
+
+      <BudgetImportResultModal
+        isOpen={importResultModalOpen}
+        onClose={() => setImportResultModalOpen(false)}
+        result={importResult}
+      />
     </main>
   );
 };
