@@ -179,60 +179,67 @@ const TransferEditModal: React.FC<{
     const LineItem: React.FC<{ line: TransferLine, type: 'origins' | 'destinations', index: number }> = ({ line, type, index }) => {
         const isCashFlow = line.targetReport === 'CASH_FLOW';
         const accountOptions = isCashFlow ? balanceSheetAccountOptions : dreAccountOptions;
+        const isOrigin = type === 'origins';
 
         return (
-            <div className="relative bg-white p-4 border border-slate-200 rounded-lg shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-                    <div className="lg:col-span-2">
-                        <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Destino</label>
-                        <StyledSelect containerClassName="w-full" value={line.targetReport || 'DRE'} onChange={e => handleLineChange(type, index, 'targetReport', e.target.value)}>
-                            <option value="DRE">DRE</option>
-                            <option value="CASH_FLOW">Fluxo de Caixa</option>
-                        </StyledSelect>
-                    </div>
-                    <div className="lg:col-span-2">
-                        <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Empresa</label>
-                        <StyledSelect containerClassName="w-full" value={line.companyId} onChange={e => handleLineChange(type, index, 'companyId', e.target.value)}>
-                            <option value="">Selecione...</option>
-                            {companies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
-                        </StyledSelect>
-                    </div>
-                     <div className="lg:col-span-2">
-                        <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Departamento</label>
-                        <StyledSelect 
-                            containerClassName="w-full" 
-                            value={line.department} 
-                            onChange={e => handleLineChange(type, index, 'department', e.target.value)}
-                            disabled={isCashFlow}
-                            className={isCashFlow ? 'bg-slate-100 text-slate-400' : ''}
-                        >
-                            <option value="">{isCashFlow ? 'N/A' : 'Selecione...'}</option>
-                            {dreDepartmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
-                        </StyledSelect>
-                    </div>
-                     <div className="lg:col-span-3">
-                        <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Conta {isCashFlow ? 'Patrimonial' : 'DRE'}</label>
-                        <SearchableSelect 
-                            value={line.dreAccountName} 
-                            options={accountOptions} 
-                            onChange={(val) => handleLineChange(type, index, 'dreAccountName', val)}
-                            placeholder="Selecione a conta..."
-                            className="w-full"
-                        />
-                    </div>
-                    <div className="lg:col-span-2">
-                         <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Valor</label>
-                         <CurrencyInput 
-                            value={line.value} 
-                            onChange={(val) => handleLineChange(type, index, 'value', val)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm text-right font-mono"
-                            placeholder="0,00"
-                         />
-                    </div>
-                </div>
-                <button type="button" onClick={() => removeLine(type, index)} className="absolute -top-2 -right-2 p-1 bg-white text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors border border-slate-200 shadow-sm" title="Remover linha">
+            <div className={`relative bg-white p-4 border-l-4 ${isOrigin ? 'border-l-red-400' : 'border-l-green-400'} border border-slate-200 rounded-lg shadow-sm`}>
+                <button type="button" onClick={() => removeLine(type, index)} className="absolute top-2 right-2 p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors" title="Remover linha">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                 </button>
+                <div className="space-y-3 pr-8">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Destino</label>
+                            <StyledSelect containerClassName="w-full" value={line.targetReport || 'DRE'} onChange={e => handleLineChange(type, index, 'targetReport', e.target.value)}>
+                                <option value="DRE">DRE</option>
+                                <option value="CASH_FLOW">Fluxo de Caixa</option>
+                            </StyledSelect>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Empresa</label>
+                            <StyledSelect containerClassName="w-full" value={line.companyId} onChange={e => handleLineChange(type, index, 'companyId', e.target.value)}>
+                                <option value="">Selecione...</option>
+                                {companies.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
+                            </StyledSelect>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Departamento</label>
+                            <StyledSelect 
+                                containerClassName="w-full" 
+                                value={line.department} 
+                                onChange={e => handleLineChange(type, index, 'department', e.target.value)}
+                                disabled={isCashFlow}
+                                className={isCashFlow ? 'bg-slate-100 text-slate-400' : ''}
+                            >
+                                <option value="">{isCashFlow ? 'N/A' : 'Selecione...'}</option>
+                                {dreDepartmentOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                            </StyledSelect>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Conta {isCashFlow ? 'Patrimonial' : 'DRE'}</label>
+                            <SearchableSelect 
+                                value={line.dreAccountName} 
+                                options={accountOptions} 
+                                onChange={(val) => handleLineChange(type, index, 'dreAccountName', val)}
+                                placeholder="Selecione..."
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
+                    <div className="pt-2 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-500 uppercase">Valor</label>
+                            <CurrencyInput 
+                                value={line.value} 
+                                onChange={(val) => handleLineChange(type, index, 'value', val)}
+                                className={`w-40 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 text-base text-right font-bold ${isOrigin ? 'border-red-200 focus:ring-red-200 focus:border-red-400 text-red-700' : 'border-green-200 focus:ring-green-200 focus:border-green-400 text-green-700'}`}
+                                placeholder="0,00"
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         )
     };
