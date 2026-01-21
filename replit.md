@@ -130,3 +130,7 @@ All data/editor views follow the full-screen white background pattern:
 - SQL schema in `scripts/budget_tables.sql` includes CHECK constraint for destination type validation
 - `useAppData` now loads `operational_indicators` from Supabase and exposes via `operationalIndicators`
 - `BudgetAssumptionsView` receives both `dreAccounts` and `operationalIndicators` for unified mapping UI
+- `useBudgetCalculation` hook now supports indicator mappings by finding DRE lines with matching `operationalFormulaId`
+- App.tsx integrates the hook with memoized parameters to avoid render loops
+- Terminology standardized: "Operacional" → "Indicador" in ReportStructureView dropdown
+- Migration script `scripts/add_indicador_id_column.sql` to update Supabase table structure (requires `conta_dre_id` to be nullable)

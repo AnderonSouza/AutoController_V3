@@ -11,7 +11,9 @@ import { CALENDAR_MONTHS } from '../constants';
 interface BudgetMapping {
   id: string;
   premissaId: string;
-  contaDreId: string;
+  tipoDestino?: 'conta_dre' | 'indicador_operacional';
+  contaDreId?: string;
+  indicadorId?: string;
   departamentoId?: string;
   fatorMultiplicador: number;
   tipoCalculo: 'direto' | 'formula' | 'percentual';
@@ -39,6 +41,12 @@ interface MonthlyBalance {
   valor: number;
 }
 
+interface ReportLine {
+  id: string;
+  type: string;
+  operationalFormulaId?: string;
+}
+
 interface UseBudgetCalculationProps {
   dreAccounts: DreAccount[];
   assumptions: BudgetAssumption[];
@@ -51,6 +59,7 @@ interface UseBudgetCalculationProps {
   selectedCompanyId?: string;
   selectedDepartment?: string;
   accountMappings?: { contaContabilId: string; contaDreId: string }[];
+  reportLines?: ReportLine[];
 }
 
 interface BudgetDataByPeriod {
@@ -79,6 +88,7 @@ export function useBudgetCalculation({
   selectedCompanyId,
   selectedDepartment,
   accountMappings = [],
+  reportLines = [],
 }: UseBudgetCalculationProps) {
 
   const budgetData = useMemo(() => {
@@ -111,8 +121,21 @@ export function useBudgetCalculation({
         (!mapping.departamentoId || v.department === mapping.departamentoId)
       );
 
+      let targetAccountId: string | undefined;
+      
+      if (mapping.tipoDestino === 'indicador_operacional' && mapping.indicadorId) {
+        const operationalLine = reportLines.find(line => 
+          line.type === 'operational' && line.operationalFormulaId === mapping.indicadorId
+        );
+        targetAccountId = operationalLine?.id;
+      } else {
+        targetAccountId = mapping.contaDreId;
+      }
+
+      if (!targetAccountId) return;
+
       relevantValues.forEach(val => {
-        if (result[mapping.contaDreId]?.[val.year]?.[val.month]) {
+        if (result[targetAccountId!]?.[val.year]?.[val.month]) {
           let calculatedValue = val.value;
           
           if (mapping.tipoCalculo === 'direto') {
@@ -121,7 +144,7 @@ export function useBudgetCalculation({
             calculatedValue = (val.value * mapping.fatorMultiplicador) / 100;
           } else if (mapping.tipoCalculo === 'formula' && mapping.formula) {
             const auxPremise = auxiliaryPremises.find(ap => 
-              ap.contaDreId === mapping.contaDreId &&
+              ap.contaDreId === targetAccountId &&
               ap.ano === val.year &&
               (!ap.mes || ap.mes === val.month)
             );
@@ -133,7 +156,7 @@ export function useBudgetCalculation({
             }
           }
           
-          result[mapping.contaDreId][val.year][val.month].premissas += calculatedValue;
+          result[targetAccountId!][val.year][val.month].premissas += calculatedValue;
         }
       });
     });
@@ -186,6 +209,7 @@ export function useBudgetCalculation({
     selectedCompanyId, 
     selectedDepartment,
     accountMappings,
+    reportLines,
   ]);
 
   const applyBudgetToAccounts = useMemo(() => {

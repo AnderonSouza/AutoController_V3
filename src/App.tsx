@@ -98,6 +98,7 @@ import { CALENDAR_MONTHS } from "./constants"
 import { applyThemeToDocument } from "./utils/theme"
 import { getConsoleConfig, applyConsoleTheme, applyThemeFromCache } from "./utils/console-config"
 import { useAppData } from "./hooks/useAppData"
+import useBudgetCalculation from "./hooks/useBudgetCalculation"
 import { useUnmappedAccounts } from "./hooks/useUnmappedAccounts"
 import { getSubdomainFromUrl, isAdminConsole } from "./utils/tenant"
 
@@ -332,6 +333,53 @@ const App: React.FC = () => {
 
   const [financialData, setFinancialData] = useState<FinancialAccount[]>([])
   const { calculateDynamicReport } = useDreCalculation()
+  
+  const memoizedBudgetMappings = useMemo(() => budgetMappings.map(m => ({
+    id: m.id,
+    premissaId: m.premissaId,
+    tipoDestino: m.tipoDestino,
+    contaDreId: m.contaDreId,
+    indicadorId: m.indicadorId,
+    departamentoId: m.departamentoId,
+    fatorMultiplicador: m.fatorMultiplicador,
+    tipoCalculo: m.tipoCalculo as 'direto' | 'formula' | 'percentual',
+    formula: m.formula,
+  })), [budgetMappings])
+
+  const memoizedMonthlyBalances = useMemo(() => monthlyBalances.filter(b => b.id && b.conta_contabil_id).map(b => ({
+    id: b.id!,
+    empresaId: b.empresa_id,
+    contaContabilId: b.conta_contabil_id!,
+    ano: b.ano,
+    mes: b.mes,
+    valor: b.valor,
+  })), [monthlyBalances])
+
+  const memoizedAccountMappings = useMemo(() => mappings.filter(m => m.dreAccountId).map(m => ({
+    contaContabilId: m.idconta || m.contaContabilId || '',
+    contaDreId: m.dreAccountId!,
+  })), [mappings])
+
+  const memoizedReportLines = useMemo(() => reportLines.map(line => ({
+    id: line.id,
+    type: line.type,
+    operationalFormulaId: line.operationalFormulaId,
+  })), [reportLines])
+
+  const { applyBudgetToAccounts } = useBudgetCalculation({
+    dreAccounts,
+    assumptions: budgetAssumptions,
+    assumptionValues: budgetAssumptionValues,
+    budgetMappings: memoizedBudgetMappings,
+    auxiliaryPremises: [],
+    monthlyBalances: memoizedMonthlyBalances,
+    selectedYear: selectedPeriod.years[0] || new Date().getFullYear(),
+    selectedMonths: selectedPeriod.months,
+    selectedCompanyId: currentStore !== "Consolidado" ? currentStore : undefined,
+    selectedDepartment: activeTab || undefined,
+    accountMappings: memoizedAccountMappings,
+    reportLines: memoizedReportLines,
+  })
 
   useEffect(() => {
     const subdomain = getSubdomainFromUrl()
@@ -425,7 +473,8 @@ const App: React.FC = () => {
       currentStore,
       costCenterIdsForDepartment
     )
-    setFinancialData(result)
+    const resultWithBudget = applyBudgetToAccounts(result)
+    setFinancialData(resultWithBudget)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportTemplates, reportLines, realizedEntries, adjustments, selectedPeriod, currentStore, activeTab, departments, costCenters, calculateDynamicReport, currentBrand, brands, companies])
 
