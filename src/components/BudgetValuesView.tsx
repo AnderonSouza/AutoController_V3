@@ -32,6 +32,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all');
 
   // --- LOCAL EDIT STATE (BUFFER) ---
   // Key format: `${assumptionId}|${storeName}|${month}`
@@ -52,11 +53,21 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   }, [availableBrands, availableDepartments, assumptions]);
 
   // --- DERIVED DATA ---
+  // Get all effective companies for the selected brand (for dropdown)
+  const effectiveCompaniesForBrand = useMemo(() => {
+    if (!selectedBrandId) return [];
+    return availableCompanies.filter(c => c.brandId === selectedBrandId && c.tipo !== 'apoio');
+  }, [selectedBrandId, availableCompanies]);
+
+  // Filtered companies based on selected filters (only Efetiva)
   const filteredCompanies = useMemo(() => {
     if (!selectedBrandId) return [];
-    // If a specific brand is selected, show all stores for that brand
-    return availableCompanies.filter(c => c.brandId === selectedBrandId);
-  }, [selectedBrandId, availableCompanies]);
+    let companies = availableCompanies.filter(c => c.brandId === selectedBrandId && c.tipo !== 'apoio');
+    if (selectedCompanyId !== 'all') {
+      companies = companies.filter(c => c.id === selectedCompanyId);
+    }
+    return companies;
+  }, [selectedBrandId, selectedCompanyId, availableCompanies]);
 
   const filteredAssumptions = useMemo(() => {
       if (selectedAssumptionIds.length === 0) return [];
@@ -149,7 +160,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
               {/* Filter Bar */}
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <div className="md:col-span-4">
+                    <div className="md:col-span-3">
                         <MultiSelectDropdown
                             label="Premissas"
                             options={assumptionOptions}
@@ -158,7 +169,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             className="w-full"
                         />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                         <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
                         <StyledSelect
                             value={selectedYear}
@@ -169,15 +180,30 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                         </StyledSelect>
                     </div>
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-2">
                         <label className="block text-xs font-semibold text-slate-500 mb-1">Marca</label>
                         <StyledSelect
                             value={selectedBrandId}
-                            onChange={(e) => setSelectedBrandId(e.target.value)}
+                            onChange={(e) => {
+                              setSelectedBrandId(e.target.value);
+                              setSelectedCompanyId('all');
+                            }}
                             containerClassName="w-full"
                             className="h-10 py-2.5 pl-4 pr-10 text-sm"
                         >
                             {availableBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </StyledSelect>
+                    </div>
+                    <div className="md:col-span-3">
+                        <label className="block text-xs font-semibold text-slate-500 mb-1">Loja</label>
+                        <StyledSelect
+                            value={selectedCompanyId}
+                            onChange={(e) => setSelectedCompanyId(e.target.value)}
+                            containerClassName="w-full"
+                            className="h-10 py-2.5 pl-4 pr-10 text-sm"
+                        >
+                            <option value="all">Todas as Lojas</option>
+                            {effectiveCompaniesForBrand.map(c => <option key={c.id} value={c.id}>{c.nickname || c.name}</option>)}
                         </StyledSelect>
                     </div>
                     <div className="md:col-span-3">
