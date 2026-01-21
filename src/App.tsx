@@ -815,6 +815,7 @@ const App: React.FC = () => {
             dreAccounts={dreAccounts}
             budgetAssumptions={budgetAssumptions}
             budgetValues={budgetAssumptionValues}
+            budgetMappings={budgetMappings}
             onNavigate={handleNavigate}
           />
         )

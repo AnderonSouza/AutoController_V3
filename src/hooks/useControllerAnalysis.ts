@@ -61,6 +61,25 @@ const getPreviousMonth = (year: number, month: string): { year: number; month: s
   return { year, month: MONTHS[monthIndex - 1] }
 }
 
+export interface AlertThresholds {
+  warningThreshold: number
+  criticalThreshold: number
+}
+
+const DEFAULT_THRESHOLDS: AlertThresholds = {
+  warningThreshold: 5,
+  criticalThreshold: 15
+}
+
+export interface BudgetMapping {
+  id: string
+  premissaId: string
+  contaDreId?: string
+  indicadorId?: string
+  departamentoId?: string
+  tipoDestino?: string
+}
+
 export const useControllerAnalysis = (
   tenantId: string | null,
   year: number,
@@ -71,8 +90,11 @@ export const useControllerAnalysis = (
   departments: Department[],
   dreAccounts: DreAccount[],
   budgetAssumptions: BudgetAssumption[],
-  budgetValues: BudgetAssumptionValue[]
+  budgetValues: BudgetAssumptionValue[],
+  budgetMappings?: BudgetMapping[],
+  thresholds?: AlertThresholds
 ): ControllerAnalysisResult => {
+  const { warningThreshold, criticalThreshold } = thresholds || DEFAULT_THRESHOLDS
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentMonthData, setCurrentMonthData] = useState<AggregatedData[]>([])
@@ -213,12 +235,26 @@ export const useControllerAnalysis = (
       const previousValue = groupedPrevious.get(key) || 0
       const lastYearValue = groupedLastYear.get(key) || 0
       
-      const budgetValue = budgetValues
-        .filter(bv => {
-          const assumption = budgetAssumptions.find(a => a.id === bv.assumptionId)
-          return assumption?.name === accountName && bv.month === month && bv.year === year
-        })
-        .reduce((sum, bv) => sum + (bv.value || 0), 0)
+      const dreAccount = dreAccounts.find(a => a.name === accountName)
+      const mappingsForAccount = budgetMappings?.filter(m => 
+        m.contaDreId === dreAccount?.id || 
+        m.tipoDestino === 'conta_dre' && dreAccounts.find(acc => acc.id === m.contaDreId)?.name === accountName
+      ) || []
+      
+      let budgetValue = 0
+      if (mappingsForAccount.length > 0) {
+        const premissaIds = mappingsForAccount.map(m => m.premissaId)
+        budgetValue = budgetValues
+          .filter(bv => premissaIds.includes(bv.assumptionId) && bv.month === month && bv.year === year)
+          .reduce((sum, bv) => sum + (bv.value || 0), 0)
+      } else {
+        budgetValue = budgetValues
+          .filter(bv => {
+            const assumption = budgetAssumptions.find(a => a.id === bv.assumptionId)
+            return assumption?.name === accountName && bv.month === month && bv.year === year
+          })
+          .reduce((sum, bv) => sum + (bv.value || 0), 0)
+      }
 
       const benchmark = benchmarks.find(b => b.conta_nome === accountName)
       const benchmarkValue = benchmark?.valor
@@ -233,11 +269,11 @@ export const useControllerAnalysis = (
       
       let status: 'critical' | 'warning' | 'ok' = 'ok'
       if (isExpense) {
-        if (mainVariation > 15) status = 'critical'
-        else if (mainVariation > 5) status = 'warning'
+        if (mainVariation > criticalThreshold) status = 'critical'
+        else if (mainVariation > warningThreshold) status = 'warning'
       } else {
-        if (mainVariation < -15) status = 'critical'
-        else if (mainVariation < -5) status = 'warning'
+        if (mainVariation < -criticalThreshold) status = 'critical'
+        else if (mainVariation < -warningThreshold) status = 'warning'
       }
 
       let trend: 'up' | 'down' | 'stable' = 'stable'
@@ -275,7 +311,7 @@ export const useControllerAnalysis = (
       }
       return Math.abs(b.variationVsBudget) - Math.abs(a.variationVsBudget)
     })
-  }, [currentMonthData, previousMonthData, sameMonthLastYearData, benchmarks, budgetAssumptions, budgetValues, effectiveCompanies, month, year])
+  }, [currentMonthData, previousMonthData, sameMonthLastYearData, benchmarks, budgetAssumptions, budgetValues, budgetMappings, dreAccounts, effectiveCompanies, month, year, warningThreshold, criticalThreshold])
 
   const summary = useMemo((): ControllerSummary => {
     const criticalCount = alerts.filter(a => a.status === 'critical').length

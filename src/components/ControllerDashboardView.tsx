@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useMemo } from 'react'
-import { useControllerAnalysis, ControllerAlert } from '../hooks/useControllerAnalysis'
+import { useControllerAnalysis, ControllerAlert, BudgetMapping } from '../hooks/useControllerAnalysis'
 import { generateFinancialInsight } from '../utils/ai'
-import type { Company, Brand, Department, DreAccount, BudgetAssumption, BudgetAssumptionValue } from '../types'
+import type { Company, Brand, Department, DreAccount, BudgetAssumption, BudgetAssumptionValue, BudgetMapping as TypeBudgetMapping } from '../types'
 
 const MONTHS = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
 
@@ -15,6 +15,7 @@ interface ControllerDashboardViewProps {
   dreAccounts: DreAccount[]
   budgetAssumptions: BudgetAssumption[]
   budgetValues: BudgetAssumptionValue[]
+  budgetMappings?: TypeBudgetMapping[]
   onNavigate?: (view: string) => void
 }
 
@@ -88,6 +89,7 @@ const ControllerDashboardView: React.FC<ControllerDashboardViewProps> = ({
   dreAccounts,
   budgetAssumptions,
   budgetValues,
+  budgetMappings,
   onNavigate
 }) => {
   const currentDate = new Date()
@@ -101,6 +103,18 @@ const ControllerDashboardView: React.FC<ControllerDashboardViewProps> = ({
 
   const years = useMemo(() => Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i), [currentDate])
 
+  const mappingsForHook = useMemo(() => 
+    budgetMappings?.map(m => ({
+      id: m.id,
+      premissaId: m.assumptionId,
+      contaDreId: m.dreAccountId,
+      indicadorId: m.indicadorId,
+      departamentoId: m.departmentId,
+      tipoDestino: m.tipoDestino
+    })) || [], 
+    [budgetMappings]
+  )
+
   const { summary, alerts, topCritical, topWarning, isLoading, error, aiContext } = useControllerAnalysis(
     tenantId,
     selectedYear,
@@ -111,7 +125,8 @@ const ControllerDashboardView: React.FC<ControllerDashboardViewProps> = ({
     departments,
     dreAccounts,
     budgetAssumptions,
-    budgetValues
+    budgetValues,
+    mappingsForHook
   )
 
   const displayedAlerts = useMemo(() => {
