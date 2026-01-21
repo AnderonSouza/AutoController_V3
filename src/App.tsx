@@ -287,20 +287,23 @@ const App: React.FC = () => {
   const [currentStore, setCurrentStore] = useState("Consolidado")
   const [activeTab, setActiveTab] = useState("")
   
-  // Calculate store options based on selected brand
+  // Calculate store options based on selected brand (only effective companies)
   const storeOptionsForBrand = useMemo(() => {
     const options: { label: string; value: string }[] = [{ label: "Consolidado", value: "Consolidado" }]
     
+    // Filter only effective companies (tipo === 'efetiva' or undefined for legacy data)
+    const effectiveCompanies = companies.filter(c => c.tipo === 'efetiva' || !c.tipo)
+    
     if (currentBrand === "Todas as Marcas") {
-      // Show all companies when "Todas as Marcas" is selected
-      companies.forEach(c => {
+      // Show all effective companies when "Todas as Marcas" is selected
+      effectiveCompanies.forEach(c => {
         options.push({ label: c.nickname || c.name, value: c.id })
       })
     } else {
-      // Find the brand by name and filter companies by brandId
+      // Find the brand by name and filter effective companies by brandId
       const selectedBrandObj = brands.find(b => b.name === currentBrand)
       if (selectedBrandObj) {
-        companies
+        effectiveCompanies
           .filter(c => c.brandId === selectedBrandObj.id)
           .forEach(c => {
             options.push({ label: c.nickname || c.name, value: c.id })
