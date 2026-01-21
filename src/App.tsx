@@ -80,6 +80,7 @@ import BudgetWizardView from "./components/BudgetWizardView"
 import OrganizationalStructureView from "./components/OrganizationalStructureView"
 import ParametrosApuracaoView from "./components/ParametrosApuracaoView"
 import BalanceSheetView from "./components/BalanceSheetView"
+import ControllerDashboardView from "./components/ControllerDashboardView"
 
 // Utils
 import {
@@ -660,6 +661,11 @@ const App: React.FC = () => {
   const tenantSidebarItems: SidebarItem[] = useMemo(
     () => [
       {
+        id: "CONTROLLER_DASHBOARD",
+        icon: Gauge,
+        label: "Início",
+      },
+      {
         id: "analises",
         icon: BarChart3,
         label: "Análises",
@@ -799,6 +805,19 @@ const App: React.FC = () => {
     }
 
     switch (currentView) {
+      case "CONTROLLER_DASHBOARD":
+        return (
+          <ControllerDashboardView
+            tenantId={effectiveTenantId || user.tenantId}
+            companies={companies}
+            brands={brands}
+            departments={departments}
+            dreAccounts={dreAccounts}
+            budgetAssumptions={budgetAssumptions}
+            budgetValues={budgetAssumptionValues}
+            onNavigate={handleNavigate}
+          />
+        )
       case "DRE":
       case "CASH_FLOW":
       case "DYNAMIC_REPORT":
