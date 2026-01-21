@@ -533,6 +533,18 @@ const App: React.FC = () => {
       })
 
       if (authError) {
+        console.log("[v0] Auth error details:", { 
+          name: authError.name, 
+          message: authError.message, 
+          status: (authError as any).status,
+          code: (authError as any).code
+        })
+        
+        // Handle network/fetch errors first
+        if (authError.name === "AuthRetryableFetchError") {
+          return "Erro de conexão. Verifique sua internet e tente novamente."
+        }
+        
         const errorMessages: Record<string, string> = {
           "Invalid login credentials": "E-mail ou senha incorretos",
           "Email not confirmed": "E-mail não confirmado. Verifique sua caixa de entrada.",
@@ -540,7 +552,13 @@ const App: React.FC = () => {
           "Invalid email or password": "E-mail ou senha inválidos",
           "Too many requests": "Muitas tentativas. Aguarde alguns minutos.",
         }
-        const translatedMessage = errorMessages[authError.message] || authError.message
+        
+        // Ensure we always return a readable string
+        const errorMessage = authError.message && typeof authError.message === 'string' && authError.message.length > 0
+          ? authError.message 
+          : "Erro ao fazer login. Tente novamente."
+        
+        const translatedMessage = errorMessages[errorMessage] || errorMessage
         return translatedMessage
       }
       if (!authData.user) return "Erro interno."
