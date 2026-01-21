@@ -743,13 +743,13 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 </div>
                 <div className="max-h-64 overflow-auto">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-slate-100">
+                    <thead className="sticky top-0 table-header">
                       <tr>
-                        <th className="text-left px-4 py-2">Mês</th>
-                        <th className="text-right px-2 py-2">Lanç.</th>
-                        <th className="text-right px-2 py-2">Débitos</th>
-                        <th className="text-right px-2 py-2">Créditos</th>
-                        <th className="text-center px-2 py-2">Status</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider">Mês</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Lanç.</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Débitos</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Créditos</th>
+                        <th className="text-center px-2 py-2 text-xs font-semibold uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -783,13 +783,13 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 </div>
                 <div className="max-h-64 overflow-auto">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-slate-100">
+                    <thead className="sticky top-0 table-header">
                       <tr>
-                        <th className="text-left px-4 py-2">Marca</th>
-                        <th className="text-right px-2 py-2">Lanç.</th>
-                        <th className="text-right px-2 py-2">Débitos</th>
-                        <th className="text-right px-2 py-2">Créditos</th>
-                        <th className="text-center px-2 py-2">Status</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider">Marca</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Lanç.</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Débitos</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Créditos</th>
+                        <th className="text-center px-2 py-2 text-xs font-semibold uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -823,13 +823,13 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 </div>
                 <div className="max-h-64 overflow-auto">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-slate-100">
+                    <thead className="sticky top-0 table-header">
                       <tr>
-                        <th className="text-left px-4 py-2">Empresa</th>
-                        <th className="text-right px-2 py-2">Lanç.</th>
-                        <th className="text-right px-2 py-2">Débitos</th>
-                        <th className="text-right px-2 py-2">Créditos</th>
-                        <th className="text-center px-2 py-2">Status</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider">Empresa</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Lanç.</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Débitos</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Créditos</th>
+                        <th className="text-center px-2 py-2 text-xs font-semibold uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -863,13 +863,13 @@ const DataQueryView: React.FC<DataQueryViewProps> = ({
                 </div>
                 <div className="max-h-64 overflow-auto">
                   <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-slate-100">
+                    <thead className="sticky top-0 table-header">
                       <tr>
-                        <th className="text-left px-4 py-2">Centro</th>
-                        <th className="text-right px-2 py-2">Lanç.</th>
-                        <th className="text-right px-2 py-2">Débitos</th>
-                        <th className="text-right px-2 py-2">Créditos</th>
-                        <th className="text-center px-2 py-2">Status</th>
+                        <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider">Centro</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Lanç.</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Débitos</th>
+                        <th className="text-right px-2 py-2 text-xs font-semibold uppercase tracking-wider">Créditos</th>
+                        <th className="text-center px-2 py-2 text-xs font-semibold uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody>
