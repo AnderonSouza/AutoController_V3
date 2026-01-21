@@ -134,7 +134,14 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
   const loadConfig = async () => {
     try {
       setLoadingConfig(true)
-      const { data, error: err } = await supabase.from("console_config").select("*").single()
+      
+      // Timeout de 10 segundos para garantir que a página não fique travada
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        setTimeout(() => resolve({ data: null, error: { message: 'Timeout' } }), 10000)
+      })
+      
+      const queryPromise = supabase.from("console_config").select("*").single()
+      const { data, error: err } = await Promise.race([queryPromise, timeoutPromise]) as any
 
       if (err) {
         console.log("[v0] Erro ao carregar config:", err.message)
@@ -169,10 +176,18 @@ const UnifiedLogin: React.FC<UnifiedLoginProps> = ({ isConsole: isConsoleProp = 
     setLoadingTenants(true)
     try {
       console.log("[v0] Loading tenants from organizacoes table...")
-      const { data, error: err } = await supabase
+      
+      // Timeout de 10 segundos para garantir que a página não fique travada
+      const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) => {
+        setTimeout(() => resolve({ data: null, error: { message: 'Timeout' } }), 10000)
+      })
+      
+      const queryPromise = supabase
         .from("organizacoes")
         .select("id, name:nome, subdomain, logo, logo_dark, login_announcement, login_background_url, login_background_type, config_interface")
         .order("nome")
+      
+      const { data, error: err } = await Promise.race([queryPromise, timeoutPromise]) as any
 
       if (err) {
         console.log("[v0] Erro ao carregar tenants de 'organizacoes':", err.message)
