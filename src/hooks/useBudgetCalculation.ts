@@ -122,9 +122,25 @@ export function useBudgetCalculation({
       initializeAccountEntry(line.id);
     });
 
+    console.log('[v0-budget] Processing mappings:', {
+      mappingsCount: budgetMappings.length,
+      reportLinesCount: reportLines.length,
+      assumptionValuesCount: assumptionValues.length,
+      selectedYear,
+      selectedDepartment,
+    });
+
     budgetMappings.forEach(mapping => {
       const mappingDepartmentName = mapping.departamentoId ? departmentMap[mapping.departamentoId] : undefined;
       
+      console.log('[v0-budget] Processing mapping:', {
+        premissaId: mapping.premissaId,
+        tipoDestino: mapping.tipoDestino,
+        indicadorId: mapping.indicadorId,
+        contaDreId: mapping.contaDreId,
+        mappingDepartmentName,
+      });
+
       const relevantValues = assumptionValues.filter(v => 
         v.assumptionId === mapping.premissaId &&
         v.year === selectedYear &&
@@ -133,18 +149,35 @@ export function useBudgetCalculation({
         (!mappingDepartmentName || v.department === mappingDepartmentName)
       );
 
+      console.log('[v0-budget] Relevant values found:', {
+        count: relevantValues.length,
+        values: relevantValues.map(v => ({ month: v.month, value: v.value, dept: v.department, store: v.store })),
+      });
+
       let targetAccountId: string | undefined;
       
       if (mapping.tipoDestino === 'indicador_operacional' && mapping.indicadorId) {
+        console.log('[v0-budget] Looking for operational line:', {
+          indicadorId: mapping.indicadorId,
+          operationalLines: reportLines.filter(l => l.type === 'operational').map(l => ({
+            id: l.id,
+            type: l.type,
+            operationalFormulaId: l.operationalFormulaId,
+          })),
+        });
         const operationalLine = reportLines.find(line => 
           line.type === 'operational' && line.operationalFormulaId === mapping.indicadorId
         );
         targetAccountId = operationalLine?.id;
+        console.log('[v0-budget] Found operational line:', operationalLine?.id);
       } else {
         targetAccountId = mapping.contaDreId;
       }
 
-      if (!targetAccountId) return;
+      if (!targetAccountId) {
+        console.log('[v0-budget] No target account found for mapping');
+        return;
+      }
 
       relevantValues.forEach(val => {
         if (result[targetAccountId!]?.[val.year]?.[val.month]) {
