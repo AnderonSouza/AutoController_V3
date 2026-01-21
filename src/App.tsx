@@ -1223,7 +1223,7 @@ const App: React.FC = () => {
             brands={brands}
             dreAccounts={dreAccounts}
             balanceSheetAccounts={balanceSheetAccounts}
-            dreDepartmentOptions={dreDepartmentOptions}
+            dreDepartmentOptions={departments.map((d) => d.name)}
           />
         )
       case "ACCOUNTING_ADJUSTMENTS":
