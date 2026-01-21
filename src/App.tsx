@@ -1251,6 +1251,9 @@ const App: React.FC = () => {
             onShowHorizontalAnalysisChange={setShowHorizontal}
             showBenchmark={showBenchmark}
             onShowBenchmarkChange={setShowBenchmark}
+            departments={departments.map(d => d.nome)}
+            activeDepartment={activeTab}
+            onDepartmentChange={setActiveTab}
           />
         )
       case "BUDGET_ASSUMPTIONS":

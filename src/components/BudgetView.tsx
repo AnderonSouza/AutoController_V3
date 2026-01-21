@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { FinancialAccount, Brand, ReportTemplate } from '../types';
 import BudgetTable from './BudgetTable';
 import Toolbar from './Toolbar';
+import Tabs from './Tabs';
 
 interface StoreOption {
   label: string;
@@ -35,6 +36,9 @@ interface BudgetViewProps {
   onShowHorizontalAnalysisChange?: (show: boolean) => void;
   showBenchmark?: boolean;
   onShowBenchmarkChange?: (show: boolean) => void;
+  departments?: string[];
+  activeDepartment?: string;
+  onDepartmentChange?: (department: string) => void;
 }
 
 const BudgetView: React.FC<BudgetViewProps> = ({ 
@@ -62,11 +66,16 @@ const BudgetView: React.FC<BudgetViewProps> = ({
   onShowHorizontalAnalysisChange,
   showBenchmark = false,
   onShowBenchmarkChange,
+  departments = [],
+  activeDepartment,
+  onDepartmentChange,
 }) => {
 
   const handleManualBudgetChange = (accountId: string, year: number, month: string, field: 'orcadoManual', value: number) => {
     onDataChange(accountId, year, month, field, value);
   };
+
+  const showDepartmentTabs = departments.length > 0 && onDepartmentChange;
 
   return (
     <main className="flex-grow flex flex-col h-full overflow-hidden bg-white">
@@ -99,10 +108,17 @@ const BudgetView: React.FC<BudgetViewProps> = ({
           <BudgetTable 
             data={accounts}
             onDataChange={handleManualBudgetChange}
-            activeTab={activeTabContext}
+            activeTab={activeDepartment || activeTabContext}
             selectedPeriod={selectedPeriod}
           />
         </div>
+        {showDepartmentTabs && (
+          <Tabs 
+            tabs={departments} 
+            activeTab={activeDepartment || departments[0] || ''} 
+            setActiveTab={onDepartmentChange!} 
+          />
+        )}
       </div>
     </main>
   );
