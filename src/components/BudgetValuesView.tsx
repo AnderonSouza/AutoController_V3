@@ -54,15 +54,16 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
 
   // --- DERIVED DATA ---
   // Get all effective companies for the selected brand (for dropdown)
+  // Treat undefined tipo as 'efetiva' for legacy data compatibility
   const effectiveCompaniesForBrand = useMemo(() => {
     if (!selectedBrandId) return [];
-    return availableCompanies.filter(c => c.brandId === selectedBrandId && c.tipo !== 'apoio');
+    return availableCompanies.filter(c => c.brandId === selectedBrandId && (c.tipo === 'efetiva' || !c.tipo));
   }, [selectedBrandId, availableCompanies]);
 
-  // Filtered companies based on selected filters (only Efetiva)
+  // Filtered companies based on selected filters (only Efetiva - treat undefined as efetiva)
   const filteredCompanies = useMemo(() => {
     if (!selectedBrandId) return [];
-    let companies = availableCompanies.filter(c => c.brandId === selectedBrandId && c.tipo !== 'apoio');
+    let companies = availableCompanies.filter(c => c.brandId === selectedBrandId && (c.tipo === 'efetiva' || !c.tipo));
     if (selectedCompanyId !== 'all') {
       companies = companies.filter(c => c.id === selectedCompanyId);
     }

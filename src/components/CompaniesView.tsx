@@ -502,6 +502,10 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                     aValue = brands.find(brand => brand.id === a.brandId)?.name || '';
                     bValue = brands.find(brand => brand.id === b.brandId)?.name || '';
                 }
+                if (sortConfig.key === 'tipo') {
+                    aValue = a.tipo || 'efetiva';
+                    bValue = b.tipo || 'efetiva';
+                }
 
                 // Handle nulls
                 if (aValue === undefined || aValue === null) aValue = '';
