@@ -325,6 +325,7 @@ export interface BudgetAssumption {
 }
 
 export interface BudgetAssumptionValue {
+  id?: string
   assumptionId: string
   store: string
   department: string

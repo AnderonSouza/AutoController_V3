@@ -221,21 +221,35 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
             let empresa = availableCompanies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj);
             if (!empresa) continue;
 
+            const dept = departamento || selectedDepartment;
+            
+            // Check if record already exists to get its ID (for upsert)
+            const existingRecord = assumptionValues.find(v =>
+              v.assumptionId === premissaId &&
+              v.store === empresa!.id &&
+              v.year === ano &&
+              v.month === mes &&
+              v.department === dept
+            );
+
             valuesToImport.push({
-              id: generateUUID(),
+              id: existingRecord?.id || generateUUID(),
               organizacao_id: tenantId,
               premissa_id: premissaId,
               ano: ano,
               mes: mes,
               empresa_id: empresa.id,
-              departamento: departamento || selectedDepartment,
+              departamento: dept,
               valor: valor,
             });
             imported++;
           }
 
           if (valuesToImport.length > 0) {
-            await saveCadastroTenant("budget_values", valuesToImport, tenantId);
+            // Save one by one to handle upserts correctly
+            for (const record of valuesToImport) {
+              await saveCadastroTenant("budget_values", [record], tenantId);
+            }
             onRefreshData?.();
           }
 

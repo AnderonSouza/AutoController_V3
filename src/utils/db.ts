@@ -666,10 +666,13 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
     return obj
   })
 
-  // Use onConflict for mapeamento_contas to handle the unique constraint on conta_contabil_id
+  // Use onConflict for tables with unique constraints
   let query
   if (dbTable === "mapeamento_contas") {
     query = supabase.from(dbTable).upsert(dbData, { onConflict: "conta_contabil_id" }).select()
+  } else if (dbTable === "valores_premissas") {
+    // Handle unique constraint on (premissa_id, empresa_id, departamento, ano, mes)
+    query = supabase.from(dbTable).upsert(dbData, { onConflict: "premissa_id,empresa_id,departamento,ano,mes" }).select()
   } else {
     query = supabase.from(dbTable).upsert(dbData).select()
   }
