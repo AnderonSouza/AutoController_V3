@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Layers, GitBranch, Target, BookOpen, LayoutGrid, FileSpreadsheet, Scale } from "lucide-react"
+import { Layers, GitBranch, Target, BookOpen, LayoutGrid, FileSpreadsheet, Scale, FolderTree } from "lucide-react"
 import DashboardCard from "./ui/DashboardCard"
 
 interface ParametrosApuracaoViewProps {
@@ -11,6 +11,7 @@ interface ParametrosApuracaoViewProps {
   onNavigateToBenchmarks: () => void
   onNavigateToChartOfAccounts: () => void
   onNavigateToBalanceSheetAccounts: () => void
+  onNavigateToAccountGroups: () => void
 }
 
 const ParametrosApuracaoView: React.FC<ParametrosApuracaoViewProps> = ({
@@ -20,6 +21,7 @@ const ParametrosApuracaoView: React.FC<ParametrosApuracaoViewProps> = ({
   onNavigateToBenchmarks,
   onNavigateToChartOfAccounts,
   onNavigateToBalanceSheetAccounts,
+  onNavigateToAccountGroups,
 }) => {
   return (
     <main className="flex-grow flex flex-col h-full overflow-y-auto bg-white">
@@ -70,6 +72,13 @@ const ParametrosApuracaoView: React.FC<ParametrosApuracaoViewProps> = ({
             title="Benchmark"
             description="Defina metas e indicadores de referência para análise comparativa de desempenho."
             onClick={onNavigateToBenchmarks}
+          />
+
+          <DashboardCard
+            icon={FolderTree}
+            title="Grupos de Contas"
+            description="Cadastre grupos para categorizar contas do Plano DRE e Balanco Patrimonial."
+            onClick={onNavigateToAccountGroups}
           />
         </div>
       </div>

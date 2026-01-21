@@ -81,6 +81,7 @@ import OrganizationalStructureView from "./components/OrganizationalStructureVie
 import ParametrosApuracaoView from "./components/ParametrosApuracaoView"
 import BalanceSheetView from "./components/BalanceSheetView"
 import ControllerDashboardView from "./components/ControllerDashboardView"
+import GruposContasView from "./components/GruposContasView"
 
 // Utils
 import {
@@ -271,6 +272,8 @@ const App: React.FC = () => {
     operationalIndicators,
     operationalValues,
     monthlyBalances,
+    accountGroups,
+    setAccountGroups,
     unreadNotifications,
     isLoadingData,
   } = useAppData(user, effectiveTenantId)
@@ -969,6 +972,7 @@ const App: React.FC = () => {
             onNavigateToBenchmarks={() => handleNavigate("BENCHMARKS")}
             onNavigateToChartOfAccounts={() => handleNavigate("CHART_OF_ACCOUNTS")}
             onNavigateToBalanceSheetAccounts={() => handleNavigate("BALANCE_SHEET_STRUCTURE")}
+            onNavigateToAccountGroups={() => handleNavigate("ACCOUNT_GROUPS")}
           />
         )
       case "CHART_OF_ACCOUNTS":
@@ -1223,6 +1227,22 @@ const App: React.FC = () => {
             departments={departments}
             reportLines={reportLines}
             reportTemplates={reportTemplates}
+          />
+        )
+      case "ACCOUNT_GROUPS":
+        return (
+          <GruposContasView
+            accountGroups={accountGroups}
+            onNavigateBack={() => handleNavigate("COST_CENTERS")}
+            onSaveAccountGroups={async (data) => {
+              await saveCadastroTenant("account_groups", data, effectiveTenantId || user.tenantId)
+              setAccountGroups(data)
+            }}
+            onDeleteAccountGroup={async (id) => {
+              await deleteById("account_groups", id)
+              setAccountGroups(prev => prev.filter(g => g.id !== id))
+            }}
+            tenantId={effectiveTenantId || user.tenantId}
           />
         )
       case "MANAGEMENT":
