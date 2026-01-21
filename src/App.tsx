@@ -73,6 +73,7 @@ import OperationalDataEntryView from "./components/OperationalDataEntryView"
 import OperationalFormulasView from "./components/OperationalFormulasView"
 import Tabs from "./components/Tabs"
 import BudgetAssumptionsView from "./components/BudgetAssumptionsView"
+import { generateUUID } from "./utils/helpers"
 import BudgetValuesView from "./components/BudgetValuesView"
 import BudgetView from "./components/BudgetView"
 import BudgetWizardView from "./components/BudgetWizardView"
@@ -1206,8 +1207,18 @@ const App: React.FC = () => {
             assumptions={budgetAssumptions}
             assumptionValues={budgetAssumptionValues}
             onSaveAssumptionValue={async (val) => {
+              // Check if this value already exists in the database
+              const existingValue = budgetAssumptionValues.find(v =>
+                v.assumptionId === val.assumptionId &&
+                v.store === val.store &&
+                v.month === val.month &&
+                v.year === val.year &&
+                v.department === val.department
+              )
+              const recordId = existingValue?.id || generateUUID()
+              
               await saveCadastroTenant("budget_values", [{
-                id: val.id || `${val.assumptionId}_${val.store}_${val.month}_${val.year}`,
+                id: recordId,
                 premissa_id: val.assumptionId,
                 empresa_id: val.store,
                 departamento: val.department,
@@ -1215,6 +1226,23 @@ const App: React.FC = () => {
                 mes: val.month,
                 valor: val.value,
               }], effectiveTenantId || user.tenantId)
+              
+              // Update local state
+              setBudgetAssumptionValues(prev => {
+                const idx = prev.findIndex(v =>
+                  v.assumptionId === val.assumptionId &&
+                  v.store === val.store &&
+                  v.month === val.month &&
+                  v.year === val.year &&
+                  v.department === val.department
+                )
+                if (idx >= 0) {
+                  const updated = [...prev]
+                  updated[idx] = { ...updated[idx], value: val.value }
+                  return updated
+                }
+                return [...prev, { ...val, id: recordId }]
+              })
             }}
             onNavigateBack={() => handleNavigate("BUDGET_PLANNING")}
             availableBrands={brands}

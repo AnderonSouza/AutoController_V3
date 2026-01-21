@@ -64,27 +64,27 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   }, [assumptions, selectedAssumptionIds]);
 
   // --- HANDLERS ---
-  const handleValueChange = (assumptionId: string, storeName: string, month: string, value: number) => {
-    const key = `${assumptionId}|${storeName}|${month}`;
+  const handleValueChange = (assumptionId: string, companyId: string, month: string, value: number) => {
+    const key = `${assumptionId}|${companyId}|${month}`;
     setPendingChanges(prev => ({
         ...prev,
         [key]: value
     }));
   };
 
-  const getAssumptionValue = (assumptionId: string, storeName: string, month: string) => {
+  const getAssumptionValue = (assumptionId: string, companyId: string, month: string) => {
     // Check pending changes first
-    const key = `${assumptionId}|${storeName}|${month}`;
+    const key = `${assumptionId}|${companyId}|${month}`;
     if (pendingChanges.hasOwnProperty(key)) {
         return pendingChanges[key];
     }
 
-    // Fallback to DB values
+    // Fallback to DB values - match by company ID
     const found = assumptionValues.find(v =>
       v.assumptionId === assumptionId &&
       v.year === selectedYear &&
       v.month === month &&
-      v.store === storeName &&
+      v.store === companyId &&
       v.department === selectedDepartment
     );
     return found ? found.value : 0;
@@ -230,14 +230,14 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                                                     <span className="truncate" title={company.nickname || company.name}>{company.nickname || company.name}</span>
                                                 </td>
                                                 {CALENDAR_MONTHS.map(month => {
-                                                    const val = getAssumptionValue(assumption.id, company.name, month);
-                                                    const isModified = pendingChanges.hasOwnProperty(`${assumption.id}|${company.name}|${month}`);
+                                                    const val = getAssumptionValue(assumption.id, company.id, month);
+                                                    const isModified = pendingChanges.hasOwnProperty(`${assumption.id}|${company.id}|${month}`);
                                                     
                                                     return (
                                                         <td key={month} className={`p-0 border-r border-b h-10 relative ${isModified ? 'bg-yellow-50' : ''}`}>
                                                             <EditableCell
                                                                 value={val}
-                                                                onChange={(v) => handleValueChange(assumption.id, company.name, month, v)}
+                                                                onChange={(v) => handleValueChange(assumption.id, company.id, month, v)}
                                                                 type={assumption.type}
                                                                 className={`text-center font-medium h-full w-full ${isModified ? 'text-yellow-700 font-bold' : 'text-slate-700'}`}
                                                             />
