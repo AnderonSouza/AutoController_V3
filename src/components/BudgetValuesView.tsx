@@ -198,16 +198,16 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
               <div className="flex-grow overflow-auto bg-white">
                     {filteredCompanies.length > 0 && filteredAssumptions.length > 0 ? (
                         <table className="min-w-full border-separate border-spacing-0">
-                            <thead className="bg-slate-50 sticky top-0 z-30 shadow-sm">
+                            <thead className="sticky top-0 z-30 shadow-sm" style={{ backgroundColor: 'var(--color-primary, #1e3a5f)' }}>
                                 <tr>
-                                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[300px] w-[300px] sticky left-0 bg-slate-50 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]">
+                                    <th className="p-3 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-white/20 min-w-[300px] w-[300px] sticky left-0 z-40 shadow-[1px_0_0_rgba(0,0,0,0.05)]" style={{ backgroundColor: 'var(--color-primary, #1e3a5f)' }}>
                                         Premissa
                                     </th>
-                                    <th className="p-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[220px] w-[220px] sticky left-[300px] bg-slate-50 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                    <th className="p-3 text-left text-xs font-bold text-white uppercase tracking-wider border-b border-r border-white/20 min-w-[220px] w-[220px] sticky left-[300px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]" style={{ backgroundColor: 'var(--color-primary, #1e3a5f)' }}>
                                         Loja
                                     </th>
                                     {CALENDAR_MONTHS.map(month => (
-                                        <th key={month} className="p-2 text-center text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-r min-w-[100px]">
+                                        <th key={month} className="p-2 text-center text-xs font-bold text-white uppercase tracking-wider border-b border-r border-white/20 min-w-[100px]" style={{ backgroundColor: 'var(--color-primary, #1e3a5f)' }}>
                                             {month.slice(0, 3)}/{selectedYear}
                                         </th>
                                     ))}
