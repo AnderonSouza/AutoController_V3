@@ -264,6 +264,8 @@ const App: React.FC = () => {
     setBudgetAssumptions,
     budgetAssumptionValues,
     setBudgetAssumptionValues,
+    budgetMappings,
+    setBudgetMappings,
     monthlyBalances,
     unreadNotifications,
     isLoadingData,
@@ -1199,6 +1201,33 @@ const App: React.FC = () => {
             formulas={[]}
             financialAccounts={accountingAccounts}
             availableDepartments={departments.map(d => d.name)}
+            dreAccounts={dreAccounts}
+            budgetMappings={budgetMappings}
+            onSaveMapping={async (mapping) => {
+              await saveCadastroTenant("budget_mappings", [{
+                id: mapping.id,
+                premissa_id: mapping.premissaId,
+                conta_dre_id: mapping.contaDreId,
+                departamento_id: mapping.departamentoId,
+                fator_multiplicador: mapping.fatorMultiplicador,
+                tipo_calculo: mapping.tipoCalculo,
+                formula: mapping.formula,
+                ativo: mapping.ativo,
+              }], effectiveTenantId || user.tenantId)
+              setBudgetMappings(prev => {
+                const idx = prev.findIndex(m => m.id === mapping.id)
+                if (idx >= 0) {
+                  const updated = [...prev]
+                  updated[idx] = mapping
+                  return updated
+                }
+                return [...prev, mapping]
+              })
+            }}
+            onDeleteMapping={async (id) => {
+              await deleteById("mapeamento_premissa_dre", id)
+              setBudgetMappings(prev => prev.filter(m => m.id !== id))
+            }}
           />
         )
       case "BUDGET_IMPORT":

@@ -17,6 +17,7 @@ import type {
   ReportLine,
   BudgetAssumption,
   BudgetAssumptionValue,
+  BudgetMapping,
   MonthlyBalanceEntry,
 } from "../types"
 import { getCadastroTenant, getUnreadNotificationCount } from "../utils/db"
@@ -88,6 +89,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [reportLines, setReportLines] = useState<ReportLine[]>([])
   const [budgetAssumptions, setBudgetAssumptions] = useState<BudgetAssumption[]>([])
   const [budgetAssumptionValues, setBudgetAssumptionValues] = useState<BudgetAssumptionValue[]>([])
+  const [budgetMappings, setBudgetMappings] = useState<BudgetMapping[]>([])
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -153,6 +155,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("budget_assumptions", tenantId),
           getCadastroTenant("budget_values", tenantId),
           getCadastroTenant("saldos_mensais", tenantId),
+          getCadastroTenant("budget_mappings", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -242,6 +245,19 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           valor: b.valor || 0,
           organizacaoId: b.organizacao_id,
         })))
+        
+        const rawBudgetMappings = getVal<any>(15)
+        setBudgetMappings(rawBudgetMappings.map((m: any) => ({
+          id: m.id,
+          premissaId: m.premissa_id || m.premissaId,
+          contaDreId: m.conta_dre_id || m.contaDreId,
+          departamentoId: m.departamento_id || m.departamentoId,
+          fatorMultiplicador: m.fator_multiplicador || m.fatorMultiplicador || 1,
+          tipoCalculo: m.tipo_calculo || m.tipoCalculo || 'direto',
+          formula: m.formula || '',
+          descricao: m.descricao || '',
+          ativo: m.ativo !== false,
+        })))
 
         const unread = await getUnreadNotificationCount(user.id)
         setUnreadNotifications(unread)
@@ -285,6 +301,8 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     setBudgetAssumptions,
     budgetAssumptionValues,
     setBudgetAssumptionValues,
+    budgetMappings,
+    setBudgetMappings,
     monthlyBalances,
     setMonthlyBalances,
     unreadNotifications,

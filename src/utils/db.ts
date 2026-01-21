@@ -61,6 +61,7 @@ const TABLE_MAPPING: Record<string, string> = {
   monthly_balances: "saldos_mensais",
   budget_values: "valores_premissas",
   budget_targets: "metas_indicadores",
+  budget_mappings: "mapeamento_premissa_dre",
 
   // Tabelas de notificações
   notifications: "notificacoes",
