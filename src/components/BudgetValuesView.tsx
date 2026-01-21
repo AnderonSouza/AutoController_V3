@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Download, Upload } from 'lucide-react';
 import { BudgetAssumption, BudgetAssumptionValue, Brand, Company } from '../types';
 import StyledSelect from './StyledSelect';
 import EditableCell from './EditableCell';
 import MultiSelectDropdown from './MultiSelectDropdown';
 import { CALENDAR_MONTHS } from '../constants';
+import { generateUUID } from '../utils/helpers';
+import { saveCadastroTenant } from '../utils/db';
+import * as XLSX from 'xlsx';
 
 interface BudgetValuesViewProps {
   assumptions: BudgetAssumption[];
@@ -13,6 +17,8 @@ interface BudgetValuesViewProps {
   availableBrands: Brand[];
   availableCompanies: Company[];
   availableDepartments: string[];
+  tenantId: string;
+  onRefreshData?: () => void;
 }
 
 const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
@@ -22,7 +28,9 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   onNavigateBack,
   availableBrands,
   availableCompanies,
-  availableDepartments
+  availableDepartments,
+  tenantId,
+  onRefreshData
 }) => {
   const currentYear = new Date().getFullYear();
   const availableYears = Array.from({ length: 5 }, (_, i) => currentYear + 1 - i).sort((a, b) => b - a);
@@ -38,6 +46,8 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
   // Key format: `${assumptionId}|${storeName}|${month}`
   const [pendingChanges, setPendingChanges] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Defaults
   useEffect(() => {
@@ -141,6 +151,111 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
       }
   };
 
+  const handleExportTemplate = () => {
+    const templateData: any[] = [];
+
+    filteredAssumptions.forEach(assumption => {
+      filteredCompanies.forEach(company => {
+        CALENDAR_MONTHS.forEach(month => {
+          templateData.push({
+            "Código Premissa": assumption.id,
+            "Nome Premissa": assumption.name,
+            "Tipo": assumption.type === 'currency' ? 'R$' : assumption.type === 'percentage' ? '%' : '#',
+            "Ano": selectedYear,
+            "Mês": month,
+            "CNPJ": company.cnpj || "",
+            "Loja": company.nickname || company.name,
+            "Departamento": selectedDepartment,
+            "Valor": getAssumptionValue(assumption.id, company.id, month) || ""
+          });
+        });
+      });
+    });
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    ws['!cols'] = [
+      { wch: 40 }, { wch: 40 }, { wch: 10 }, { wch: 10 },
+      { wch: 15 }, { wch: 18 }, { wch: 30 }, { wch: 20 }, { wch: 15 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Dados Orçamento");
+    XLSX.writeFile(wb, `dados_orcamento_${selectedYear}.xlsx`);
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImporting(true);
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+          const valuesToImport: any[] = [];
+          let imported = 0;
+
+          for (const row of jsonData) {
+            const premissaId = row["Código Premissa"]?.toString().trim();
+            const ano = parseInt(row["Ano"]);
+            const mes = row["Mês"]?.toString().trim().toUpperCase();
+            const valorStr = row["Valor"]?.toString().trim();
+            const cnpj = row["CNPJ"]?.toString().replace(/\D/g, '').trim();
+            const departamento = row["Departamento"]?.toString().trim();
+
+            if (!premissaId || !ano || !mes || !valorStr) continue;
+
+            const valor = parseFloat(valorStr.replace(",", "."));
+            if (isNaN(valor)) continue;
+
+            const assumption = assumptions.find(a => a.id === premissaId);
+            if (!assumption) continue;
+
+            let empresa = availableCompanies.find(c => c.cnpj?.replace(/\D/g, '') === cnpj);
+            if (!empresa) continue;
+
+            valuesToImport.push({
+              id: generateUUID(),
+              organizacao_id: tenantId,
+              premissa_id: premissaId,
+              ano: ano,
+              mes: mes,
+              empresa_id: empresa.id,
+              departamento: departamento || selectedDepartment,
+              valor: valor,
+            });
+            imported++;
+          }
+
+          if (valuesToImport.length > 0) {
+            await saveCadastroTenant("budget_values", valuesToImport, tenantId);
+            onRefreshData?.();
+          }
+
+          alert(`Importação concluída! ${imported} valores importados.`);
+        } catch (err) {
+          console.error("Erro ao processar arquivo:", err);
+          alert("Erro ao processar arquivo.");
+        } finally {
+          setImporting(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+      };
+      reader.readAsBinaryString(file);
+    } catch (error) {
+      console.error("Erro na importação:", error);
+      alert("Erro na importação.");
+      setImporting(false);
+    }
+  };
+
   const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
   // Format assumptions for dropdown
@@ -155,6 +270,31 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                 <div>
                     <h1 className="text-xl font-bold text-slate-800">Dados do Orçamento</h1>
                     <p className="text-sm text-slate-500 mt-1">Insira os valores calculados das premissas para cada loja.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleExportTemplate}
+                    disabled={filteredAssumptions.length === 0 || filteredCompanies.length === 0}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4" />
+                    Planilha Modelo
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={importing}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {importing ? 'Importando...' : 'Importar'}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportFile}
+                    className="hidden"
+                  />
                 </div>
               </div>
 

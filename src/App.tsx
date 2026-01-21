@@ -1397,6 +1397,8 @@ const App: React.FC = () => {
             availableBrands={brands}
             availableCompanies={companies}
             availableDepartments={departments.map(d => d.name)}
+            tenantId={effectiveTenantId || user.tenantId}
+            onRefreshData={() => window.location.reload()}
           />
         )
       case "BUDGET_WIZARD":
