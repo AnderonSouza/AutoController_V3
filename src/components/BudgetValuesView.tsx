@@ -280,7 +280,6 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
 
             valuesToImport.push({
               record: {
-                id: existingRecord?.id || generateUUID(),
                 organizacao_id: tenantId,
                 premissa_id: premissaId,
                 ano: ano,
