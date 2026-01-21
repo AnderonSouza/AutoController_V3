@@ -1216,7 +1216,15 @@ const App: React.FC = () => {
       case "TRANSFERS":
       case "MANAGEMENT_TRANSFERS":
         return (
-          <ManagementTransfersView onNavigateBack={() => handleNavigate("MANAGEMENT_DATA")} tenantId={effectiveTenantId || user.tenantId} />
+          <ManagementTransfersView 
+            onNavigateBack={() => handleNavigate("MANAGEMENT_DATA")} 
+            tenantId={effectiveTenantId || user.tenantId}
+            companies={companies}
+            brands={brands}
+            dreAccounts={dreAccounts}
+            balanceSheetAccounts={balanceSheetAccounts}
+            dreDepartmentOptions={dreDepartmentOptions}
+          />
         )
       case "ACCOUNTING_ADJUSTMENTS":
         return (
