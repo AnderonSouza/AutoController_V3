@@ -557,6 +557,19 @@ export interface OperationalIndicator {
   updatedAt?: string
 }
 
+export interface OperationalValueEntry {
+  id: string
+  organizacaoId: string
+  indicadorId: string
+  ano: number
+  mes: string
+  empresaId?: string
+  marcaId?: string
+  departamentoId?: string
+  valor: number | null
+  meta?: number
+}
+
 export interface OperationalValue {
   id: string
   organizacaoId: string

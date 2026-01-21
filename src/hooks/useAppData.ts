@@ -20,6 +20,7 @@ import type {
   BudgetMapping,
   MonthlyBalanceEntry,
   OperationalIndicator,
+  OperationalValueEntry,
 } from "../types"
 import { getCadastroTenant, getUnreadNotificationCount } from "../utils/db"
 
@@ -92,6 +93,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [budgetAssumptionValues, setBudgetAssumptionValues] = useState<BudgetAssumptionValue[]>([])
   const [budgetMappings, setBudgetMappings] = useState<BudgetMapping[]>([])
   const [operationalIndicators, setOperationalIndicators] = useState<OperationalIndicator[]>([])
+  const [operationalValues, setOperationalValues] = useState<OperationalValueEntry[]>([])
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -159,6 +161,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("saldos_mensais", tenantId),
           getCadastroTenant("budget_mappings", tenantId),
           getCadastroTenant("operational_indicators", tenantId),
+          getCadastroTenant("operational_values", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -279,6 +282,20 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           ativo: i.ativo !== false,
           ordem: i.ordem || 0,
         })))
+        
+        const rawOperationalValues = getVal<any>(17)
+        setOperationalValues(rawOperationalValues.map((v: any) => ({
+          id: v.id,
+          organizacaoId: v.organizacao_id || v.organizacaoId,
+          indicadorId: v.indicador_id || v.indicadorId,
+          ano: v.ano,
+          mes: v.mes,
+          empresaId: v.empresa_id || v.empresaId,
+          marcaId: v.marca_id || v.marcaId,
+          departamentoId: v.departamento_id || v.departamentoId,
+          valor: v.valor,
+          meta: v.meta,
+        })))
 
         const unread = await getUnreadNotificationCount(user.id)
         setUnreadNotifications(unread)
@@ -325,6 +342,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     budgetMappings,
     setBudgetMappings,
     operationalIndicators,
+    operationalValues,
     monthlyBalances,
     setMonthlyBalances,
     unreadNotifications,

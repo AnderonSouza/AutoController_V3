@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { 
     FinancialAccount, ReportTemplate, ReportLine, 
-    TrialBalanceEntry, AdjustmentEntry, CgEntry, ManagementTransfer, MonthlyData 
+    TrialBalanceEntry, AdjustmentEntry, CgEntry, ManagementTransfer, MonthlyData,
+    OperationalValueEntry
 } from '../types';
 import { createEmptyYearlyData, MONTHS } from '../constants';
 
@@ -24,7 +25,9 @@ export const useDreCalculation = () => {
         transfers: ManagementTransfer[],
         selectedPeriod: { years: number[], months: string[] },
         filterStore: string = 'Consolidado',
-        filterCostCenterIds: string[] | null = null
+        filterCostCenterIds: string[] | null = null,
+        operationalValues: OperationalValueEntry[] = [],
+        filterDepartmentId: string | null = null
     ): FinancialAccount[] => {
         if (!reportLines || reportLines.length === 0) return [];
 
@@ -44,13 +47,10 @@ export const useDreCalculation = () => {
         });
 
         // 2. Processar Realizado (Lançamentos Contábeis)
-        // Entries now come with dreAccountId already resolved from mapeamento_contas
         accountingEntries.forEach(entry => {
             if (filterStore !== 'Consolidado' && entry.companyId !== filterStore) return;
-            // Filter by cost center IDs if specified (cost centers belong to the selected department)
             if (filterCostCenterIds && filterCostCenterIds.length > 0 && !filterCostCenterIds.includes((entry as any).costCenterId)) return;
 
-            // Match by dreAccountId directly (already mapped from conta_contabil_id)
             const entryDreId = (entry as any).dreAccountId || entry.idconta;
             
             reportLines.forEach(line => {
@@ -65,6 +65,40 @@ export const useDreCalculation = () => {
                     }
                 }
             });
+        });
+
+        // 2.5. Processar Linhas Operacionais (Dados não-financeiros)
+        reportLines.forEach(line => {
+            if (line.type === 'operational' && line.operationalFormulaId) {
+                const acc = lineMap.get(line.id);
+                if (!acc) return;
+
+                const indicadorId = line.operationalFormulaId;
+
+                years.forEach(year => {
+                    MONTHS.forEach(month => {
+                        const matchingValues = operationalValues.filter(v => {
+                            if (v.indicadorId !== indicadorId) return false;
+                            if (v.ano !== year) return false;
+                            
+                            const normalizedMonth = month.toUpperCase();
+                            const valueMonth = (v.mes || '').toUpperCase();
+                            if (normalizedMonth !== valueMonth && !valueMonth.startsWith(normalizedMonth.substring(0, 3))) return false;
+
+                            if (filterStore !== 'Consolidado' && v.empresaId && v.empresaId !== filterStore) return false;
+                            if (filterDepartmentId && v.departamentoId && v.departamentoId !== filterDepartmentId) return false;
+
+                            return true;
+                        });
+
+                        const totalValue = matchingValues.reduce((sum, v) => sum + (v.valor || 0), 0);
+                        
+                        if (acc.monthlyData[year] && acc.monthlyData[year][month]) {
+                            acc.monthlyData[year][month].balancete = totalValue;
+                        }
+                    });
+                });
+            }
         });
 
         // 3. Processar Ajustes
@@ -95,14 +129,14 @@ export const useDreCalculation = () => {
                     const node = lineMap.get(line.id)!;
                     node.children = buildTree(line.id);
 
-                    // Se não for analítico, soma os filhos
-                    if (line.type !== 'data_bucket' && node.children.length > 0) {
+                    // Se não for analítico, soma os filhos (exceto linhas operacionais que já foram preenchidas)
+                    if (line.type !== 'data_bucket' && line.type !== 'operational' && node.children.length > 0) {
                         node.children.forEach(child => {
                             years.forEach(y => {
                                 MONTHS.forEach(m => {
                                     const c = child.monthlyData[y][m];
                                     const p = node.monthlyData[y][m];
-                                    const sign = child.id.includes('subtracao') ? -1 : 1; // Logica simplificada de sinal
+                                    const sign = child.id.includes('subtracao') ? -1 : 1;
 
                                     p.balancete += c.balancete * sign;
                                     p.ajusteContabil! += (c.ajusteContabil || 0) * sign;
