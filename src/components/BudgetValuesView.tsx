@@ -161,7 +161,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
               {/* Filter Bar */}
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 shrink-0 relative z-40">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-2">
                         <MultiSelectDropdown
                             label="Premissas"
                             options={assumptionOptions}
@@ -170,7 +170,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             className="w-full"
                         />
                     </div>
-                    <div className="md:col-span-1">
+                    <div className="md:col-span-2">
                         <label className="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
                         <StyledSelect
                             value={selectedYear}
