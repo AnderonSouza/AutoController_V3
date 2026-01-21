@@ -134,3 +134,18 @@ All data/editor views follow the full-screen white background pattern:
 - App.tsx integrates the hook with memoized parameters to avoid render loops
 - Terminology standardized: "Operacional" → "Indicador" in ReportStructureView dropdown
 - Migration script `scripts/add_indicador_id_column.sql` to update Supabase table structure (requires `conta_dre_id` to be nullable)
+
+### Controller Dashboard (Início)
+- New intelligent dashboard for controllers at sidebar "Início" with `Gauge` icon
+- `ControllerDashboardView` (`src/components/ControllerDashboardView.tsx`) - main component
+- `useControllerAnalysis` hook (`src/hooks/useControllerAnalysis.ts`) - data fetching and analysis engine
+- **Data Source**: Uses `lancamentos_contabeis` for department-level granularity
+- **Traffic Light Alert System**:
+  - Critical (red): deviation > criticalThreshold (default 15%)
+  - Warning (yellow): deviation > warningThreshold (default 5%)
+  - OK (green): within thresholds
+  - Logic reverses for expense accounts (positive variation = bad)
+- **Configurable Thresholds**: `AlertThresholds` interface allows passing custom `warningThreshold` and `criticalThreshold`
+- **Budget Matching**: Uses `budget_mappings` for accurate budget comparison via `contaDreId`
+- **AI Integration**: Generates insights using Luca assistant (Gemini) with financial context
+- **Company Type Filter**: Only effective companies (tipo === 'efetiva' || !tipo) are included in analysis
