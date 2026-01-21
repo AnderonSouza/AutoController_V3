@@ -1,0 +1,802 @@
+[
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "tarefa_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> tarefas_fechamento.id"
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "usuario_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> usuarios.id"
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "file_name",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "file_url",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "file_type",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "anexos_fechamento",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "description",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "type",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "dre_account_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "brand_id",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "value",
+    "tipo": "numeric",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "benchmarks",
+    "coluna": "departamento_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> departamentos.id"
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "codigo",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "nome",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "centros_resultado",
+    "coluna": "departamento_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> departamentos.id"
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "usuario_id",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "usuario_nome",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "departamento",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "titulo",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "status",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "prioridade",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "atribuido_a",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "atualizado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "arquivado",
+    "tipo": "boolean",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "chamados",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "ano",
+    "tipo": "integer",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "mes",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "status",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "progresso",
+    "tipo": "integer",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "ciclos_fechamento",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "tarefa_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> tarefas_fechamento.id"
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "usuario_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> usuarios.id"
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "usuario_nome",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "conteudo",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "is_log",
+    "tipo": "boolean",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "comentarios_fechamento",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "logo_url",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "company_name",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "tagline",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "primary_color",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "background_color",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "accent_color",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "created_at",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "updated_at",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "updated_by",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "login_illustration_url",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "login_video_url",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "console_config",
+    "coluna": "splash_video_url",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "departamentos",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "departamentos",
+    "coluna": "nome",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "departamentos",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "departamentos",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "marca_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> marcas.id"
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "nome",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "nome_fantasia",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "cnpj",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "codigo_erp",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "empresas",
+    "coluna": "empresa_pai_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> empresas.id"
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "conta_dre_id",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "departamento",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "expressao",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "descricao",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "criado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "atualizado_em",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_calculo",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "organizacao_id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": "FK -> organizacoes.id"
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "codigo",
+    "tipo": "character varying",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "nome",
+    "tipo": "character varying",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "descricao",
+    "tipo": "text",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "expressao",
+    "tipo": "text",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "categoria",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "unidade_medida",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "casas_decimais",
+    "tipo": "integer",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "formato_exibicao",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "escopo",
+    "tipo": "character varying",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "ordem",
+    "tipo": "integer",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "ativo",
+    "tipo": "boolean",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "created_at",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais",
+    "coluna": "updated_at",
+    "tipo": "timestamp with time zone",
+    "nulabilidade": "Opcional",
+    "chave_primaria": null,
+    "chave_estrangeira": null
+  },
+  {
+    "tabela": "formulas_operacionais_dependencias",
+    "coluna": "id",
+    "tipo": "uuid",
+    "nulabilidade": "Obrigatório",
+    "chave_primaria": "PK",
+    "chave_estrangeira": null
+  }
+]
