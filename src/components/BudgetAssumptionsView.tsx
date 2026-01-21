@@ -34,13 +34,16 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
     onSaveMapping,
     onDeleteMapping,
 }) => {
-    const [activeTab, setActiveTab] = useState<'definitions' | 'mappings'>('definitions');
+    const [activeTab, setActiveTab] = useState<'definitions' | 'mappings' | 'formulas'>('definitions');
     
     const [editableAssumptions, setEditableAssumptions] = useState<BudgetAssumption[]>([]);
     const [isSavingDefinitions, setIsSavingDefinitions] = useState(false);
 
     const [editableMappings, setEditableMappings] = useState<BudgetMapping[]>([]);
     const [isSavingMappings, setIsSavingMappings] = useState(false);
+
+    const [editableFormulas, setEditableFormulas] = useState<BudgetFormula[]>([]);
+    const [isSavingFormulas, setIsSavingFormulas] = useState(false);
 
     useEffect(() => {
         setEditableAssumptions(JSON.parse(JSON.stringify(assumptions)));
@@ -49,6 +52,10 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
     useEffect(() => {
         setEditableMappings(JSON.parse(JSON.stringify(budgetMappings)));
     }, [budgetMappings]);
+
+    useEffect(() => {
+        setEditableFormulas(JSON.parse(JSON.stringify(formulas)));
+    }, [formulas]);
 
     const handleFieldChange = (id: string, field: keyof BudgetAssumption, value: string) => {
         setEditableAssumptions(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
@@ -132,6 +139,43 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
         }
     };
 
+    // --- FORMULA HANDLERS ---
+    const handleAddFormula = () => {
+        const newFormula: BudgetFormula = {
+            id: generateUUID(),
+            dreAccountId: dreAccounts[0]?.id || '',
+            department: availableDepartments[0] || '',
+            expression: '',
+            description: '',
+        };
+        setEditableFormulas(prev => [...prev, newFormula]);
+    };
+
+    const handleFormulaChange = (id: string, field: keyof BudgetFormula, value: string) => {
+        setEditableFormulas(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
+    };
+
+    const handleSaveFormula = async (formula: BudgetFormula) => {
+        if (!formula.dreAccountId || !formula.expression) {
+            alert('Selecione a Conta DRE e defina a expressão.');
+            return;
+        }
+        if (onSaveFormula) {
+            setIsSavingFormulas(true);
+            await onSaveFormula(formula);
+            setIsSavingFormulas(false);
+        }
+    };
+
+    const handleDeleteFormula = async (id: string) => {
+        if (onDeleteFormula && confirm('Excluir esta fórmula?')) {
+            setIsSavingFormulas(true);
+            await onDeleteFormula(id);
+            setEditableFormulas(prev => prev.filter(f => f.id !== id));
+            setIsSavingFormulas(false);
+        }
+    };
+
     const flatAccounts = useMemo(() => {
         const list: FinancialAccount[] = [];
         const traverse = (nodes: FinancialAccount[]) => {
@@ -183,6 +227,13 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                         style={activeTab === 'mappings' ? { backgroundColor: 'var(--color-primary)' } : {}}
                     >
                         2. Vincular às Contas DRE
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('formulas')}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === 'formulas' ? 'text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                        style={activeTab === 'formulas' ? { backgroundColor: 'var(--color-primary)' } : {}}
+                    >
+                        3. Fórmulas de Cálculo
                     </button>
                 </div>
                 <button onClick={onNavigateBack} className="text-sm text-slate-500 hover:text-slate-800 font-semibold flex items-center">
@@ -405,6 +456,118 @@ const BudgetAssumptionsView: React.FC<BudgetAssumptionsViewProps> = ({
                                 (1) Para o indicador "Volume de Vendas" como Direto×1, 
                                 (2) Para a conta "Receita de Veículos" como Fórmula = volume × preço_médio
                             </p>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'formulas' && (
+                    <div className="max-w-6xl mx-auto bg-white p-6 border border-slate-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-800">Fórmulas de Cálculo</h2>
+                                <p className="text-sm text-slate-500">Defina expressões para calcular linhas do DRE automaticamente (ex: Faturamento = Volume × Ticket Médio).</p>
+                            </div>
+                            <button 
+                                onClick={handleAddFormula} 
+                                disabled={dreAccounts.length === 0}
+                                className="px-4 py-2 text-white text-sm font-semibold rounded-lg shadow-sm hover:opacity-90 disabled:bg-slate-400" 
+                                style={{ backgroundColor: dreAccounts.length > 0 ? 'var(--color-primary)' : undefined }}
+                            >
+                                + Nova Fórmula
+                            </button>
+                        </div>
+
+                        {dreAccounts.length === 0 && (
+                            <div className="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-yellow-700 font-medium">Configure as contas DRE primeiro.</p>
+                            </div>
+                        )}
+
+                        {dreAccounts.length > 0 && (
+                            <div className="space-y-4">
+                                {editableFormulas.map((formula) => (
+                                    <div key={formula.id} className="p-4 bg-slate-50 rounded-lg border grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                                        <div className="md:col-span-2">
+                                            <label className="block text-xs font-medium text-slate-600 mb-1">Conta DRE (Destino)</label>
+                                            <StyledSelect 
+                                                value={formula.dreAccountId} 
+                                                onChange={(e) => handleFormulaChange(formula.id, 'dreAccountId', e.target.value)}
+                                            >
+                                                <option value="">Selecione...</option>
+                                                {dreAccounts.map(acc => (
+                                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                                ))}
+                                            </StyledSelect>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-600 mb-1">Departamento</label>
+                                            <StyledSelect 
+                                                value={formula.department} 
+                                                onChange={(e) => handleFormulaChange(formula.id, 'department', e.target.value)}
+                                            >
+                                                <option value="">Todos</option>
+                                                {availableDepartments.map(dep => (
+                                                    <option key={dep} value={dep}>{dep}</option>
+                                                ))}
+                                            </StyledSelect>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-xs font-medium text-slate-600 mb-1">Expressão</label>
+                                            <input 
+                                                type="text" 
+                                                value={formula.expression} 
+                                                onChange={(e) => handleFormulaChange(formula.id, 'expression', e.target.value)}
+                                                className={inputClasses}
+                                                placeholder="OPE[VOLUME] * OPE[TICKET_MEDIO]"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => handleSaveFormula(formula)}
+                                                disabled={isSavingFormulas}
+                                                className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full"
+                                                title="Salvar"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeleteFormula(formula.id)}
+                                                disabled={isSavingFormulas}
+                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                                title="Excluir"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {editableFormulas.length === 0 && (
+                                    <p className="text-center text-slate-400 py-8">Nenhuma fórmula criada. Clique em "+ Nova Fórmula" para começar.</p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="mt-8 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <h4 className="text-sm font-semibold text-emerald-800 mb-2">Como usar as fórmulas?</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h5 className="text-xs font-semibold text-emerald-700 mb-1">Sintaxe:</h5>
+                                    <ul className="text-xs text-emerald-700 space-y-1 list-disc list-inside">
+                                        <li><code className="bg-emerald-100 px-1 rounded">OPE[CODIGO]</code> - Indicador operacional pelo código</li>
+                                        <li><code className="bg-emerald-100 px-1 rounded">DRE[CODIGO]</code> - Valor de outra linha DRE</li>
+                                        <li>Operadores: <code className="bg-emerald-100 px-1 rounded">+ - * / ( )</code></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 className="text-xs font-semibold text-emerald-700 mb-1">Exemplos:</h5>
+                                    <ul className="text-xs text-emerald-700 space-y-1 list-disc list-inside">
+                                        <li><code className="bg-emerald-100 px-1 rounded">OPE[VOLUME] * OPE[TICKET_MEDIO]</code> → Faturamento</li>
+                                        <li><code className="bg-emerald-100 px-1 rounded">DRE[FATURAMENTO] * OPE[MARGEM_BRUTA]</code> → Lucro Bruto</li>
+                                        <li><code className="bg-emerald-100 px-1 rounded">DRE[RECEITA] - DRE[CUSTO]</code> → Resultado</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

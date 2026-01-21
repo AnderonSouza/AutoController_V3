@@ -18,6 +18,7 @@ import type {
   BudgetAssumption,
   BudgetAssumptionValue,
   BudgetMapping,
+  BudgetFormula,
   MonthlyBalanceEntry,
   OperationalIndicator,
   OperationalValueEntry,
@@ -92,6 +93,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [budgetAssumptions, setBudgetAssumptions] = useState<BudgetAssumption[]>([])
   const [budgetAssumptionValues, setBudgetAssumptionValues] = useState<BudgetAssumptionValue[]>([])
   const [budgetMappings, setBudgetMappings] = useState<BudgetMapping[]>([])
+  const [budgetFormulas, setBudgetFormulas] = useState<BudgetFormula[]>([])
   const [operationalIndicators, setOperationalIndicators] = useState<OperationalIndicator[]>([])
   const [operationalValues, setOperationalValues] = useState<OperationalValueEntry[]>([])
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
@@ -162,6 +164,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("budget_mappings", tenantId),
           getCadastroTenant("operational_indicators", tenantId),
           getCadastroTenant("operational_values", tenantId),
+          getCadastroTenant("calculation_formulas", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -296,6 +299,15 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           valor: v.valor,
           meta: v.meta,
         })))
+        
+        const rawFormulas = getVal<any>(18)
+        setBudgetFormulas(rawFormulas.map((f: any) => ({
+          id: f.id,
+          dreAccountId: f.conta_dre_id || f.dreAccountId,
+          department: f.departamento || f.department || '',
+          expression: f.expressao || f.expression || '',
+          description: f.descricao || f.description || '',
+        })))
 
         const unread = await getUnreadNotificationCount(user.id)
         setUnreadNotifications(unread)
@@ -341,6 +353,8 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     setBudgetAssumptionValues,
     budgetMappings,
     setBudgetMappings,
+    budgetFormulas,
+    setBudgetFormulas,
     operationalIndicators,
     operationalValues,
     monthlyBalances,
