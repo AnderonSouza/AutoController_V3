@@ -259,14 +259,15 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                                                 {CALENDAR_MONTHS.map(month => {
                                                     const val = getAssumptionValue(assumption.id, company.id, month);
                                                     const isModified = pendingChanges.hasOwnProperty(`${assumption.id}|${company.id}|${month}`);
+                                                    const hasValue = val !== 0 && val !== null && val !== undefined;
                                                     
                                                     return (
-                                                        <td key={month} className={`p-0 border-r border-b h-10 relative ${isModified ? 'bg-yellow-50' : ''}`}>
+                                                        <td key={month} className={`p-0 border-r border-b h-10 relative ${isModified ? 'bg-yellow-50' : hasValue ? 'bg-emerald-50' : ''}`}>
                                                             <EditableCell
                                                                 value={val}
                                                                 onChange={(v) => handleValueChange(assumption.id, company.id, month, v)}
                                                                 type={assumption.type}
-                                                                className={`text-center font-medium h-full w-full ${isModified ? 'text-yellow-700 font-bold' : 'text-slate-700'}`}
+                                                                className={`text-center font-medium h-full w-full ${isModified ? 'text-yellow-700 font-bold' : hasValue ? 'text-emerald-700' : 'text-slate-700'}`}
                                                             />
                                                         </td>
                                                     );
