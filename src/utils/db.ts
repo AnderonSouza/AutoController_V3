@@ -671,8 +671,8 @@ export const saveCadastroTenant = async (tableName: string, data: any[], tenantI
   if (dbTable === "mapeamento_contas") {
     query = supabase.from(dbTable).upsert(dbData, { onConflict: "conta_contabil_id" }).select()
   } else if (dbTable === "valores_premissas") {
-    // Handle unique constraint on (premissa_id, empresa_id, departamento, ano, mes)
-    query = supabase.from(dbTable).upsert(dbData, { onConflict: "premissa_id,empresa_id,departamento,ano,mes" }).select()
+    // Handle unique constraint including organizacao_id for tenant isolation
+    query = supabase.from(dbTable).upsert(dbData, { onConflict: "organizacao_id,premissa_id,empresa_id,departamento,ano,mes" }).select()
   } else {
     query = supabase.from(dbTable).upsert(dbData).select()
   }

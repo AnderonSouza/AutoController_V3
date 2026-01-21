@@ -246,14 +246,32 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
           }
 
           if (valuesToImport.length > 0) {
-            // Save one by one to handle upserts correctly
+            let successCount = 0;
+            let errorCount = 0;
+            
+            // Save one by one to handle upserts correctly and continue on errors
             for (const record of valuesToImport) {
-              await saveCadastroTenant("budget_values", [record], tenantId);
+              try {
+                await saveCadastroTenant("budget_values", [record], tenantId);
+                successCount++;
+              } catch (err: any) {
+                console.warn("Erro ao salvar registro:", err?.message || err);
+                errorCount++;
+              }
             }
-            onRefreshData?.();
+            
+            if (successCount > 0) {
+              onRefreshData?.();
+            }
+            
+            if (errorCount > 0) {
+              alert(`Importação concluída! ${successCount} valores importados, ${errorCount} com erro.`);
+            } else {
+              alert(`Importação concluída! ${successCount} valores importados com sucesso.`);
+            }
+          } else {
+            alert('Nenhum valor válido encontrado na planilha.');
           }
-
-          alert(`Importação concluída! ${imported} valores importados.`);
         } catch (err) {
           console.error("Erro ao processar arquivo:", err);
           alert("Erro ao processar arquivo.");
