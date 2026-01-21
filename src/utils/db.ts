@@ -324,7 +324,11 @@ export const getCadastroTenant = async (table: string, tenantId: string | null):
   })
   
   if (error) {
-    console.error("Erro ao buscar " + table + ":", error.message)
+    if (error.message?.includes("Could not find the table") || error.code === "42P01") {
+      console.warn(`[v0-db] Tabela ${dbTable} nao existe ainda - retornando array vazio`)
+    } else {
+      console.error("Erro ao buscar " + table + ":", error.message)
+    }
     return []
   }
 
