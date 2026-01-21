@@ -68,17 +68,22 @@ export const useDreCalculation = () => {
         });
 
         // 2.5. Processar Linhas Operacionais (Dados não-financeiros)
+        console.log('[DRE] Linhas operacionais:', reportLines.filter(l => l.type === 'operational').map(l => ({ id: l.id, name: l.name, type: l.type, operationalFormulaId: l.operationalFormulaId })));
+        console.log('[DRE] Valores operacionais recebidos:', operationalValues.length, operationalValues.slice(0, 3));
+        
         reportLines.forEach(line => {
             if (line.type === 'operational' && line.operationalFormulaId) {
                 const acc = lineMap.get(line.id);
                 if (!acc) return;
 
-                const indicadorId = line.operationalFormulaId;
+                // Remove o prefixo OPE: ou FORM: do operationalFormulaId para comparar com indicadorId
+                const rawIndicadorId = line.operationalFormulaId.replace(/^(OPE:|FORM:)/, '');
+                console.log('[DRE] Processando linha operacional:', line.name, 'indicadorId:', rawIndicadorId);
 
                 years.forEach(year => {
                     MONTHS.forEach(month => {
                         const matchingValues = operationalValues.filter(v => {
-                            if (v.indicadorId !== indicadorId) return false;
+                            if (v.indicadorId !== rawIndicadorId) return false;
                             if (v.ano !== year) return false;
                             
                             const normalizedMonth = month.toUpperCase();
