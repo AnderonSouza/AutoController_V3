@@ -612,7 +612,7 @@ const ReportStructureView: React.FC<ReportStructureViewProps> = ({
                                                 <option value="total">Totalizador</option>
                                                 <option value="data_bucket">Conta Analítica</option>
                                                 <option value="formula">Fórmula</option>
-                                                <option value="operational">Operacional</option>
+                                                <option value="operational">Indicador</option>
                                             </StyledSelect>
                                         </div>
 
