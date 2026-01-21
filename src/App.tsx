@@ -366,6 +366,14 @@ const App: React.FC = () => {
     operationalFormulaId: line.operationalFormulaId,
   })), [reportLines])
 
+  const memoizedDepartmentMap = useMemo(() => {
+    const map: { [id: string]: string } = {};
+    departments.forEach(d => {
+      map[d.id] = d.nome;
+    });
+    return map;
+  }, [departments])
+
   const { applyBudgetToAccounts } = useBudgetCalculation({
     dreAccounts,
     assumptions: budgetAssumptions,
@@ -379,6 +387,7 @@ const App: React.FC = () => {
     selectedDepartment: activeTab || undefined,
     accountMappings: memoizedAccountMappings,
     reportLines: memoizedReportLines,
+    departmentMap: memoizedDepartmentMap,
   })
 
   useEffect(() => {

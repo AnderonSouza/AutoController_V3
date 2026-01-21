@@ -60,6 +60,7 @@ interface UseBudgetCalculationProps {
   selectedDepartment?: string;
   accountMappings?: { contaContabilId: string; contaDreId: string }[];
   reportLines?: ReportLine[];
+  departmentMap?: { [id: string]: string };
 }
 
 interface BudgetDataByPeriod {
@@ -89,36 +90,47 @@ export function useBudgetCalculation({
   selectedDepartment,
   accountMappings = [],
   reportLines = [],
+  departmentMap = {},
 }: UseBudgetCalculationProps) {
 
   const budgetData = useMemo(() => {
     const result: BudgetDataByPeriod = {};
 
-    dreAccounts.forEach(account => {
-      result[account.id] = {};
-      
-      [selectedYear, selectedYear - 1].forEach(year => {
-        result[account.id][year] = {};
-        
-        CALENDAR_MONTHS.forEach(month => {
-          result[account.id][year][month] = {
-            premissas: 0,
-            historico: 0,
-            manual: 0,
-            importado: 0,
-            total: 0,
-          };
+    const initializeAccountEntry = (accountId: string) => {
+      if (!result[accountId]) {
+        result[accountId] = {};
+        [selectedYear, selectedYear - 1].forEach(year => {
+          result[accountId][year] = {};
+          CALENDAR_MONTHS.forEach(month => {
+            result[accountId][year][month] = {
+              premissas: 0,
+              historico: 0,
+              manual: 0,
+              importado: 0,
+              total: 0,
+            };
+          });
         });
-      });
+      }
+    };
+
+    dreAccounts.forEach(account => {
+      initializeAccountEntry(account.id);
+    });
+
+    reportLines.forEach(line => {
+      initializeAccountEntry(line.id);
     });
 
     budgetMappings.forEach(mapping => {
+      const mappingDepartmentName = mapping.departamentoId ? departmentMap[mapping.departamentoId] : undefined;
+      
       const relevantValues = assumptionValues.filter(v => 
         v.assumptionId === mapping.premissaId &&
         v.year === selectedYear &&
         (!selectedCompanyId || v.store === selectedCompanyId) &&
         (!selectedDepartment || v.department === selectedDepartment) &&
-        (!mapping.departamentoId || v.department === mapping.departamentoId)
+        (!mappingDepartmentName || v.department === mappingDepartmentName)
       );
 
       let targetAccountId: string | undefined;
@@ -210,6 +222,7 @@ export function useBudgetCalculation({
     selectedDepartment,
     accountMappings,
     reportLines,
+    departmentMap,
   ]);
 
   const applyBudgetToAccounts = useMemo(() => {
