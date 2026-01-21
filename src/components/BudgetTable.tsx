@@ -21,6 +21,11 @@ interface BudgetTableRowProps {
   onDataChange: (accountId: string, year: number, month: string, field: "orcadoManual", value: number) => void
   displayPeriods: { year: number; month: string }[]
   pendingChanges: Record<string, number>
+  showDetails: boolean
+  showVerticalAnalysis: boolean
+  showHorizontalAnalysis: boolean
+  showBenchmark: boolean
+  totalReceita: number
 }
 
 const BudgetTableRow: React.FC<BudgetTableRowProps> = ({
@@ -29,6 +34,11 @@ const BudgetTableRow: React.FC<BudgetTableRowProps> = ({
   onDataChange,
   displayPeriods,
   pendingChanges,
+  showDetails,
+  showVerticalAnalysis,
+  showHorizontalAnalysis,
+  showBenchmark,
+  totalReceita,
 }) => {
   const isTotal = account.isTotal
   const isSubTotal = account.isSubTotal
@@ -83,30 +93,39 @@ const BudgetTableRow: React.FC<BudgetTableRowProps> = ({
 
         const separatorClass = "border-r border-slate-200"
 
+        const verticalPct = totalReceita && total ? ((total / totalReceita) * 100).toFixed(1) : '-';
+        const prevYearData = account.monthlyData[year - 1]?.[month];
+        const prevTotal = prevYearData?.orcado || 0;
+        const horizontalPct = prevTotal && total ? (((total - prevTotal) / Math.abs(prevTotal)) * 100).toFixed(1) : '-';
+
         return (
           <React.Fragment key={`${account.id}-${year}-${month}`}>
-            <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(premissas)} ${valueCellFont}`}>
-              {formatNumber(premissas)}
-            </td>
-            <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(historico)} ${valueCellFont}`}>
-              {formatNumber(historico)}
-            </td>
-            {/* Manual - Input Cell */}
-            <td
-              className={`p-0 text-right text-sm whitespace-nowrap relative transition-colors ${isTotal || isSubTotal ? "" : "hover:bg-yellow-50/20"} ${isPending ? "bg-yellow-50" : ""}`}
-            >
-              <div className="h-full w-full p-2">
-                <EditableCell
-                  value={manual}
-                  onChange={(newValue) => onDataChange(account.id, year, month, "orcadoManual", newValue)}
-                  disabled={isTotal || isSubTotal}
-                  className={`w-full text-right bg-transparent outline-none ${valueCellFont} ${isTotal || isSubTotal ? "text-slate-400" : "text-slate-700"} ${isPending ? "font-bold text-yellow-700" : !isTotal && !isSubTotal && manual !== 0 ? "bg-yellow-50/20 rounded" : ""}`}
-                />
-              </div>
-            </td>
-            <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(importado)} ${valueCellFont}`}>
-              {formatNumber(importado)}
-            </td>
+            {showDetails && (
+              <>
+                <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(premissas)} ${valueCellFont}`}>
+                  {formatNumber(premissas)}
+                </td>
+                <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(historico)} ${valueCellFont}`}>
+                  {formatNumber(historico)}
+                </td>
+                {/* Manual - Input Cell */}
+                <td
+                  className={`p-0 text-right text-sm whitespace-nowrap relative transition-colors ${isTotal || isSubTotal ? "" : "hover:bg-yellow-50/20"} ${isPending ? "bg-yellow-50" : ""}`}
+                >
+                  <div className="h-full w-full p-2">
+                    <EditableCell
+                      value={manual}
+                      onChange={(newValue) => onDataChange(account.id, year, month, "orcadoManual", newValue)}
+                      disabled={isTotal || isSubTotal}
+                      className={`w-full text-right bg-transparent outline-none ${valueCellFont} ${isTotal || isSubTotal ? "text-slate-400" : "text-slate-700"} ${isPending ? "font-bold text-yellow-700" : !isTotal && !isSubTotal && manual !== 0 ? "bg-yellow-50/20 rounded" : ""}`}
+                    />
+                  </div>
+                </td>
+                <td className={`p-3 text-right text-sm whitespace-nowrap ${getNumberClass(importado)} ${valueCellFont}`}>
+                  {formatNumber(importado)}
+                </td>
+              </>
+            )}
             {/* Total Column */}
             <td
               className={`p-3 text-right text-sm whitespace-nowrap ${valueCellFont} ${getNumberClass(total)} ${separatorClass}`}
@@ -114,6 +133,16 @@ const BudgetTableRow: React.FC<BudgetTableRowProps> = ({
             >
               {formatNumber(total)}
             </td>
+            {showVerticalAnalysis && (
+              <td className={`p-2 text-right text-xs whitespace-nowrap ${valueCellFont} text-blue-700`}>
+                {verticalPct !== '-' ? `${verticalPct}%` : '-'}
+              </td>
+            )}
+            {showHorizontalAnalysis && (
+              <td className={`p-2 text-right text-xs whitespace-nowrap ${valueCellFont} ${Number(horizontalPct) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {horizontalPct !== '-' ? `${Number(horizontalPct) >= 0 ? '+' : ''}${horizontalPct}%` : '-'}
+              </td>
+            )}
           </React.Fragment>
         )
       })}
@@ -130,6 +159,11 @@ const BudgetTableRow: React.FC<BudgetTableRowProps> = ({
         onDataChange={onDataChange}
         displayPeriods={displayPeriods}
         pendingChanges={pendingChanges}
+        showDetails={showDetails}
+        showVerticalAnalysis={showVerticalAnalysis}
+        showHorizontalAnalysis={showHorizontalAnalysis}
+        showBenchmark={showBenchmark}
+        totalReceita={totalReceita}
       />
     ))
 
@@ -166,6 +200,10 @@ interface BudgetTableProps {
   selectedPeriod: { years: number[]; months: string[] }
   userRole?: UserRole
   closingConfig?: { lastClosedYear: number; lastClosedMonth: string }
+  showDetails?: boolean
+  showVerticalAnalysis?: boolean
+  showHorizontalAnalysis?: boolean
+  showBenchmark?: boolean
 }
 
 const BudgetTable: React.FC<BudgetTableProps> = ({
@@ -177,6 +215,10 @@ const BudgetTable: React.FC<BudgetTableProps> = ({
   selectedPeriod,
   userRole,
   closingConfig,
+  showDetails = true,
+  showVerticalAnalysis = false,
+  showHorizontalAnalysis = false,
+  showBenchmark = false,
 }) => {
   const [pendingChanges, setPendingChanges] = useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -217,6 +259,23 @@ const BudgetTable: React.FC<BudgetTableProps> = ({
 
   const hasPendingChanges = Object.keys(pendingChanges).length > 0
 
+  // Calculate total receita for vertical analysis (first account is usually "Receita Bruta" or similar)
+  const totalReceita = useMemo(() => {
+    const receitaAccount = data.find(acc => 
+      acc.name.toLowerCase().includes('receita bruta') || 
+      acc.name.toLowerCase().includes('receita total') ||
+      acc.isTotal
+    );
+    if (!receitaAccount) return 0;
+    
+    let total = 0;
+    displayPeriods.forEach(({ year, month }) => {
+      const monthData = receitaAccount.monthlyData[year]?.[month];
+      total += monthData?.orcado || 0;
+    });
+    return total;
+  }, [data, displayPeriods]);
+
   // Header Style from Theme
   const headerStyle: React.CSSProperties = {
     backgroundColor: "var(--color-table-header-bg, #f8fafc)",
@@ -231,13 +290,20 @@ const BudgetTable: React.FC<BudgetTableProps> = ({
             <col className="w-[400px]" />
             {displayPeriods.map(({ year, month }) => (
               <React.Fragment key={`col-${year}-${month}`}>
-                <col className="w-32" />
-                <col className="w-32" />
-                <col className="w-32" />
-                <col className="w-32" />
-                <col className="w-32" />
+                {showDetails && (
+                  <>
+                    <col className="w-28" />
+                    <col className="w-28" />
+                    <col className="w-28" />
+                    <col className="w-28" />
+                  </>
+                )}
+                <col className="w-28" />
+                {showVerticalAnalysis && <col className="w-20" />}
+                {showHorizontalAnalysis && <col className="w-20" />}
               </React.Fragment>
             ))}
+            {showBenchmark && <col className="w-28" />}
           </colgroup>
           <thead className="sticky top-0 z-30 shadow-sm">
             <tr style={headerStyle} className="text-xs font-bold tracking-wider border-b border-slate-200">
@@ -249,41 +315,63 @@ const BudgetTable: React.FC<BudgetTableProps> = ({
               >
                 {activeTab}
               </th>
-              {displayPeriods.map(({ year, month }) => (
-                <th
-                  key={`${year}-${month}`}
-                  colSpan={5}
-                  style={headerStyle}
-                  className="p-4 text-center uppercase border-r border-slate-200"
-                >
-                  {month === "TOTAL" ? "TOTAL" : `${month.substring(0, 3)}/${year}`}
+              {displayPeriods.map(({ year, month }) => {
+                const colSpan = (showDetails ? 4 : 0) + 1 + (showVerticalAnalysis ? 1 : 0) + (showHorizontalAnalysis ? 1 : 0);
+                return (
+                  <th
+                    key={`${year}-${month}`}
+                    colSpan={colSpan}
+                    style={headerStyle}
+                    className="p-4 text-center uppercase border-r border-slate-200"
+                  >
+                    {month === "TOTAL" ? "TOTAL" : `${month.substring(0, 3)}/${year}`}
+                  </th>
+                );
+              })}
+              {showBenchmark && (
+                <th rowSpan={2} style={headerStyle} className="p-4 text-center border-r border-slate-200">
+                  Benchmark
                 </th>
-              ))}
+              )}
             </tr>
             <tr className="text-[10px] font-bold border-b border-slate-200" style={headerStyle}>
               {displayPeriods.map(({ year, month }) => (
                 <React.Fragment key={`subhead-${year}-${month}`}>
-                  <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
-                    Premissas
-                  </th>
-                  <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
-                    Histórico
-                  </th>
-                  <th
-                    style={headerStyle}
-                    className="py-3 px-1 text-center border-r border-slate-100 bg-yellow-50/20 text-yellow-800"
-                  >
-                    Manual
-                  </th>
-                  <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
-                    Importado
-                  </th>
+                  {showDetails && (
+                    <>
+                      <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
+                        Premissas
+                      </th>
+                      <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
+                        Histórico
+                      </th>
+                      <th
+                        style={headerStyle}
+                        className="py-3 px-1 text-center border-r border-slate-100 bg-yellow-50/20 text-yellow-800"
+                      >
+                        Manual
+                      </th>
+                      <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100">
+                        Importado
+                      </th>
+                    </>
+                  )}
                   <th
                     style={{ ...headerStyle, backgroundColor: "rgba(0,0,0,0.03)" }}
                     className="py-3 px-1 text-center border-r border-slate-200 text-slate-900"
                   >
                     Total
                   </th>
+                  {showVerticalAnalysis && (
+                    <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100 text-blue-700 bg-blue-50/50">
+                      AV%
+                    </th>
+                  )}
+                  {showHorizontalAnalysis && (
+                    <th style={headerStyle} className="py-3 px-1 text-center border-r border-slate-100 text-purple-700 bg-purple-50/50">
+                      AH%
+                    </th>
+                  )}
                 </React.Fragment>
               ))}
             </tr>
@@ -297,6 +385,11 @@ const BudgetTable: React.FC<BudgetTableProps> = ({
                 onDataChange={handleValueChange}
                 displayPeriods={displayPeriods}
                 pendingChanges={pendingChanges}
+                showDetails={showDetails}
+                showVerticalAnalysis={showVerticalAnalysis}
+                showHorizontalAnalysis={showHorizontalAnalysis}
+                showBenchmark={showBenchmark}
+                totalReceita={totalReceita}
               />
             ))}
           </tbody>

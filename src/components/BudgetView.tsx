@@ -110,6 +110,10 @@ const BudgetView: React.FC<BudgetViewProps> = ({
             onDataChange={handleManualBudgetChange}
             activeTab={activeDepartment || activeTabContext}
             selectedPeriod={selectedPeriod}
+            showDetails={showDetails}
+            showVerticalAnalysis={showVerticalAnalysis}
+            showHorizontalAnalysis={showHorizontalAnalysis}
+            showBenchmark={showBenchmark}
           />
         </div>
         {showDepartmentTabs && (
