@@ -393,6 +393,32 @@
 
 /* === CUSTOM COMPONENTS === */
 @layer components {
+  /* Table Header - Cabeçalho padrão das tabelas de dados */
+  .table-header {
+    background-color: var(--color-table-header-bg);
+    color: var(--color-table-header-text);
+  }
+
+  /* Table Row styles */
+  .table-row {
+    background-color: var(--color-table-row-bg);
+    color: var(--color-text-main);
+  }
+
+  .table-row:hover {
+    background-color: var(--color-table-row-hover);
+  }
+
+  .table-total {
+    background-color: var(--color-table-total-bg);
+    font-weight: bold;
+  }
+
+  .table-subtotal {
+    background-color: var(--color-table-subtotal-bg);
+    font-weight: 600;
+  }
+
   /* Card styles */
   .card {
     background: var(--color-bg-card);
