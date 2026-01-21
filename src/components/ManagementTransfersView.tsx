@@ -181,8 +181,8 @@ const TransferEditModal: React.FC<{
         const accountOptions = isCashFlow ? balanceSheetAccountOptions : dreAccountOptions;
 
         return (
-            <div className="relative bg-white p-3 border border-slate-200 rounded-lg shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+            <div className="relative bg-white p-4 border border-slate-200 rounded-lg shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
                     <div className="lg:col-span-2">
                         <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Destino</label>
                         <StyledSelect containerClassName="w-full" value={line.targetReport || 'DRE'} onChange={e => handleLineChange(type, index, 'targetReport', e.target.value)}>
@@ -190,7 +190,7 @@ const TransferEditModal: React.FC<{
                             <option value="CASH_FLOW">Fluxo de Caixa</option>
                         </StyledSelect>
                     </div>
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-2">
                         <label className="text-xs font-bold text-slate-500 block mb-1 uppercase">Empresa</label>
                         <StyledSelect containerClassName="w-full" value={line.companyId} onChange={e => handleLineChange(type, index, 'companyId', e.target.value)}>
                             <option value="">Selecione...</option>
@@ -239,7 +239,7 @@ const TransferEditModal: React.FC<{
     
     return (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col overflow-hidden border border-slate-200">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden border border-slate-200">
             <div className="px-6 py-4 border-b border-slate-100 bg-white flex justify-between items-center shrink-0">
                 <h2 className="text-lg font-bold text-slate-800">{transaction.transactionId.startsWith('new_') ? 'Nova Transferência Gerencial' : 'Editar Transferência'}</h2>
                 <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors">
