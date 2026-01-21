@@ -22,6 +22,7 @@ import type {
   MonthlyBalanceEntry,
   OperationalIndicator,
   OperationalValueEntry,
+  GrupoContas,
 } from "../types"
 import { getCadastroTenant, getUnreadNotificationCount } from "../utils/db"
 
@@ -97,6 +98,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
   const [operationalIndicators, setOperationalIndicators] = useState<OperationalIndicator[]>([])
   const [operationalValues, setOperationalValues] = useState<OperationalValueEntry[]>([])
   const [monthlyBalances, setMonthlyBalances] = useState<MonthlyBalanceEntry[]>([])
+  const [accountGroups, setAccountGroups] = useState<GrupoContas[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -165,6 +167,7 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           getCadastroTenant("operational_indicators", tenantId),
           getCadastroTenant("operational_values", tenantId),
           getCadastroTenant("calculation_formulas", tenantId),
+          getCadastroTenant("account_groups", tenantId),
         ])
 
         const getVal = <T,>(idx: number): T[] =>
@@ -308,6 +311,17 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
           expression: f.expressao || f.expression || '',
           description: f.descricao || f.description || '',
         })))
+        
+        const rawAccountGroups = getVal<any>(19)
+        setAccountGroups(rawAccountGroups.map((g: any) => ({
+          id: g.id,
+          organizacaoId: g.organizacao_id || g.organizacaoId,
+          nome: g.nome || '',
+          descricao: g.descricao || '',
+          tipo: g.tipo || 'dre',
+          ordem: g.ordem || 0,
+          ativo: g.ativo !== false,
+        })))
 
         const unread = await getUnreadNotificationCount(user.id)
         setUnreadNotifications(unread)
@@ -359,6 +373,8 @@ export const useAppData = (user: User | null, effectiveTenantId?: string | null)
     operationalValues,
     monthlyBalances,
     setMonthlyBalances,
+    accountGroups,
+    setAccountGroups,
     unreadNotifications,
     setUnreadNotifications,
     isLoadingData,
