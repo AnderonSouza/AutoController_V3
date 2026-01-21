@@ -164,7 +164,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                             containerClassName="w-full"
-                            className="h-10"
+                            className="h-10 py-2.5 pl-4 pr-10 text-sm"
                         >
                             {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                         </StyledSelect>
@@ -175,7 +175,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             value={selectedBrandId}
                             onChange={(e) => setSelectedBrandId(e.target.value)}
                             containerClassName="w-full"
-                            className="h-10"
+                            className="h-10 py-2.5 pl-4 pr-10 text-sm"
                         >
                             {availableBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                         </StyledSelect>
@@ -186,7 +186,7 @@ const BudgetValuesView: React.FC<BudgetValuesViewProps> = ({
                             value={selectedDepartment}
                             onChange={(e) => setSelectedDepartment(e.target.value)}
                             containerClassName="w-full"
-                            className="h-10"
+                            className="h-10 py-2.5 pl-4 pr-10 text-sm"
                         >
                             {availableDepartments.map(d => <option key={d} value={d}>{d}</option>)}
                         </StyledSelect>
