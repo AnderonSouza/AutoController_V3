@@ -180,7 +180,7 @@ const CompanyEditModal: React.FC<{
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Marca</label>
                                     <StyledSelect
@@ -195,6 +195,19 @@ const CompanyEditModal: React.FC<{
                                             <option key={brand.id} value={brand.id}>{brand.name}</option>
                                         ))}
                                     </StyledSelect>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Tipo</label>
+                                    <StyledSelect
+                                        value={editedCompany.tipo || 'efetiva'}
+                                        onChange={(e) => handleChange('tipo', e.target.value)}
+                                        className="h-11 pl-4 text-sm"
+                                        containerClassName="w-full"
+                                    >
+                                        <option value="efetiva">Efetiva</option>
+                                        <option value="apoio">Apoio</option>
+                                    </StyledSelect>
+                                    <p className="text-[10px] text-slate-400 mt-1">Lojas "Apoio" não aparecem em relatórios e orçamentos.</p>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">Consolidação</label>
@@ -542,12 +555,13 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                         <table className="min-w-full divide-y divide-slate-200">
                             <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <SortableHeader label="Cód. ERP" sortKey="erpCode" currentSort={sortConfig} onSort={handleSort} className="w-[8%]" />
-                                    <SortableHeader label="Marca" sortKey="brandName" currentSort={sortConfig} onSort={handleSort} className="w-[12%]" />
-                                    <SortableHeader label="CNPJ" sortKey="cnpj" currentSort={sortConfig} onSort={handleSort} className="w-[14%]" />
-                                    <SortableHeader label="Nome / Razão Social" sortKey="name" currentSort={sortConfig} onSort={handleSort} className="w-[20%]" />
-                                    <SortableHeader label="Apelido" sortKey="nickname" currentSort={sortConfig} onSort={handleSort} className="w-[15%]" />
-                                    <SortableHeader label="Consolida em" sortKey="parentCompanyId" currentSort={sortConfig} onSort={handleSort} className="w-[18%]" />
+                                    <SortableHeader label="Cód. ERP" sortKey="erpCode" currentSort={sortConfig} onSort={handleSort} className="w-[7%]" />
+                                    <SortableHeader label="Marca" sortKey="brandName" currentSort={sortConfig} onSort={handleSort} className="w-[10%]" />
+                                    <SortableHeader label="CNPJ" sortKey="cnpj" currentSort={sortConfig} onSort={handleSort} className="w-[13%]" />
+                                    <SortableHeader label="Nome / Razão Social" sortKey="name" currentSort={sortConfig} onSort={handleSort} className="w-[18%]" />
+                                    <SortableHeader label="Apelido" sortKey="nickname" currentSort={sortConfig} onSort={handleSort} className="w-[14%]" />
+                                    <SortableHeader label="Tipo" sortKey="tipo" currentSort={sortConfig} onSort={handleSort} className="w-[8%]" />
+                                    <SortableHeader label="Consolida em" sortKey="parentCompanyId" currentSort={sortConfig} onSort={handleSort} className="w-[17%]" />
                                     <th className="px-4 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider w-[13%] border-b-2 border-slate-200">Ações</th>
                                 </tr>
                             </thead>
@@ -563,12 +577,17 @@ const CompaniesView: React.FC<CompaniesViewProps> = ({ companies, brands, onNavi
                                             <td className="px-4 py-3 text-sm text-slate-600 font-mono">{company.cnpj || '-'}</td>
                                             <td className="px-4 py-3 text-sm text-slate-800 font-medium">{company.name}</td>
                                             <td className="px-4 py-3 text-sm text-slate-600">{company.nickname || company.name}</td>
+                                            <td className="px-4 py-3 text-sm">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${company.tipo === 'apoio' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                                                    {company.tipo === 'apoio' ? 'Apoio' : 'Efetiva'}
+                                                </span>
+                                            </td>
                                             <td className="px-4 py-3 text-sm text-slate-600">{parentDisplay}</td>
                                             <td className="px-4 py-3 align-middle text-center"><button type="button" onClick={() => setCompanyToEdit(company)} className="text-primary hover:text-primary-hover text-sm font-semibold hover:underline">Editar</button></td>
                                         </tr>
                                     );
                                 })}
-                                {filteredAndSortedCompanies.length === 0 && <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 font-medium">Nenhuma empresa encontrada.</td></tr>}
+                                {filteredAndSortedCompanies.length === 0 && <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-500 font-medium">Nenhuma empresa encontrada.</td></tr>}
                             </tbody>
                         </table>
                     </div>
