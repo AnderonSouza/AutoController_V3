@@ -637,98 +637,133 @@ const AccountingEntryImportModal: React.FC<AccountingEntryImportModalProps> = ({
                     )}
 
                     {step === 3 && (
-                        <div className="text-center py-2">
-                            <div className="flex items-center justify-center gap-3 mb-3">
-                                {stats.success > 0 ? (
-                                    <CheckCircle size={32} className="text-green-500" />
+                        <div className="space-y-4">
+                            <div className={`px-4 py-3 rounded-lg flex items-center gap-3 ${
+                                stats.invalidData > 0 ? 'bg-amber-50 border border-amber-100' : 'bg-emerald-50 border border-emerald-100'
+                            }`}>
+                                {stats.invalidData > 0 ? (
+                                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                    </div>
                                 ) : (
-                                    <XCircle size={32} className="text-red-500" />
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                        <CheckCircle className="h-5 w-5 text-emerald-600" />
+                                    </div>
                                 )}
-                                <h3 className="text-xl font-bold text-gray-800">
-                                    {stats.success > 0 ? 'Carga Finalizada!' : 'Nenhum registro importado'}
-                                </h3>
+                                <div>
+                                    <h3 className={`text-lg font-bold ${stats.invalidData > 0 ? 'text-amber-800' : 'text-emerald-800'}`}>
+                                        {stats.invalidData > 0 ? 'Importacao Concluida com Avisos' : 'Importacao Concluida com Sucesso'}
+                                    </h3>
+                                    <p className="text-sm text-slate-600">Resultado do processamento do arquivo de lancamentos</p>
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 mb-4">
-                                <div className="bg-gray-100 p-2 rounded-lg">
-                                    <p className="text-[10px] text-gray-500 uppercase">Total Arquivo</p>
-                                    <p className="text-lg font-bold text-gray-800">{stats.totalFileRows.toLocaleString()}</p>
+                            <div className="grid grid-cols-4 gap-4">
+                                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                    <div className="text-2xl font-bold text-slate-800">{stats.totalFileRows.toLocaleString()}</div>
+                                    <div className="text-sm text-slate-500">Linhas no Arquivo</div>
                                 </div>
-                                <div className="bg-green-50 p-2 rounded-lg">
-                                    <p className="text-[10px] text-green-600 uppercase">Importadas</p>
-                                    <p className="text-lg font-bold text-green-700">{stats.success.toLocaleString()}</p>
+                                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                                    <div className="text-2xl font-bold text-emerald-700">{stats.success.toLocaleString()}</div>
+                                    <div className="text-sm text-emerald-600">Importadas</div>
                                 </div>
-                                <div className="bg-yellow-50 p-2 rounded-lg">
-                                    <p className="text-[10px] text-yellow-600 uppercase">Ignoradas</p>
-                                    <p className="text-lg font-bold text-yellow-700">{stats.zeroValues.toLocaleString()}</p>
+                                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                                    <div className="text-2xl font-bold text-amber-700">{stats.zeroValues.toLocaleString()}</div>
+                                    <div className="text-sm text-amber-600">Ignoradas (Valor Zero)</div>
                                 </div>
-                                <div className="bg-red-50 p-2 rounded-lg">
-                                    <p className="text-[10px] text-red-600 uppercase">Erros</p>
-                                    <p className="text-lg font-bold text-red-700">{stats.invalidData.toLocaleString()}</p>
+                                <div className={`rounded-lg p-4 border ${stats.invalidData > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                                    <div className={`text-2xl font-bold ${stats.invalidData > 0 ? 'text-red-700' : 'text-slate-400'}`}>
+                                        {stats.invalidData.toLocaleString()}
+                                    </div>
+                                    <div className={`text-sm ${stats.invalidData > 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                                        Com Erro
+                                    </div>
                                 </div>
                             </div>
 
                             {stats.invalidData > 0 && (
-                                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-left">
-                                    <h4 className="font-semibold text-red-800 mb-2 flex items-center gap-2 text-sm">
-                                        <AlertTriangle size={14} />
-                                        Detalhamento dos Erros
-                                    </h4>
-                                    <div className="grid grid-cols-3 gap-2 text-xs">
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium text-[10px]">Empresa não encontrada</p>
-                                            <p className="text-lg font-bold text-red-800">{stats.companyNotFound.toLocaleString()}</p>
+                                <>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                                            <div className="text-xl font-bold text-red-700">{stats.companyNotFound.toLocaleString()}</div>
+                                            <div className="text-xs text-red-600">Empresa nao encontrada</div>
                                         </div>
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium text-[10px]">Conta não encontrada</p>
-                                            <p className="text-lg font-bold text-red-800">{stats.accountNotFound.toLocaleString()}</p>
+                                        <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                                            <div className="text-xl font-bold text-red-700">{stats.accountNotFound.toLocaleString()}</div>
+                                            <div className="text-xs text-red-600">Conta nao encontrada</div>
                                         </div>
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <p className="text-red-600 font-medium text-[10px]">CR não encontrado</p>
-                                            <p className="text-lg font-bold text-red-800">{stats.costCenterNotFound.toLocaleString()}</p>
+                                        <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                                            <div className="text-xl font-bold text-red-700">{stats.costCenterNotFound.toLocaleString()}</div>
+                                            <div className="text-xs text-red-600">CR nao encontrado</div>
                                         </div>
                                     </div>
 
-                                    {errorEntries.length > 0 && (
-                                        <div className="mt-2">
-                                            <p className="text-xs text-red-700 mb-1">Primeiros 3 erros:</p>
-                                            <div className="bg-white rounded border border-red-100 overflow-hidden">
-                                                <table className="w-full text-[10px]">
-                                                    <thead className="bg-red-100">
-                                                        <tr>
-                                                            <th className="p-1.5 text-left w-16">Linha</th>
-                                                            <th className="p-1.5 text-left">Motivo</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {errorEntries.slice(0, 3).map((e, i) => (
-                                                            <tr key={i} className="border-t border-red-50">
-                                                                <td className="p-1.5 font-mono">{e.linha}</td>
-                                                                <td className="p-1.5 truncate max-w-[300px]">{e.motivo}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-sm font-semibold text-slate-700">Detalhes dos Erros</h3>
+                                        <button
+                                            onClick={downloadAuditLog}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+                                        >
+                                            <Download size={14} />
+                                            Exportar Erros
+                                        </button>
+                                    </div>
 
-                                    <button
-                                        onClick={downloadAuditLog}
-                                        className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                    >
-                                        <Download size={14} />
-                                        Baixar Relatório de Erros (CSV)
-                                    </button>
+                                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                                        <div className="max-h-64 overflow-y-auto">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-slate-100 sticky top-0">
+                                                    <tr>
+                                                        <th className="px-3 py-2 text-left font-semibold text-slate-600">Linha</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-slate-600">CNPJ</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-slate-600">Conta</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-slate-600">CR</th>
+                                                        <th className="px-3 py-2 text-left font-semibold text-slate-600">Motivo</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {errorEntries.slice(0, 50).map((error, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50">
+                                                            <td className="px-3 py-2 text-slate-600 font-mono">{error.linha}</td>
+                                                            <td className="px-3 py-2 text-slate-500 font-mono text-xs">
+                                                                {error.cnpj || '-'}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500 font-mono text-xs">
+                                                                {error.contaId || '-'}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500 font-mono text-xs">
+                                                                {error.siglaCr || '-'}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-red-600 text-xs">{error.motivo}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {errorEntries.length > 50 && (
+                                            <div className="px-3 py-2 bg-slate-50 text-center text-xs text-slate-500 border-t">
+                                                Exibindo 50 de {errorEntries.length} erros. Exporte para ver todos.
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+
+                            {stats.invalidData === 0 && (
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+                                    <CheckCircle className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                                    <p className="text-emerald-700 font-medium">Todos os lancamentos foram importados com sucesso!</p>
                                 </div>
                             )}
 
-                            <button
-                                onClick={() => { onSuccess(); onClose(); }}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
-                            >
-                                Fechar e Concluir
-                            </button>
+                            <div className="flex justify-end pt-2 border-t">
+                                <button
+                                    onClick={() => { onSuccess(); onClose(); }}
+                                    className="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
+                                >
+                                    Fechar
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
